@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package api.collector;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;collector";
+
+enum MessageType {
+  // 心跳
+  Heartbeat = 0;
+  // 上报
+  Report = 1;
+  // 要求单片机立即上报
+  ReportImmediately = 2;
+  // 设置单片机上报间隔
+  SetReportInterval = 3;
+  // 上报MAC地址
+  ReportMac = 4;
+}
+
+message Empty {}
+
+message SetReportIntervalPayload { uint64 interval = 1; }
+
+message GeoPoint {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message ReportPayload {
+  uint64 timestamp = 1;
+  GeoPoint geo_point = 2;
+  double temperature = 3;
+}
+
+message Message {
+  MessageType type = 1;
+  oneof payload {
+    Empty empty = 2;
+    ReportPayload report_payload = 3;
+    SetReportIntervalPayload set_report_interval_payload = 4;
+    string mac = 5;
+  }
+}

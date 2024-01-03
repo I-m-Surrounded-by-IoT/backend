@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package api.collector;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;collector";
+
+import "google/api/annotations.proto";
+
+service Collector {
+  rpc ReportImmediately(ReportImmediatelyReq) returns (ReportImmediatelyResp) {
+    option (google.api.http) = {
+      post : "/v1/collector/report_immediately"
+      body : "*"
+    };
+  }
+
+  rpc SetReportInterval(SetReportIntervalReq) returns (SetReportIntervalResp) {
+    option (google.api.http) = {
+      post : "/v1/collector/set_report_interval"
+      body : "*"
+    };
+  }
+}
+
+message ReportImmediatelyReq { uint64 id = 1; }
+
+message ReportImmediatelyResp {}
+
+message SetReportIntervalReq {
+  uint64 id = 1;
+  uint64 interval = 2;
+}
+
+message SetReportIntervalResp {}

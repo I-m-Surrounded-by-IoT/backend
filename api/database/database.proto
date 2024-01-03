@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package api.database;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/database;database";
+
+import "google/api/annotations.proto";
+
+service Database {
+  rpc CreateCollectionInfo(CollectionInfo) returns (Empty) {
+    option (google.api.http) = {
+      post : "/v1/database/create_collection_info"
+      body : "*"
+    };
+  }
+
+  rpc ListCollectionInfo(ListCollectionInfoReq)
+      returns (ListCollectionInfoResp) {
+    option (google.api.http) = {
+      post : "/v1/database/list_collection_info"
+      body : "*"
+    };
+  }
+
+  rpc GetDevice(GetDeviceReq) returns (Device) {
+    option (google.api.http) = {
+      post : "/v1/database/get_device"
+      body : "*"
+    };
+  }
+
+  rpc GetDeviceWithMac(GetDeviceWithMacReq) returns (Device) {
+    option (google.api.http) = {
+      post : "/v1/database/get_device_with_mac"
+      body : "*"
+    };
+  }
+
+  rpc CreateDevice(CreateDeviceReq) returns (Device) {
+    option (google.api.http) = {
+      post : "/v1/database/create_device"
+      body : "*"
+    };
+  }
+
+  rpc FirstOrCreateDevice(CreateDeviceReq) returns (Device) {
+    option (google.api.http) = {
+      post : "/v1/database/find_or_create_device"
+      body : "*"
+    };
+  }
+}
+
+message GeoPoint {
+  double lat = 1;
+  double lng = 2;
+}
+
+message CollectionInfo {
+  uint64 device_id = 1;
+  uint64 timestamp = 2;
+  GeoPoint geo_point = 3;
+}
+
+message Empty {}
+
+message ListCollectionInfoReq {
+  uint64 page = 1;
+  uint64 page_size = 2;
+  uint64 device_id = 3;
+  uint64 start_timestamp = 4;
+  uint64 end_timestamp = 5;
+}
+
+message ListCollectionInfoResp {
+  message CollectionInfo {
+    uint64 created_at = 1;
+    uint64 device_id = 2;
+    uint64 timestamp = 3;
+    GeoPoint geo_point = 4;
+  }
+  repeated CollectionInfo collection_infos = 1;
+}
+
+message Device {
+  uint64 device_id = 1;
+  uint64 created_at = 2;
+  uint64 updated_at = 3;
+  string mac = 4;
+}
+
+message GetDeviceReq { uint64 device_id = 1; }
+
+message GetDeviceWithMacReq { string mac = 1; }
+
+message CreateDeviceReq { string mac = 1; }

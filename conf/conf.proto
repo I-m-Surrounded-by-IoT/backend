@@ -1,0 +1,103 @@
+syntax = "proto3";
+package kratos.api;
+
+option go_package = "backend/internal/conf;conf";
+
+import "google/protobuf/duration.proto";
+
+message Registry {
+  message Consul {
+    string scheme = 1;                    // @gotags: env:"CONSUL_SCHEME"
+    string addr = 2;                      // @gotags: env:"CONSUL_ADDR"
+    string prefix = 3;                    // @gotags: env:"CONSUL_PREFIX"
+    google.protobuf.Duration timeout = 4; // @gotags: env:"CONSUL_TIMEOUT"
+  }
+  message Etcd {
+    string endpoint = 1;                  // @gotags: env:"ETCD_ENDPOINT"
+    string username = 2;                  // @gotags: env:"ETCD_USERNAME"
+    string password = 3;                  // @gotags: env:"ETCD_PASSWORD"
+    google.protobuf.Duration timeout = 4; // @gotags: env:"ETCD_TIMEOUT"
+  }
+  Consul consul = 1;
+  Etcd etcd = 2;
+}
+
+message WebServer {
+  message TLS {
+    string cert_file = 1; // @gotags: env:"WEB_CERT_FILE"
+    string key_file = 2;  // @gotags: env:"WEB_KEY_FILE"
+    string ca_file = 3;   // @gotags: env:"WEB_CA_FILE"
+  }
+  string addr = 1; // @gotags: env:"WEB_ADDR"
+  TLS tls = 2;
+  string custom_endpoint = 3; // @gotags: env:"WEB_CUSTOM_ENDPOINT"
+}
+
+message GrpcServer {
+  message TLS {
+    string cert_file = 1; // @gotags: env:"GRPC_CERT_FILE"
+    string key_file = 2;  // @gotags: env:"GRPC_KEY_FILE"
+    string ca_file = 3;   // @gotags: env:"GRPC_CA_FILE"
+  }
+  string addr = 1; // @gotags: env:"GRPC_ADDR"
+  TLS tls = 2;
+  string custom_endpoint = 3;           // @gotags: env:"GRPC_CUSTOM_ENDPOINT"
+  google.protobuf.Duration timeout = 4; // @gotags: env:"GRPC_SERVER_TIMEOUT"
+  string jwt_secret = 5;                // @gotags: env:"GRPC_SERVER_JWT_SECRET"
+}
+
+message TcpServer {
+  message TLS {
+    string cert_file = 1; // @gotags: env:"TCP_CERT_FILE"
+    string key_file = 2;  // @gotags: env:"TCP_KEY_FILE"
+    string ca_file = 3;   // @gotags: env:"TCP_CA_FILE"
+  }
+  string addr = 1; // @gotags: env:"TCP_ADDR"
+  TLS tls = 2;
+  string custom_endpoint = 3;           // @gotags: env:"TCP_CUSTOM_ENDPOINT"
+  google.protobuf.Duration timeout = 4; // @gotags: env:"TCP_SERVER_TIMEOUT"
+}
+
+message CollectorConfig {
+  bool database_tls = 1; // @gotags: env:"COLLECTOR_DATABASE_TLS"
+  string database_jwt_secret =
+      2; // @gotags: env:"COLLECTOR_DATABASE_JWT_SECRET"
+}
+
+message CollectorServer {
+  TcpServer tcp_server = 1;
+  GrpcServer grpc_server = 2;
+  Registry registry = 3;
+  CollectorConfig config = 4;
+}
+
+message GatewayConfig {}
+
+message GatewayServer {
+  TcpServer server = 1;
+  Registry registry = 2;
+  GatewayConfig config = 3;
+}
+
+enum DatabaseType {
+  SQLITE = 0;
+  MYSQL = 1;
+  POSTGRESQL = 2;
+}
+
+message DatabaseConfig {
+  DatabaseType type = 1; // @gotags: env:"DATABASE_TYPE"
+  string host = 2;       // @gotags: env:"DATABASE_HOST"
+  uint32 port = 3;       // @gotags: env:"DATABASE_PORT"
+  string user = 4;       // @gotags: env:"DATABASE_USER"
+  string password = 5;   // @gotags: env:"DATABASE_PASSWORD"
+  string name = 6;       // @gotags: env:"DATABASE_NAME"
+  string ssl_mode = 7;   // @gotags: env:"DATABASE_SSLMODE"
+  bool auto_migrate = 8; // @gotags: env:"DATABASE_AUTOMIGRATE"
+}
+
+message DatabaseServer {
+  GrpcServer server = 1;
+  Registry registry = 2;
+  DatabaseConfig config = 3;
+}
