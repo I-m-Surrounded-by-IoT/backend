@@ -1,8 +1,8 @@
-# Collector
+# backend
 
 ## Run
 ```bash
 make init
 make build
-./build/collector server
-```# backend
+./build/backend
+```

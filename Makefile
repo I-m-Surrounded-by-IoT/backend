@@ -91,7 +91,7 @@ build-windows:
 # run
 run:
 	make build
-	./build/backend server
+	./build/backend
 
 .PHONY: generate
 # generate
