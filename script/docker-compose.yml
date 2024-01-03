@@ -1,8 +1,21 @@
 version: '3.3'
 services:
-  backend:
-    image: 'synctvorg/backend:latest'
-    container_name: backend
+  gataway:
+    image: 'zijiren/backend:latest'
+    container_name: backend-gataway
+    restart: unless-stopped
+    ports:
+      - '8000:8000/tcp'
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=
+    command: gataway
+  database:
+    image: 'zijiren/backend:latest'
+    container_name: backend-database
     restart: unless-stopped
     ports:
       - '9000:9000/tcp'
@@ -11,3 +24,20 @@ services:
       - PGID=0
       - UMASK=022
       - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=
+      - DATABASE_AUTOMIGRATE=true
+    command: database
+  collector:
+    image: 'zijiren/backend:latest'
+    container_name: backend-collector
+    restart: unless-stopped
+    ports:
+      - '10000:8000/tcp'
+      - '11000:9000/tcp'
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=
+    command: collector
