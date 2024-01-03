@@ -12,7 +12,7 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/hashicorp/consul/api v1.26.1
 	github.com/joho/godotenv v1.5.1
-	github.com/json-iterator/go v1.1.9
+	github.com/json-iterator/go v1.1.12
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
@@ -66,7 +66,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.11 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.11 // indirect
