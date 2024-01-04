@@ -62,9 +62,8 @@ func Server(cmd *cobra.Command, args []string) {
 		TcpServer:  conf.DefaultTcpServer(),
 		GrpcServer: conf.DefaultGrpcServer(),
 		Registry:   conf.DefaultRegistry(),
-		Config: &conf.CollectorConfig{
-			Kafka: conf.DefaultKafka(),
-		},
+		Config:     &conf.CollectorConfig{},
+		Kafka:      conf.DefaultKafka(),
 	}
 
 	if flagconf != "" {
@@ -99,7 +98,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.GrpcServer, bc.TcpServer, bc.Registry, bc.Config, logger)
+	app, cleanup, err := wireApp(bc.GrpcServer, bc.TcpServer, bc.Registry, bc.Config, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}

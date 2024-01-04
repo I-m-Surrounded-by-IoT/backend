@@ -145,7 +145,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	}
 }
 
-func NewCollectorService(c *conf.CollectorConfig, reg registry.Registrar) *CollectorService {
+func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
 	s := &CollectorService{}
 	switch reg := reg.(type) {
 	case *registryClient.EtcdRegistry:
@@ -172,15 +172,15 @@ func NewCollectorService(c *conf.CollectorConfig, reg registry.Registrar) *Colle
 		panic("invalid registry")
 	}
 
-	if c.Kafka != nil && c.Kafka.Brokers != "" {
+	if k != nil && k.Brokers != "" {
 		lkh, err := logkafka.NewLogKafkaHook(
-			strings.Split(c.Kafka.Brokers, ","),
+			strings.Split(k.Brokers, ","),
 			[]string{"device-log"},
 			[]logkafka.KafkaOptionFunc{
 				logkafka.WithKafkaSASLEnable(true),
 				logkafka.WithKafkaSASLHandshake(true),
-				logkafka.WithKafkaSASLUser(c.Kafka.User),
-				logkafka.WithKafkaSASLPassword(c.Kafka.Password),
+				logkafka.WithKafkaSASLUser(k.User),
+				logkafka.WithKafkaSASLPassword(k.Password),
 			},
 			logkafka.WithLogKafkaHookMustHasFields([]string{"device_id"}),
 			logkafka.WithLogKafkaHookKeyFormatter(new(kafkaLogKeyFormatter)),

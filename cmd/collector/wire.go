@@ -16,6 +16,6 @@ import (
 	"github.com/google/wire"
 )
 
-func wireApp(*conf.GrpcServer, *conf.TcpServer, *conf.Registry, *conf.CollectorConfig, log.Logger) (*kratos.App, func(), error) {
+func wireApp(*conf.GrpcServer, *conf.TcpServer, *conf.Registry, *conf.CollectorConfig, *conf.KafkaConfig, log.Logger) (*kratos.App, func(), error) {
 	panic(wire.Build(collector.ProviderSet, service.ProviderSet, reg.ProviderSet, newApp))
 }

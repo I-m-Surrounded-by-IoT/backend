@@ -21,11 +21,14 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(grpcServer *conf.GrpcServer, confRegistry *conf.Registry, databaseConfig *conf.DatabaseConfig, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(grpcServer *conf.GrpcServer, confRegistry *conf.Registry, databaseConfig *conf.DatabaseConfig, kafkaConfig *conf.KafkaConfig, logger log.Logger) (*kratos.App, func(), error) {
 	databaseService := database.NewDatabaseService(databaseConfig)
 	grpcGatewayServer := database2.NewDatabaseServer(grpcServer, databaseService)
+	consumerGroup := database2.NewLogConsumer(kafkaConfig)
+	deviceLogConsumer := database.NewDeviceLogConsumer(databaseService)
+	databaseDeviceLogConsumer := database2.NewDeviceLogConsumer(consumerGroup, deviceLogConsumer)
 	registrar := registry.NewRegistry(confRegistry)
-	app := newApp(logger, grpcGatewayServer, registrar)
+	app := newApp(logger, grpcGatewayServer, databaseDeviceLogConsumer, registrar)
 	return app, func() {
 	}, nil
 }
