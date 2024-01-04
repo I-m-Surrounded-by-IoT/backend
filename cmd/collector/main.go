@@ -62,7 +62,9 @@ func Server(cmd *cobra.Command, args []string) {
 		TcpServer:  conf.DefaultTcpServer(),
 		GrpcServer: conf.DefaultGrpcServer(),
 		Registry:   conf.DefaultRegistry(),
-		Config:     &conf.CollectorConfig{},
+		Config: &conf.CollectorConfig{
+			Kafka: conf.DefaultKafka(),
+		},
 	}
 
 	if flagconf != "" {

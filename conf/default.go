@@ -26,3 +26,9 @@ func DefaultRegistry() *Registry {
 		Etcd:   &Registry_Etcd{},
 	}
 }
+
+func DefaultKafka() *KafkaConfig {
+	return &KafkaConfig{
+		Brokers: "",
+	}
+}

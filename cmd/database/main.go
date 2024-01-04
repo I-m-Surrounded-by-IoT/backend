@@ -56,7 +56,8 @@ func Server(cmd *cobra.Command, args []string) {
 	bc := conf.DatabaseServer{
 		Server: conf.DefaultGrpcServer(),
 		Config: &conf.DatabaseConfig{
-			Name: "database",
+			Name:  "database",
+			Kafka: conf.DefaultKafka(),
 		},
 		Registry: conf.DefaultRegistry(),
 	}

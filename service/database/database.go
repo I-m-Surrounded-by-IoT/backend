@@ -2,12 +2,15 @@ package database
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/database"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/database/model"
+	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
+	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"gorm.io/gorm"
 )
 
@@ -31,9 +34,45 @@ func NewDatabaseService(c *conf.DatabaseConfig) *DatabaseService {
 			log.Fatalf("failed to migrate database: %v", err)
 		}
 	}
-	return &DatabaseService{
+	db := &DatabaseService{
 		db: newDBUtils(d),
 	}
+	client, err := logkafka.NewKafkaClient(
+		strings.Split(c.Kafka.Brokers, ","),
+		logkafka.WithKafkaSASLEnable(true),
+		logkafka.WithKafkaSASLHandshake(true),
+		logkafka.WithKafkaSASLUser(c.Kafka.User),
+		logkafka.WithKafkaSASLPassword(c.Kafka.Password),
+	)
+	if err != nil {
+		log.Fatalf("failed to create kafka client: %v", err)
+	}
+	consumerGroup, err := sarama.NewConsumerGroupFromClient(
+		"device-log",
+		client,
+	)
+	if err != nil {
+		log.Fatalf("failed to create kafka consumer group: %v", err)
+	}
+	go consumerGroup.Consume(context.Background(), []string{"log"}, db)
+	return db
+}
+
+var _ sarama.ConsumerGroupHandler = (*DatabaseService)(nil)
+
+func (s *DatabaseService) Setup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func (s *DatabaseService) Cleanup(sarama.ConsumerGroupSession) error {
+	return nil
+}
+
+func (s *DatabaseService) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for msg := range claim.Messages() {
+		log.Infof("receive message: key: %v, value: %v", string(msg.Key), string(msg.Value))
+	}
+	return nil
 }
 
 func (s *DatabaseService) CreateCollectionInfo(ctx context.Context, req *database.CollectionInfo) (*database.Empty, error) {

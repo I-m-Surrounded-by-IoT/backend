@@ -26,6 +26,9 @@ services:
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=
       - DATABASE_AUTOMIGRATE=true
+      - KAFKA_BROKERS=
+      - KAFKA_USER=
+      - KAFKA_PASSWORD=
     command: database
   collector:
     image: 'zijiren/backend:latest'
@@ -40,4 +43,7 @@ services:
       - UMASK=022
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=
+      - KAFKA_BROKERS=
+      - KAFKA_USER=
+      - KAFKA_PASSWORD=
     command: collector

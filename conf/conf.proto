@@ -62,6 +62,13 @@ message CollectorConfig {
   bool database_tls = 1; // @gotags: env:"COLLECTOR_DATABASE_TLS"
   string database_jwt_secret =
       2; // @gotags: env:"COLLECTOR_DATABASE_JWT_SECRET"
+  KafkaConfig kafka = 3;
+}
+
+message KafkaConfig {
+  string brokers = 1;  // @gotags: env:"KAFKA_BROKERS"
+  string user = 2;     // @gotags: env:"KAFKA_USER"
+  string password = 3; // @gotags: env:"KAFKA_PASSWORD"
 }
 
 message CollectorServer {
@@ -94,6 +101,7 @@ message DatabaseConfig {
   string name = 6;       // @gotags: env:"DATABASE_NAME"
   string ssl_mode = 7;   // @gotags: env:"DATABASE_SSLMODE"
   bool auto_migrate = 8; // @gotags: env:"DATABASE_AUTOMIGRATE"
+  KafkaConfig kafka = 9;
 }
 
 message DatabaseServer {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/database"
@@ -16,6 +17,7 @@ import (
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	"github.com/sirupsen/logrus"
+	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -60,6 +62,8 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("find or create device failed: %w", err)
 	}
 
+	log := logrus.WithField("device_id", device.DeviceId)
+
 	devicdService := &registry.ServiceInstance{
 		ID:   device.Mac,
 		Name: fmt.Sprintf("device-%v", device.DeviceId),
@@ -82,10 +86,12 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	if err != nil {
 		return fmt.Errorf("register device failed: %w", err)
 	}
+	log.Infof("register device to registry: %v", devicdService)
+
 	defer func() {
 		err := reg.Deregister(context.Background(), devicdService)
 		if err != nil {
-			logrus.Errorf("deregister device failed: %v", err)
+			log.Errorf("deregister device failed: %v", err)
 		}
 	}()
 
@@ -112,13 +118,15 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		}
 		switch msg.Type {
 		case collector.MessageType_Heartbeat:
+			log.Infof("receive heartbeat message from collector: %v", msg.Payload)
 			continue
 		case collector.MessageType_Report:
 			payload := msg.GetReportPayload()
 			if payload == nil {
-				logrus.Errorf("invalid message payload: %v", msg.Payload)
+				log.Errorf("invalid message payload: %v", msg.Payload)
 				continue
 			}
+			log.Infof("receive report message from collector: %v", payload)
 			_, err = c.db.CreateCollectionInfo(ctx, &database.CollectionInfo{
 				DeviceId:  device.DeviceId,
 				Timestamp: payload.Timestamp,
@@ -131,7 +139,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 				return fmt.Errorf("create collection info failed: %w", err)
 			}
 		default:
-			logrus.Errorf("invalid message type: %v", msg.Type)
+			log.Errorf("invalid message type: %v", msg.Type)
 			continue
 		}
 	}
@@ -163,5 +171,28 @@ func NewCollectorService(c *conf.CollectorConfig, reg registry.Registrar) *Colle
 	default:
 		panic("invalid registry")
 	}
+
+	if c.Kafka != nil && c.Kafka.Brokers != "" {
+		lkh, err := logkafka.NewLogKafkaHook(
+			strings.Split(c.Kafka.Brokers, ","),
+			[]string{"device-log"},
+			[]logkafka.KafkaOptionFunc{
+				logkafka.WithKafkaSASLEnable(true),
+				logkafka.WithKafkaSASLHandshake(true),
+				logkafka.WithKafkaSASLUser(c.Kafka.User),
+				logkafka.WithKafkaSASLPassword(c.Kafka.Password),
+			},
+			logkafka.WithLogKafkaHookMustHasFields([]string{"device_id"}),
+			logkafka.WithLogKafkaHookKeyFormatter(new(kafkaLogKeyFormatter)),
+		)
+		if err != nil {
+			logrus.Fatalf("failed to create kafka hook: %v", err)
+		}
+		logrus.Infof("add kafka hook to logrus")
+		logrus.AddHook(lkh)
+	} else {
+		logrus.Warnf("kafka config is empty")
+	}
+
 	return s
 }
