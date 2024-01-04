@@ -72,6 +72,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		},
 	}
 
+	log.Infof("register device to registry: %v", devicdService)
 	var reg registry.Registrar
 	switch {
 	case c.er != nil:
@@ -79,7 +80,8 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	case c.cr != nil:
 		reg = consul.New(c.cr.Client(), consul.WithHealthCheck(false))
 	default:
-		return fmt.Errorf("invalid registry")
+		log.Errorf("etcd or consul registry is nil")
+		return fmt.Errorf("etcd or consul registry is nil")
 	}
 
 	err = reg.Register(ctx, devicdService)
@@ -89,6 +91,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	log.Infof("register device to registry: %v", devicdService)
 
 	defer func() {
+		log.Infof("deregister device from registry: %v", devicdService)
 		err := reg.Deregister(context.Background(), devicdService)
 		if err != nil {
 			log.Errorf("deregister device failed: %v", err)
