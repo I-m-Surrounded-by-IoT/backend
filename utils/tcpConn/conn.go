@@ -49,10 +49,21 @@ func (c *Conn) Send(data []byte, deadline ...time.Time) error {
 		_ = c.netConn.SetWriteDeadline(time.Time{})
 	}
 
-	err := c.writer.U16(uint16(len(data))).Bytes(data).Error()
-	if err != nil {
-		return err
+	l := len(data)
+	if l > 0x7fff {
+		return errors.New("data too long")
+	} else if l > 0x7f {
+		err := c.writer.Byte(0x80 | uint8(l>>8)).Byte(uint8(l & 0xff)).Bytes(data).Error()
+		if err != nil {
+			return err
+		}
+	} else {
+		err := c.writer.Byte(uint8(l)).Bytes(data).Error()
+		if err != nil {
+			return err
+		}
 	}
+
 	return c.buf.Flush()
 }
 
@@ -102,9 +113,20 @@ func (c *Conn) NextMessage(deadline ...time.Time) ([]byte, error) {
 	} else {
 		_ = c.netConn.SetReadDeadline(time.Time{})
 	}
-	t, err := c.reader.ReadU16()
+	var t int
+	// 如果第一个字节的最高位为1，则表示后面还有一个字节，两个字节拼接为int16
+	i, err := c.reader.ReadByte()
 	if err != nil {
 		return nil, err
+	}
+	if i>>7 == 1 {
+		i2, err := c.reader.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		t = int(int16(i&0x7f)<<8) + int(i2)
+	} else {
+		t = int(i)
 	}
 	return c.reader.ReadBytes(int(t))
 }

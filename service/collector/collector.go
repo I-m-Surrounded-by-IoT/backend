@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/database"
@@ -126,7 +127,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		case collector.MessageType_Report:
 			payload := msg.GetReportPayload()
 			if payload == nil {
-				log.Errorf("invalid message payload: %v", msg.Payload)
+				log.Errorf("invalid report payload: %v", msg.Payload)
 				continue
 			}
 			log.Infof("receive report message from collector: %v", payload)
@@ -141,6 +142,25 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			if err != nil {
 				return fmt.Errorf("create collection info failed: %w", err)
 			}
+		case collector.MessageType_ReportLog:
+			payload := msg.GetLogPayload()
+			if payload == nil {
+				log.Errorf("invalid report log payload: %v", msg.Payload)
+				continue
+			}
+			switch payload.Level {
+			case collector.LogLevel_LogLevelDebug:
+				log.Debugf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+			case collector.LogLevel_LogLevelInfo:
+				log.Infof("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+			case collector.LogLevel_LogLevelWarning:
+				log.Warnf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+			case collector.LogLevel_LogLevelError:
+				log.Errorf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+			default:
+				log.Errorf("device report invalid log level: %v, message: %v", payload.Level, payload.Message)
+			}
+
 		default:
 			log.Errorf("invalid message type: %v", msg.Type)
 			continue

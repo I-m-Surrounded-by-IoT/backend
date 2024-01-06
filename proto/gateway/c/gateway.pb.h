@@ -11,7 +11,7 @@
 
 /* Struct definitions */
 typedef struct _api_gateway_GetServerReq {
-    pb_callback_t mac;
+    char dummy_field;
 } api_gateway_GetServerReq;
 
 typedef struct _api_gateway_GetServerResp {
@@ -24,19 +24,18 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define api_gateway_GetServerReq_init_default    {{{NULL}, NULL}}
+#define api_gateway_GetServerReq_init_default    {0}
 #define api_gateway_GetServerResp_init_default   {{{NULL}, NULL}}
-#define api_gateway_GetServerReq_init_zero       {{{NULL}, NULL}}
+#define api_gateway_GetServerReq_init_zero       {0}
 #define api_gateway_GetServerResp_init_zero      {{{NULL}, NULL}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define api_gateway_GetServerReq_mac_tag         1
 #define api_gateway_GetServerResp_server_addr_tag 1
 
 /* Struct field encoding specification for nanopb */
 #define api_gateway_GetServerReq_FIELDLIST(X, a) \
-X(a, CALLBACK, SINGULAR, STRING,   mac,               1)
-#define api_gateway_GetServerReq_CALLBACK pb_default_field_callback
+
+#define api_gateway_GetServerReq_CALLBACK NULL
 #define api_gateway_GetServerReq_DEFAULT NULL
 
 #define api_gateway_GetServerResp_FIELDLIST(X, a) \
@@ -52,8 +51,9 @@ extern const pb_msgdesc_t api_gateway_GetServerResp_msg;
 #define api_gateway_GetServerResp_fields &api_gateway_GetServerResp_msg
 
 /* Maximum encoded size of messages (where known) */
-/* api_gateway_GetServerReq_size depends on runtime parameters */
 /* api_gateway_GetServerResp_size depends on runtime parameters */
+#define API_GATEWAY_PROTO_GATEWAY_GATEWAY_PB_H_MAX_SIZE api_gateway_GetServerReq_size
+#define api_gateway_GetServerReq_size            0
 
 #ifdef __cplusplus
 } /* extern "C" */

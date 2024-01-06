@@ -35,10 +35,7 @@ func ClientRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("error saying hello: %v", err)
 	}
-	msg := gateway.GetServerReq{
-		// TODO: mac not used
-		Mac: "00:00:00:00:00:00",
-	}
+	msg := gateway.GetServerReq{}
 	b, err := proto.Marshal(&msg)
 	if err != nil {
 		log.Fatalf("error marshaling: %v", err)
@@ -88,12 +85,35 @@ func handlerCollector(conn *tcpconn.Conn) {
 		log.Fatalf("error sending: %v", err)
 	}
 	log.Infof("report mac success")
+	go func() {
+		t := time.NewTicker(time.Second * 5)
+		defer t.Stop()
+		send := collector.Message{
+			Type: collector.MessageType_ReportLog,
+		}
+		for range t.C {
+			send.Payload = &collector.Message_LogPayload{
+				LogPayload: &collector.LogPayload{
+					Timestamp: uint64(time.Now().UnixMicro()),
+					Level:     collector.LogLevel_LogLevelInfo,
+				},
+			}
+			b, err = proto.Marshal(&send)
+			if err != nil {
+				log.Fatalf("error marshaling: %v", err)
+			}
+			err = conn.Send(b)
+			if err != nil {
+				log.Fatalf("error sending: %v", err)
+			}
+		}
+	}()
 	for {
 		b, err := conn.NextMessage()
 		if err != nil {
 			log.Fatalf("error receiving: %v", err)
 		}
-		msg := collector.Message{}
+		msg = collector.Message{}
 		err = proto.Unmarshal(b, &msg)
 		if err != nil {
 			log.Fatalf("error unmarshaling: %v", err)

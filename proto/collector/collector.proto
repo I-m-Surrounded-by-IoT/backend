@@ -5,16 +5,34 @@ package api.collector;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;collector";
 
 enum MessageType {
+  // 未知
+  Unknown = 0;
   // 心跳
-  Heartbeat = 0;
+  Heartbeat = 1;
   // 上报
-  Report = 1;
+  Report = 2;
   // 要求单片机立即上报
-  ReportImmediately = 2;
+  ReportImmediately = 3;
   // 设置单片机上报间隔
-  SetReportInterval = 3;
+  SetReportInterval = 4;
   // 上报MAC地址
-  ReportMac = 4;
+  ReportMac = 5;
+  // 上报日志
+  ReportLog = 6;
+}
+
+enum LogLevel {
+  LogLevelUnknown = 0;
+  LogLevelDebug = 1;
+  LogLevelInfo = 2;
+  LogLevelWarning = 3;
+  LogLevelError = 4;
+}
+
+message LogPayload {
+  LogLevel level = 1;
+  uint64 timestamp = 2;
+  string message = 3;
 }
 
 message Empty {}
@@ -39,5 +57,6 @@ message Message {
     ReportPayload report_payload = 3;
     SetReportIntervalPayload set_report_interval_payload = 4;
     string mac = 5;
+    LogPayload log_payload = 6;
   }
 }

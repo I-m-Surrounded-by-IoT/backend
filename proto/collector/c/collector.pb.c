@@ -6,6 +6,9 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+PB_BIND(api_collector_LogPayload, api_collector_LogPayload, AUTO)
+
+
 PB_BIND(api_collector_Empty, api_collector_Empty, AUTO)
 
 
@@ -19,6 +22,7 @@ PB_BIND(api_collector_ReportPayload, api_collector_ReportPayload, AUTO)
 
 
 PB_BIND(api_collector_Message, api_collector_Message, AUTO)
+
 
 
 

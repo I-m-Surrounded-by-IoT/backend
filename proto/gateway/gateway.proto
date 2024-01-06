@@ -4,6 +4,6 @@ package api.gateway;
 
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/gateway;gateway";
 
-message GetServerReq { string mac = 1; }
+message GetServerReq {}
 
 message GetServerResp { string server_addr = 1; }
