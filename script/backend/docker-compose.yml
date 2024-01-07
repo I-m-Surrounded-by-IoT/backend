@@ -26,7 +26,7 @@ services:
       - UMASK=022
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=etcd:2379
-      - GRPC_CUSTOM_ENDPOINT=database:9000
+      - GRPC_CUSTOM_ENDPOINT=grpc://database:9000
       - DATABASE_AUTOMIGRATE=true
       - DATABASE_TYPE=0
       - KAFKA_BROKERS=kafka-0:9092
@@ -47,7 +47,7 @@ services:
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=etcd:2379
       - TCP_CUSTOM_ENDPOINT=
-      - GRPC_CUSTOM_ENDPOINT=collector:9000
+      - GRPC_CUSTOM_ENDPOINT=grpc://collector:9000
       - KAFKA_BROKERS=kafka-0:9092
       - KAFKA_USER=
       - KAFKA_PASSWORD=
