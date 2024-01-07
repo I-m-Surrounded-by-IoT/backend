@@ -21,6 +21,12 @@ enum MessageType {
   ReportLog = 6;
 }
 
+message HeartbeatPayload {
+  uint64 timestamp = 1;
+  // 电量
+  double battery = 2;
+}
+
 enum LogLevel {
   LogLevelUnknown = 0;
   LogLevelDebug = 1;
@@ -58,5 +64,6 @@ message Message {
     SetReportIntervalPayload set_report_interval_payload = 4;
     string mac = 5;
     LogPayload log_payload = 6;
+    HeartbeatPayload heartbeat_payload = 7;
   }
 }

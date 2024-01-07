@@ -196,15 +196,20 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	}
 
 	if k != nil && k.Brokers != "" {
+		opts := []logkafka.KafkaOptionFunc{
+			logkafka.WithKafkaSASLHandshake(true),
+			logkafka.WithKafkaSASLUser(k.User),
+			logkafka.WithKafkaSASLPassword(k.Password),
+		}
+		if k.User != "" || k.Password != "" {
+			opts = append(opts,
+				logkafka.WithKafkaSASLEnable(true),
+			)
+		}
 		lkh, err := logkafka.NewLogKafkaHook(
 			strings.Split(k.Brokers, ","),
 			[]string{"device-log"},
-			[]logkafka.KafkaOptionFunc{
-				logkafka.WithKafkaSASLEnable(true),
-				logkafka.WithKafkaSASLHandshake(true),
-				logkafka.WithKafkaSASLUser(k.User),
-				logkafka.WithKafkaSASLPassword(k.Password),
-			},
+			opts,
 			logkafka.WithLogKafkaHookMustHasFields([]string{"device_id"}),
 			logkafka.WithLogKafkaHookKeyFormatter(new(kafkaLogKeyFormatter)),
 		)

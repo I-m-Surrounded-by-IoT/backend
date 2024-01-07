@@ -32,8 +32,8 @@ services:
       - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
       - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-    # volumes:
-    #   - kafka_0_data:/bitnami/kafka
+    volumes:
+      - kafka_0_data:/bitnami/kafka
   kafka-1:
     image: docker.io/bitnami/kafka:3.6
     container_name: backend-kafka-1
@@ -57,8 +57,8 @@ services:
       - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
       - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-    # volumes:
-    #   - kafka_1_data:/bitnami/kafka
+    volumes:
+      - kafka_1_data:/bitnami/kafka
   kafka-2:
     image: docker.io/bitnami/kafka:3.6
     container_name: backend-kafka-2
@@ -82,58 +82,13 @@ services:
       - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
       - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-    # volumes:
-    #   - kafka_2_data:/bitnami/kafka
+    volumes:
+      - kafka_2_data:/bitnami/kafka
 
-  gataway:
-    image: 'zijiren/backend:latest'
-    container_name: backend-gataway
-    restart: unless-stopped
-    ports:
-      - '8000:8000'
-    environment:
-      - PUID=0
-      - PGID=0
-      - UMASK=022
-      - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - TCP_CUSTOM_ENDPOINT=
-    command: gateway
-  database:
-    image: 'zijiren/backend:latest'
-    container_name: backend-database
-    restart: unless-stopped
-    # ports:
-    #   - '9000:9000'
-    environment:
-      - PUID=0
-      - PGID=0
-      - UMASK=022
-      - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - GRPC_CUSTOM_ENDPOINT=database:9000
-      - DATABASE_AUTOMIGRATE=true
-      - DATABASE_TYPE=0
-      - KAFKA_BROKERS=kafka-0:9092
-      - KAFKA_USER=
-      - KAFKA_PASSWORD=
-    command: database
-  collector:
-    image: 'zijiren/backend:latest'
-    container_name: backend-collector
-    restart: unless-stopped
-    ports:
-      - '10000:8000'
-      # - '11000:9000'
-    environment:
-      - PUID=0
-      - PGID=0
-      - UMASK=022
-      - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - TCP_CUSTOM_ENDPOINT=
-      - GRPC_CUSTOM_ENDPOINT=collector:9000
-      - KAFKA_BROKERS=kafka-0:9092
-      - KAFKA_USER=
-      - KAFKA_PASSWORD=
-    command: collector
+volumes:
+  kafka_0_data:
+    driver: local
+  kafka_1_data:
+    driver: local
+  kafka_2_data:
+    driver: local

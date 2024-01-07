@@ -12,12 +12,19 @@ import (
 func NewLogConsumer(
 	k *conf.KafkaConfig,
 ) sarama.ConsumerGroup {
-	client, err := logkafka.NewKafkaClient(
-		strings.Split(k.Brokers, ","),
-		logkafka.WithKafkaSASLEnable(true),
+	opts := []logkafka.KafkaOptionFunc{
 		logkafka.WithKafkaSASLHandshake(true),
 		logkafka.WithKafkaSASLUser(k.User),
 		logkafka.WithKafkaSASLPassword(k.Password),
+	}
+	if k.User != "" || k.Password != "" {
+		opts = append(opts,
+			logkafka.WithKafkaSASLEnable(true),
+		)
+	}
+	client, err := logkafka.NewKafkaClient(
+		strings.Split(k.Brokers, ","),
+		opts...,
 	)
 	if err != nil {
 		log.Fatalf("failed to create kafka client: %v", err)
