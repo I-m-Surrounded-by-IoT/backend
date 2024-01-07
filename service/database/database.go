@@ -24,8 +24,8 @@ func NewDatabaseService(c *conf.DatabaseConfig) *DatabaseService {
 	if c.AutoMigrate {
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
-			new(model.Collection),
 			new(model.Device),
+			new(model.Collection),
 			new(model.DeviceLog),
 		)
 		if err != nil {

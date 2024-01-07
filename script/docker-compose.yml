@@ -114,6 +114,11 @@ services:
       - GRPC_CUSTOM_ENDPOINT=grpc://database:9000
       - DATABASE_AUTOMIGRATE=true
       - DATABASE_TYPE=0
+      - DATABASE_HOST=
+      - DATABASE_PORT=
+      - DATABASE_USER=
+      - DATABASE_PASSWORD=
+      - DATABASE_NAME=backend
       - KAFKA_BROKERS=kafka-0:9092
       - KAFKA_USER=
       - KAFKA_PASSWORD=
