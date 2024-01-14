@@ -39,6 +39,7 @@ type GatewayService struct {
 }
 
 func (g *GatewayService) ServeTcp(ctx context.Context, conn net.Conn) error {
+	log.Infof("receive connection from collector: %s", conn.RemoteAddr().String())
 	Conn := tcpconn.NewConn(conn)
 	defer Conn.Close()
 	err := Conn.SayHello()

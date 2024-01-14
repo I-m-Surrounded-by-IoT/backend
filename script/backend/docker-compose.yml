@@ -11,32 +11,32 @@ services:
       - PGID=0
       - UMASK=022
       - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - TCP_CUSTOM_ENDPOINT=
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - TCP_CUSTOM_ENDPOINT=tcp://${CUSTON_EXTERNAL_IP}:8000
     command: gateway
   database:
     image: 'zijiren/backend:latest'
     container_name: backend-database
     restart: unless-stopped
-    # ports:
-    #   - '9000:9000'
+    ports:
+      - '9000:9000'
     environment:
       - PUID=0
       - PGID=0
       - UMASK=022
       - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - GRPC_CUSTOM_ENDPOINT=grpc://database:9000
-      - DATABASE_AUTOMIGRATE=true
-      - DATABASE_TYPE=0
-      - DATABASE_HOST=
-      - DATABASE_PORT=
-      - DATABASE_USER=
-      - DATABASE_PASSWORD=
-      - DATABASE_NAME=backend
-      - KAFKA_BROKERS=kafka-0:9092
-      - KAFKA_USER=
-      - KAFKA_PASSWORD=
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:9000
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-true}
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME-backend}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
     command: database
   collector:
     image: 'zijiren/backend:latest'
@@ -44,16 +44,16 @@ services:
     restart: unless-stopped
     ports:
       - '10000:8000'
-      # - '11000:9000'
+      - '11000:9000'
     environment:
       - PUID=0
       - PGID=0
       - UMASK=022
       - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=etcd:2379
-      - TCP_CUSTOM_ENDPOINT=
-      - GRPC_CUSTOM_ENDPOINT=grpc://collector:9000
-      - KAFKA_BROKERS=kafka-0:9092
-      - KAFKA_USER=
-      - KAFKA_PASSWORD=
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - TCP_CUSTOM_ENDPOINT=tcp://${CUSTON_EXTERNAL_IP}:10000
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:11000
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
     command: collector

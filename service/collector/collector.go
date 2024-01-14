@@ -17,7 +17,7 @@ import (
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"google.golang.org/protobuf/proto"
 )
@@ -36,9 +36,9 @@ func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
 }
 
 func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
+	log.Infof("receive connection from collector: %v", conn.RemoteAddr())
 	Conn := tcpconn.NewConn(conn)
 	defer Conn.Close()
-	logrus.Infof("receive connection from collector: %v", conn.RemoteAddr())
 	err := Conn.SayHello()
 	if err != nil {
 		return fmt.Errorf("say hello to collector failed: %w", err)
@@ -63,7 +63,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("find or create device failed: %w", err)
 	}
 
-	log := logrus.WithField("device_id", device.DeviceId)
+	log := log.WithField("device_id", device.DeviceId)
 
 	devicdService := &registry.ServiceInstance{
 		ID:   device.Mac,
@@ -214,12 +214,12 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 			logkafka.WithLogKafkaHookKeyFormatter(new(kafkaLogKeyFormatter)),
 		)
 		if err != nil {
-			logrus.Fatalf("failed to create kafka hook: %v", err)
+			log.Fatalf("failed to create kafka hook: %v", err)
 		}
-		logrus.Infof("add kafka hook to logrus")
-		logrus.AddHook(lkh)
+		log.Infof("add kafka hook to logrus")
+		log.AddHook(lkh)
 	} else {
-		logrus.Warnf("kafka config is empty")
+		log.Warnf("kafka config is empty")
 	}
 
 	return s
