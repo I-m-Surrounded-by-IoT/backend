@@ -138,6 +138,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 					Lng: payload.GeoPoint.Longitude,
 					Lat: payload.GeoPoint.Latitude,
 				},
+				Temperature: payload.Temperature,
 			})
 			if err != nil {
 				return fmt.Errorf("create collection info failed: %w", err)
