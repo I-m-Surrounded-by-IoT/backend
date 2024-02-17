@@ -22,9 +22,11 @@ func NewDatabase(ctx context.Context, dbConf *conf.DatabaseConfig) (*gorm.DB, er
 
 	var opts []gorm.Option
 	opts = append(opts, &gorm.Config{
-		TranslateError: true,
-		Logger:         newDBLogger(),
-		PrepareStmt:    true,
+		TranslateError:                           true,
+		Logger:                                   newDBLogger(),
+		PrepareStmt:                              true,
+		DisableForeignKeyConstraintWhenMigrating: true,
+		IgnoreRelationshipsWhenMigrating:         true,
 	})
 	d, err := gorm.Open(dialector, opts...)
 	if err != nil {
