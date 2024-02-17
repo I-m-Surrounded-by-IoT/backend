@@ -1,11 +1,11 @@
 package database
 
 import (
-	"log"
 	"strings"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/IBM/sarama"
+	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
 )
 

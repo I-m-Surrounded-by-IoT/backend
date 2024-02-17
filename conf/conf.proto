@@ -93,14 +93,13 @@ enum DatabaseType {
 }
 
 message DatabaseConfig {
-  DatabaseType type = 1; // @gotags: env:"DATABASE_TYPE"
-  string host = 2;       // @gotags: env:"DATABASE_HOST"
-  uint32 port = 3;       // @gotags: env:"DATABASE_PORT"
-  string user = 4;       // @gotags: env:"DATABASE_USER"
-  string password = 5;   // @gotags: env:"DATABASE_PASSWORD"
-  string name = 6;       // @gotags: env:"DATABASE_NAME"
-  string ssl_mode = 7;   // @gotags: env:"DATABASE_SSLMODE"
-  bool auto_migrate = 8; // @gotags: env:"DATABASE_AUTOMIGRATE"
+  string host = 1;       // @gotags: env:"DATABASE_HOST"
+  uint32 port = 2;       // @gotags: env:"DATABASE_PORT"
+  string user = 3;       // @gotags: env:"DATABASE_USER"
+  string password = 4;   // @gotags: env:"DATABASE_PASSWORD"
+  string name = 5;       // @gotags: env:"DATABASE_NAME"
+  string ssl_mode = 6;   // @gotags: env:"DATABASE_SSLMODE"
+  bool auto_migrate = 7; // @gotags: env:"DATABASE_AUTOMIGRATE"
 }
 
 message DatabaseServer {

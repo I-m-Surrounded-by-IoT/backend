@@ -22,7 +22,7 @@ enum MessageType {
 }
 
 message HeartbeatPayload {
-  uint64 timestamp = 1;
+  int64 timestamp = 1;
   // 电量
   double battery = 2;
 }
@@ -37,13 +37,13 @@ enum LogLevel {
 
 message LogPayload {
   LogLevel level = 1;
-  uint64 timestamp = 2;
+  int64 timestamp = 2;
   string message = 3;
 }
 
 message Empty {}
 
-message SetReportIntervalPayload { uint64 interval = 1; }
+message SetReportIntervalPayload { int64 interval = 1; }
 
 message GeoPoint {
   double latitude = 1;
@@ -51,9 +51,9 @@ message GeoPoint {
 }
 
 message ReportPayload {
-  uint64 timestamp = 1;
+  int64 timestamp = 1;
   GeoPoint geo_point = 2;
-  double temperature = 3;
+  float temperature = 3;
 }
 
 message Message {

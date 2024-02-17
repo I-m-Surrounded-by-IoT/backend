@@ -36,9 +36,15 @@ typedef enum _api_collector_LogLevel {
 } api_collector_LogLevel;
 
 /* Struct definitions */
+typedef struct _api_collector_HeartbeatPayload {
+    int64_t timestamp;
+    /* 电量 */
+    double battery;
+} api_collector_HeartbeatPayload;
+
 typedef struct _api_collector_LogPayload {
     api_collector_LogLevel level;
-    uint64_t timestamp;
+    int64_t timestamp;
     pb_callback_t message;
 } api_collector_LogPayload;
 
@@ -47,7 +53,7 @@ typedef struct _api_collector_Empty {
 } api_collector_Empty;
 
 typedef struct _api_collector_SetReportIntervalPayload {
-    uint64_t interval;
+    int64_t interval;
 } api_collector_SetReportIntervalPayload;
 
 typedef struct _api_collector_GeoPoint {
@@ -56,10 +62,10 @@ typedef struct _api_collector_GeoPoint {
 } api_collector_GeoPoint;
 
 typedef struct _api_collector_ReportPayload {
-    uint64_t timestamp;
+    int64_t timestamp;
     bool has_geo_point;
     api_collector_GeoPoint geo_point;
-    double temperature;
+    float temperature;
 } api_collector_ReportPayload;
 
 typedef struct _api_collector_Message {
@@ -71,6 +77,7 @@ typedef struct _api_collector_Message {
         api_collector_SetReportIntervalPayload set_report_interval_payload;
         pb_callback_t mac;
         api_collector_LogPayload log_payload;
+        api_collector_HeartbeatPayload heartbeat_payload;
     } payload;
 } api_collector_Message;
 
@@ -88,6 +95,7 @@ extern "C" {
 #define _api_collector_LogLevel_MAX api_collector_LogLevel_LogLevelError
 #define _api_collector_LogLevel_ARRAYSIZE ((api_collector_LogLevel)(api_collector_LogLevel_LogLevelError+1))
 
+
 #define api_collector_LogPayload_level_ENUMTYPE api_collector_LogLevel
 
 
@@ -98,12 +106,14 @@ extern "C" {
 
 
 /* Initializer values for message structs */
+#define api_collector_HeartbeatPayload_init_default {0, 0}
 #define api_collector_LogPayload_init_default    {_api_collector_LogLevel_MIN, 0, {{NULL}, NULL}}
 #define api_collector_Empty_init_default         {0}
 #define api_collector_SetReportIntervalPayload_init_default {0}
 #define api_collector_GeoPoint_init_default      {0, 0}
 #define api_collector_ReportPayload_init_default {0, false, api_collector_GeoPoint_init_default, 0}
 #define api_collector_Message_init_default       {_api_collector_MessageType_MIN, 0, {api_collector_Empty_init_default}}
+#define api_collector_HeartbeatPayload_init_zero {0, 0}
 #define api_collector_LogPayload_init_zero       {_api_collector_LogLevel_MIN, 0, {{NULL}, NULL}}
 #define api_collector_Empty_init_zero            {0}
 #define api_collector_SetReportIntervalPayload_init_zero {0}
@@ -112,6 +122,8 @@ extern "C" {
 #define api_collector_Message_init_zero          {_api_collector_MessageType_MIN, 0, {api_collector_Empty_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define api_collector_HeartbeatPayload_timestamp_tag 1
+#define api_collector_HeartbeatPayload_battery_tag 2
 #define api_collector_LogPayload_level_tag       1
 #define api_collector_LogPayload_timestamp_tag   2
 #define api_collector_LogPayload_message_tag     3
@@ -127,11 +139,18 @@ extern "C" {
 #define api_collector_Message_set_report_interval_payload_tag 4
 #define api_collector_Message_mac_tag            5
 #define api_collector_Message_log_payload_tag    6
+#define api_collector_Message_heartbeat_payload_tag 7
 
 /* Struct field encoding specification for nanopb */
+#define api_collector_HeartbeatPayload_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT64,    timestamp,         1) \
+X(a, STATIC,   SINGULAR, DOUBLE,   battery,           2)
+#define api_collector_HeartbeatPayload_CALLBACK NULL
+#define api_collector_HeartbeatPayload_DEFAULT NULL
+
 #define api_collector_LogPayload_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UENUM,    level,             1) \
-X(a, STATIC,   SINGULAR, UINT64,   timestamp,         2) \
+X(a, STATIC,   SINGULAR, INT64,    timestamp,         2) \
 X(a, CALLBACK, SINGULAR, STRING,   message,           3)
 #define api_collector_LogPayload_CALLBACK pb_default_field_callback
 #define api_collector_LogPayload_DEFAULT NULL
@@ -142,7 +161,7 @@ X(a, CALLBACK, SINGULAR, STRING,   message,           3)
 #define api_collector_Empty_DEFAULT NULL
 
 #define api_collector_SetReportIntervalPayload_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT64,   interval,          1)
+X(a, STATIC,   SINGULAR, INT64,    interval,          1)
 #define api_collector_SetReportIntervalPayload_CALLBACK NULL
 #define api_collector_SetReportIntervalPayload_DEFAULT NULL
 
@@ -153,9 +172,9 @@ X(a, STATIC,   SINGULAR, DOUBLE,   longitude,         2)
 #define api_collector_GeoPoint_DEFAULT NULL
 
 #define api_collector_ReportPayload_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT64,   timestamp,         1) \
+X(a, STATIC,   SINGULAR, INT64,    timestamp,         1) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  geo_point,         2) \
-X(a, STATIC,   SINGULAR, DOUBLE,   temperature,       3)
+X(a, STATIC,   SINGULAR, FLOAT,    temperature,       3)
 #define api_collector_ReportPayload_CALLBACK NULL
 #define api_collector_ReportPayload_DEFAULT NULL
 #define api_collector_ReportPayload_geo_point_MSGTYPE api_collector_GeoPoint
@@ -166,14 +185,17 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (payload,empty,payload.empty),   2) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (payload,report_payload,payload.report_payload),   3) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (payload,set_report_interval_payload,payload.set_report_interval_payload),   4) \
 X(a, CALLBACK, ONEOF,    STRING,   (payload,mac,payload.mac),   5) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (payload,log_payload,payload.log_payload),   6)
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,log_payload,payload.log_payload),   6) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,heartbeat_payload,payload.heartbeat_payload),   7)
 #define api_collector_Message_CALLBACK pb_default_field_callback
 #define api_collector_Message_DEFAULT NULL
 #define api_collector_Message_payload_empty_MSGTYPE api_collector_Empty
 #define api_collector_Message_payload_report_payload_MSGTYPE api_collector_ReportPayload
 #define api_collector_Message_payload_set_report_interval_payload_MSGTYPE api_collector_SetReportIntervalPayload
 #define api_collector_Message_payload_log_payload_MSGTYPE api_collector_LogPayload
+#define api_collector_Message_payload_heartbeat_payload_MSGTYPE api_collector_HeartbeatPayload
 
+extern const pb_msgdesc_t api_collector_HeartbeatPayload_msg;
 extern const pb_msgdesc_t api_collector_LogPayload_msg;
 extern const pb_msgdesc_t api_collector_Empty_msg;
 extern const pb_msgdesc_t api_collector_SetReportIntervalPayload_msg;
@@ -182,6 +204,7 @@ extern const pb_msgdesc_t api_collector_ReportPayload_msg;
 extern const pb_msgdesc_t api_collector_Message_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
+#define api_collector_HeartbeatPayload_fields &api_collector_HeartbeatPayload_msg
 #define api_collector_LogPayload_fields &api_collector_LogPayload_msg
 #define api_collector_Empty_fields &api_collector_Empty_msg
 #define api_collector_SetReportIntervalPayload_fields &api_collector_SetReportIntervalPayload_msg
@@ -195,7 +218,8 @@ extern const pb_msgdesc_t api_collector_Message_msg;
 #define API_COLLECTOR_PROTO_COLLECTOR_COLLECTOR_PB_H_MAX_SIZE api_collector_ReportPayload_size
 #define api_collector_Empty_size                 0
 #define api_collector_GeoPoint_size              18
-#define api_collector_ReportPayload_size         40
+#define api_collector_HeartbeatPayload_size      20
+#define api_collector_ReportPayload_size         36
 #define api_collector_SetReportIntervalPayload_size 11
 
 #ifdef __cplusplus

@@ -6,6 +6,9 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+PB_BIND(api_collector_HeartbeatPayload, api_collector_HeartbeatPayload, AUTO)
+
+
 PB_BIND(api_collector_LogPayload, api_collector_LogPayload, AUTO)
 
 

@@ -51,6 +51,7 @@ func (s *DatabaseService) CreateCollectionInfo(ctx context.Context, req *databas
 			Lat: req.GeoPoint.Lat,
 			Lng: req.GeoPoint.Lng,
 		},
+		Temperature: req.Temperature,
 	})
 	if err != nil {
 		return nil, err
@@ -84,9 +85,9 @@ func (s *DatabaseService) ListCollectionInfo(ctx context.Context, req *database.
 	}
 	for i, info := range c {
 		resp.CollectionInfos[i] = &database.ListCollectionInfoResp_CollectionInfo{
-			CreatedAt: uint64(info.CreatedAt.UnixMicro()),
+			CreatedAt: info.CreatedAt.UnixMicro(),
 			DeviceId:  info.DeviceID,
-			Timestamp: uint64(info.Timestamp.UnixMicro()),
+			Timestamp: info.Timestamp.UnixMicro(),
 			GeoPoint: &database.GeoPoint{
 				Lat: info.GeoPoint.Lat,
 				Lng: info.GeoPoint.Lng,
@@ -103,8 +104,8 @@ func (s *DatabaseService) GetDevice(ctx context.Context, req *database.GetDevice
 	}
 	return &database.Device{
 		DeviceId:  d.DeviceID,
-		CreatedAt: uint64(d.CreatedAt.UnixMicro()),
-		UpdatedAt: uint64(d.UpdatedAt.UnixMicro()),
+		CreatedAt: d.CreatedAt.UnixMicro(),
+		UpdatedAt: d.UpdatedAt.UnixMicro(),
 		Mac:       d.Mac,
 	}, nil
 }

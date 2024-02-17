@@ -179,6 +179,9 @@ components:
                     type: string
                 geoPoint:
                     $ref: '#/components/schemas/api.database.GeoPoint'
+                temperature:
+                    type: number
+                    format: float
         api.database.CreateDeviceReq:
             type: object
             properties:

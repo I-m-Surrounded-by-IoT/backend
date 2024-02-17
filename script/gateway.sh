@@ -1,0 +1,1 @@
+TCP_ADDR=0.0.0.0:20000 TCP_CUSTOM_ENDPOINT=tcp://127.0.0.1:20000 go run . gateway

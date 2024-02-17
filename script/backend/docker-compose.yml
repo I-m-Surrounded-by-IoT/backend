@@ -1,8 +1,8 @@
 version: '3.3'
 services:
-  gataway:
+  gateway:
     image: 'zijiren/backend:latest'
-    container_name: backend-gataway
+    container_name: backend-getaway
     restart: unless-stopped
     ports:
       - '8000:8000'

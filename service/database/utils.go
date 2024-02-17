@@ -57,8 +57,8 @@ func Device2Proto(device *model.Device) *database.Device {
 	return &database.Device{
 		DeviceId:  device.DeviceID,
 		Mac:       device.Mac,
-		CreatedAt: uint64(device.CreatedAt.UnixMicro()),
-		UpdatedAt: uint64(device.UpdatedAt.UnixMicro()),
+		CreatedAt: device.CreatedAt.UnixMicro(),
+		UpdatedAt: device.UpdatedAt.UnixMicro(),
 	}
 }
 

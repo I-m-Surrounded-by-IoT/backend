@@ -85,9 +85,9 @@ services:
     # volumes:
     #   - kafka_2_data:/bitnami/kafka
 
-  gataway:
+  gateway:
     image: 'zijiren/backend:latest'
-    container_name: backend-gataway
+    container_name: backend-gateway
     restart: unless-stopped
     ports:
       - '8000:8000'

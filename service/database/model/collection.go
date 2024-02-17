@@ -1,20 +1,22 @@
 package model
 
 import (
+	"bytes"
 	"database/sql/driver"
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
-	"regexp"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type Collection struct {
-	DeviceID  uint64    `gorm:"primarykey"`
-	Timestamp time.Time `gorm:"primarykey"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	GeoPoint  GeoPoint  `gorm:"not null;type:geometry"`
+	DeviceID    uint64    `gorm:"primarykey"`
+	Timestamp   time.Time `gorm:"primarykey"`
+	CreatedAt   time.Time `gorm:"autoCreateTime"`
+	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326)"`
+	Temperature float32   `gorm:"not null"`
 }
 
 type GeoPoint struct {
@@ -23,54 +25,51 @@ type GeoPoint struct {
 }
 
 func (p *GeoPoint) String() string {
-	return fmt.Sprintf("POINT(%v %v)", p.Lng, p.Lat)
+	return fmt.Sprintf("SRID=4326;POINT(%v %v)", p.Lng, p.Lat)
 }
 
 func (p GeoPoint) Value() (driver.Value, error) {
 	return p.String(), nil
 }
 
-var pointRegex = regexp.MustCompile(`POINT\(([-0-9.]+) ([-0-9.]+)\)`)
-
-func (p *GeoPoint) Scan(v any) error {
-	if v == nil {
-		return nil
-	}
+func (p *GeoPoint) Scan(v any) (err error) {
+	var b []byte
 	switch v := v.(type) {
-	case []byte:
-		matches := pointRegex.FindSubmatch(v)
-		if len(matches) != 3 {
-			return fmt.Errorf("failed to unmarshal GeoPoint value: %#v", v)
-		}
-		f, err := strconv.ParseFloat(string(matches[1]), 64)
-		if err != nil {
-			return err
-		}
-		p.Lng = f
-		f, err = strconv.ParseFloat(string(matches[2]), 64)
-		if err != nil {
-			return err
-		}
-		p.Lat = f
 	case string:
-		matches := pointRegex.FindSubmatch([]byte(v))
-		if len(matches) != 3 {
-			return fmt.Errorf("failed to unmarshal GeoPoint value: %#v", v)
-		}
-		f, err := strconv.ParseFloat(string(matches[1]), 64)
+		b, err = hex.DecodeString(v)
 		if err != nil {
 			return err
 		}
-		p.Lng = f
-		f, err = strconv.ParseFloat(string(matches[2]), 64)
-		if err != nil {
-			return err
-		}
-		p.Lat = f
+	case []byte:
+		b = v
 	default:
-		return fmt.Errorf("failed to unmarshal GeoPoint value: %#v", v)
+		return fmt.Errorf("invalid type %T", v)
 	}
-	return nil
+
+	r := bytes.NewReader(b)
+	var wkbByteOrder uint8
+	err = binary.Read(r, binary.LittleEndian, &wkbByteOrder)
+	if err != nil {
+		return err
+	}
+
+	var byteOrder binary.ByteOrder
+	switch wkbByteOrder {
+	case 0:
+		byteOrder = binary.BigEndian
+	case 1:
+		byteOrder = binary.LittleEndian
+	default:
+		return fmt.Errorf("invalid byte order %d", wkbByteOrder)
+	}
+
+	var wkbGeometryType uint64
+	err = binary.Read(r, byteOrder, &wkbGeometryType)
+	if err != nil {
+		return err
+	}
+
+	return binary.Read(r, byteOrder, p)
 }
 
 func WithDeviceID(deviceID uint64) func(db *gorm.DB) *gorm.DB {

@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -278,25 +277,20 @@ func ForceColor() bool {
 }
 
 func GetEnvFiles(root string) ([]string, error) {
-	var files []string
+	var envs []string
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasPrefix(info.Name(), ".env") {
-			files = append(files, path)
-		}
-
-		return nil
-	})
-
+	files, err := os.ReadDir(root)
 	if err != nil {
 		return nil, err
 	}
 
-	return files, nil
+	for _, file := range files {
+		if !file.IsDir() && strings.HasPrefix(file.Name(), ".env") {
+			envs = append(envs, file.Name())
+		}
+	}
+
+	return envs, nil
 }
 
 func GetRand[T any](s []T) (v T) {

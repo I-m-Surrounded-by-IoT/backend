@@ -94,7 +94,7 @@ func handlerCollector(conn *tcpconn.Conn) {
 		for range t.C {
 			send.Payload = &collector.Message_LogPayload{
 				LogPayload: &collector.LogPayload{
-					Timestamp: uint64(time.Now().UnixMicro()),
+					Timestamp: time.Now().UnixMicro(),
 					Level:     collector.LogLevel_LogLevelInfo,
 				},
 			}
@@ -106,6 +106,34 @@ func handlerCollector(conn *tcpconn.Conn) {
 			if err != nil {
 				log.Fatalf("error sending: %v", err)
 			}
+		}
+	}()
+	reportTicker := time.NewTicker(time.Second * 5)
+	defer reportTicker.Stop()
+	go func() {
+		send := collector.Message{
+			Type: collector.MessageType_Report,
+		}
+		for range reportTicker.C {
+			send.Payload = &collector.Message_ReportPayload{
+				ReportPayload: &collector.ReportPayload{
+					Timestamp: time.Now().UnixMicro(),
+					GeoPoint: &collector.GeoPoint{
+						Latitude:  rand.Float64() * 180,
+						Longitude: rand.Float64() * 180,
+					},
+					Temperature: rand.Float32() * 40,
+				},
+			}
+			b, err = proto.Marshal(&send)
+			if err != nil {
+				log.Fatalf("error marshaling: %v", err)
+			}
+			err = conn.Send(b)
+			if err != nil {
+				log.Fatalf("error sending: %v", err)
+			}
+			reportTicker.Reset(time.Second * 5)
 		}
 	}()
 	for {
@@ -120,25 +148,7 @@ func handlerCollector(conn *tcpconn.Conn) {
 		}
 		switch msg.Type {
 		case collector.MessageType_ReportImmediately:
-			msg.Type = collector.MessageType_Report
-			msg.Payload = &collector.Message_ReportPayload{
-				ReportPayload: &collector.ReportPayload{
-					Timestamp: uint64(time.Now().UnixMicro()),
-					GeoPoint: &collector.GeoPoint{
-						Latitude:  rand.Float64(),
-						Longitude: rand.Float64(),
-					},
-					Temperature: rand.Float64(),
-				},
-			}
-			b, err = proto.Marshal(&msg)
-			if err != nil {
-				log.Fatalf("error marshaling: %v", err)
-			}
-			err = conn.Send(b)
-			if err != nil {
-				log.Fatalf("error sending: %v", err)
-			}
+			reportTicker.Reset(time.Second)
 		default:
 			log.Errorf("invalid message type: %v", msg.Type)
 		}
