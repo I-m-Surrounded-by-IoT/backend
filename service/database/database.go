@@ -7,6 +7,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/database"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/database/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils/dbdial"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ type DatabaseService struct {
 }
 
 func NewDatabaseService(c *conf.DatabaseConfig) *DatabaseService {
-	d, err := NewDatabase(context.Background(), c)
+	d, err := dbdial.NewDatabase(context.Background(), c)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
@@ -26,7 +27,6 @@ func NewDatabaseService(c *conf.DatabaseConfig) *DatabaseService {
 		err = d.AutoMigrate(
 			new(model.Device),
 			new(model.Collection),
-			new(model.DeviceLog),
 		)
 		if err != nil {
 			log.Fatalf("failed to migrate database: %v", err)
@@ -37,10 +37,6 @@ func NewDatabaseService(c *conf.DatabaseConfig) *DatabaseService {
 		db: newDBUtils(d),
 	}
 	return db
-}
-
-func (s *DeviceLogConsumer) DB() *dbUtils {
-	return s.db
 }
 
 func (s *DatabaseService) CreateCollectionInfo(ctx context.Context, req *database.CollectionInfo) (*database.Empty, error) {

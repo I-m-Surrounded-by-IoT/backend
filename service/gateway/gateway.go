@@ -104,27 +104,6 @@ func NewGatewayService(c *conf.GatewayConfig, reg registry.Registrar) utils.TCPH
 				ss.Set(servers)
 			}
 		}()
-	case *registryClient.ConsulRegistry:
-		w, err := reg.Watch(context.Background(), "collector")
-		if err != nil {
-			panic(err)
-		}
-		go func() {
-			for {
-				si, err := w.Next()
-				if err != nil {
-					log.Errorf("watch collector failed: %v", err)
-					continue
-				}
-				servers := make([]string, 0, len(si))
-				for _, si2 := range si {
-					if len(si2.Endpoints) > 0 {
-						servers = append(servers, si2.Endpoints[0])
-					}
-				}
-				ss.Set(servers)
-			}
-		}()
 	default:
 		panic("invalid registry")
 	}

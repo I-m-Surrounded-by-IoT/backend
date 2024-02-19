@@ -15,7 +15,7 @@ type Collection struct {
 	DeviceID    uint64    `gorm:"primarykey"`
 	Timestamp   time.Time `gorm:"primarykey"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326)"`
+	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326);index:,type:gist"`
 	Temperature float32   `gorm:"not null"`
 }
 

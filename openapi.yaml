@@ -6,6 +6,48 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /log/device:
+        get:
+            tags:
+                - Log
+            operationId: Log_GetDeviceLogs
+            parameters:
+                - name: deviceId
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.log.DeviceLog'
+        post:
+            tags:
+                - Log
+            operationId: Log_AddDeviceLog
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.log.DeviceLog'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.log.Empty'
     /v1/collector/report_immediately:
         post:
             tags:
@@ -150,6 +192,132 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.database.ListCollectionInfoResp'
+    /v1/user:
+        post:
+            tags:
+                - User
+            operationId: User_CreateUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.CreateUserReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.GetUserResp'
+    /v1/user/name:
+        put:
+            tags:
+                - User
+            operationId: User_SetUserName
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.SetUserNameReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /v1/user/password:
+        put:
+            tags:
+                - User
+            operationId: User_SetUserPassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.SetUserPasswordReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /v1/user/role:
+        put:
+            tags:
+                - User
+            operationId: User_SetUserRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.SetUserRoleReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /v1/user/status:
+        put:
+            tags:
+                - User
+            operationId: User_SetUserStatus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.SetUserStatusReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /v1/user/validate:
+        post:
+            tags:
+                - User
+            operationId: User_ValidateUserPassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.ValidateUserPasswordReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.ValidateUserPasswordResp'
+    /v1/user/{id}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.GetUserResp'
 components:
     schemas:
         api.collector.ReportImmediatelyReq:
@@ -251,6 +419,93 @@ components:
                     type: string
                 geoPoint:
                     $ref: '#/components/schemas/api.database.GeoPoint'
+        api.log.DeviceLog:
+            type: object
+            properties:
+                deviceId:
+                    type: string
+                log:
+                    type: string
+        api.log.Empty:
+            type: object
+            properties: {}
+        api.user.CreateUserReq:
+            type: object
+            properties:
+                name:
+                    type: string
+                password:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+        api.user.Empty:
+            type: object
+            properties: {}
+        api.user.GetUserResp:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                name:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+                status:
+                    type: integer
+                    format: enum
+        api.user.SetUserNameReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+        api.user.SetUserPasswordReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                password:
+                    type: string
+        api.user.SetUserRoleReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
+        api.user.SetUserStatusReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+        api.user.ValidateUserPasswordReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                password:
+                    type: string
+        api.user.ValidateUserPasswordResp:
+            type: object
+            properties:
+                valid:
+                    type: boolean
 tags:
     - name: Collector
     - name: Database
+    - name: Log
+    - name: User

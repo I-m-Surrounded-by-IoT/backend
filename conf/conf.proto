@@ -6,19 +6,12 @@ option go_package = "backend/internal/conf;conf";
 import "google/protobuf/duration.proto";
 
 message Registry {
-  message Consul {
-    string scheme = 1;                    // @gotags: env:"CONSUL_SCHEME"
-    string addr = 2;                      // @gotags: env:"CONSUL_ADDR"
-    string prefix = 3;                    // @gotags: env:"CONSUL_PREFIX"
-    google.protobuf.Duration timeout = 4; // @gotags: env:"CONSUL_TIMEOUT"
-  }
   message Etcd {
     string endpoint = 1;                  // @gotags: env:"ETCD_ENDPOINT"
     string username = 2;                  // @gotags: env:"ETCD_USERNAME"
     string password = 3;                  // @gotags: env:"ETCD_PASSWORD"
     google.protobuf.Duration timeout = 4; // @gotags: env:"ETCD_TIMEOUT"
   }
-  Consul consul = 1;
   Etcd etcd = 2;
 }
 
@@ -86,12 +79,6 @@ message GatewayServer {
   GatewayConfig config = 3;
 }
 
-enum DatabaseType {
-  SQLITE = 0;
-  MYSQL = 1;
-  POSTGRESQL = 2;
-}
-
 message DatabaseConfig {
   string host = 1;       // @gotags: env:"DATABASE_HOST"
   uint32 port = 2;       // @gotags: env:"DATABASE_PORT"
@@ -105,6 +92,15 @@ message DatabaseConfig {
 message DatabaseServer {
   GrpcServer server = 1;
   Registry registry = 2;
-  DatabaseConfig config = 3;
+  DatabaseConfig database = 3;
   KafkaConfig kafka = 4;
+}
+
+message UserConfig {}
+
+message UserServer {
+  GrpcServer server = 1;
+  Registry registry = 2;
+  DatabaseConfig database = 3;
+  UserConfig config = 4;
 }

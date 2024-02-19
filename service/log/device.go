@@ -1,10 +1,10 @@
-package database
+package log
 
 import (
 	"strconv"
 	"time"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/service/database/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/log/model"
 	"github.com/IBM/sarama"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +16,7 @@ type DeviceLogConsumer struct {
 	db *dbUtils
 }
 
-func NewDeviceLogConsumer(dbs *DatabaseService) *DeviceLogConsumer {
+func NewDeviceLogConsumer(dbs *LogService) *DeviceLogConsumer {
 	return &DeviceLogConsumer{
 		db: dbs.db,
 	}

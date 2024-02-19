@@ -1,4 +1,4 @@
-package database
+package user
 
 import (
 	"fmt"
@@ -46,18 +46,17 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar)
 	)
 }
 
-var DatabaseCmd = &cobra.Command{
-	Use:   "database",
-	Short: "Start backend database",
+var UserCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Start backend user",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	bc := conf.DatabaseServer{
+	uc := conf.UserServer{
 		Server:   conf.DefaultGrpcServer(),
 		Database: &conf.DatabaseConfig{},
 		Registry: conf.DefaultRegistry(),
-		Kafka:    conf.DefaultKafka(),
 	}
 
 	if flagconf != "" {
@@ -71,16 +70,16 @@ func Server(cmd *cobra.Command, args []string) {
 		if err := c.Load(); err != nil {
 			logrus.Fatalf("error loading config: %v", err)
 		}
-		if err := c.Scan(&bc); err != nil {
+		if err := c.Scan(&uc); err != nil {
 			logrus.Fatalf("error scanning config: %v", err)
 		}
 	}
 
-	if err := env.Parse(&bc); err != nil {
+	if err := env.Parse(&uc); err != nil {
 		logrus.Fatalf("error parsing config: %v", err)
 	}
 
-	id = fmt.Sprintf("%s-%s", id, bc.Server.Addr)
+	id = fmt.Sprintf("%s-%s", id, uc.Server.Addr)
 
 	logger := log.With(log.NewStdLogger(logrus.StandardLogger().Writer()),
 		"ts", log.DefaultTimestamp,
@@ -92,7 +91,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, logger)
+	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Database, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -104,5 +103,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	DatabaseCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	UserCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

@@ -1,4 +1,4 @@
-package database
+package log
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	logServer "github.com/I-m-Surrounded-by-IoT/backend/internal/server/log"
 	"github.com/caarlos0/env/v9"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -27,7 +28,7 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLogServer, r registry.Registrar) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
 		panic(err)
@@ -92,7 +93,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}

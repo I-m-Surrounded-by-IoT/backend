@@ -22,8 +22,7 @@ func DefaultTcpServer() *TcpServer {
 
 func DefaultRegistry() *Registry {
 	return &Registry{
-		Consul: &Registry_Consul{},
-		Etcd:   &Registry_Etcd{},
+		Etcd: &Registry_Etcd{},
 	}
 }
 

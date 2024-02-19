@@ -61,16 +61,3 @@ func Device2Proto(device *model.Device) *database.Device {
 		UpdatedAt: device.UpdatedAt.UnixMicro(),
 	}
 }
-
-func (u *dbUtils) CreateDeviceLog(log *model.DeviceLog) error {
-	return u.db.Create(log).Error
-}
-
-func (u *dbUtils) ListDeviceLog(deviceID uint64, scopes ...func(*gorm.DB) *gorm.DB) ([]*model.DeviceLog, error) {
-	var logs []*model.DeviceLog
-	err := u.db.Scopes(scopes...).Where("device_id = ?", deviceID).Find(&logs).Error
-	if err != nil {
-		return nil, err
-	}
-	return logs, nil
-}

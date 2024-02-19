@@ -1,9 +1,11 @@
-package database
+package log
 
 import (
 	"github.com/google/wire"
 )
 
 var ProviderSet = wire.NewSet(
-	NewDatabaseServer,
+	NewLogServer,
+	NewLogConsumer,
+	NewDeviceLogServer,
 )

@@ -1,4 +1,4 @@
-package database
+package dbdial
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
-	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -14,7 +13,17 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func NewDatabase(ctx context.Context, dbConf *conf.DatabaseConfig) (*gorm.DB, error) {
+type DatabaseConfig interface {
+	GetAutoMigrate() bool
+	GetHost() string
+	GetName() string
+	GetPassword() string
+	GetPort() uint32
+	GetSslMode() string
+	GetUser() string
+}
+
+func NewDatabase(ctx context.Context, dbConf DatabaseConfig) (*gorm.DB, error) {
 	dialector, err := createDialector(dbConf)
 	if err != nil {
 		return nil, err
@@ -35,27 +44,27 @@ func NewDatabase(ctx context.Context, dbConf *conf.DatabaseConfig) (*gorm.DB, er
 	return d, nil
 }
 
-func createDialector(dbConf *conf.DatabaseConfig) (dialector gorm.Dialector, err error) {
+func createDialector(dbConf DatabaseConfig) (dialector gorm.Dialector, err error) {
 	var dsn string
-	if dbConf.Port == 0 {
+	if dbConf.GetPort() == 0 {
 		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s",
-			dbConf.Host,
-			dbConf.User,
-			dbConf.Password,
-			dbConf.Name,
-			dbConf.SslMode,
+			dbConf.GetHost(),
+			dbConf.GetUser(),
+			dbConf.GetPassword(),
+			dbConf.GetName(),
+			dbConf.GetSslMode(),
 		)
-		log.Infof("postgres database: %s", dbConf.Host)
+		log.Infof("postgres database: %s", dbConf.GetHost())
 	} else {
 		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-			dbConf.Host,
-			dbConf.Port,
-			dbConf.User,
-			dbConf.Password,
-			dbConf.Name,
-			dbConf.SslMode,
+			dbConf.GetHost(),
+			dbConf.GetPort(),
+			dbConf.GetUser(),
+			dbConf.GetPassword(),
+			dbConf.GetName(),
+			dbConf.GetSslMode(),
 		)
-		log.Infof("postgres database tcp: %s:%d", dbConf.Host, dbConf.Port)
+		log.Infof("postgres database tcp: %s:%d", dbConf.GetHost(), dbConf.GetPort())
 	}
 	dialector = postgres.New(postgres.Config{
 		DSN:                  dsn,

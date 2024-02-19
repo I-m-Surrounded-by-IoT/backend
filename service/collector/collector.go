@@ -14,7 +14,6 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/proto/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	tcpconn "github.com/I-m-Surrounded-by-IoT/backend/utils/tcpConn"
-	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	log "github.com/sirupsen/logrus"
@@ -26,7 +25,6 @@ type CollectorService struct {
 	db           database.DatabaseClient
 	grpcEndpoint string
 	er           *registryClient.EtcdRegistry
-	cr           *registryClient.ConsulRegistry
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
 }
@@ -78,11 +76,9 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	switch {
 	case c.er != nil:
 		reg = etcd.New(c.er.Client(), etcd.Context(ctx))
-	case c.cr != nil:
-		reg = consul.New(c.cr.Client(), consul.WithHealthCheck(false))
 	default:
-		log.Errorf("etcd or consul registry is nil")
-		return fmt.Errorf("etcd or consul registry is nil")
+		log.Errorf("etcd registry is nil")
+		return fmt.Errorf("etcd registry is nil")
 	}
 
 	err = reg.Register(ctx, devicdService)
@@ -182,16 +178,6 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		}
 		s.db = database.NewDatabaseClient(cc)
 		s.er = reg
-	case *registryClient.ConsulRegistry:
-		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
-			Endpoint: "discovery:///database",
-			Tls:      c.DatabaseTls,
-		}, reg)
-		if err != nil {
-			panic(err)
-		}
-		s.db = database.NewDatabaseClient(cc)
-		s.cr = reg
 	default:
 		panic("invalid registry")
 	}

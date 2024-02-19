@@ -1,4 +1,4 @@
-package database
+package log
 
 import (
 	"strings"

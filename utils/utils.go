@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -29,8 +30,10 @@ import (
 	"github.com/go-kratos/kratos/v2/registry"
 	ggrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	ghttp "github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/zijiren233/go-colorable"
+	"github.com/zijiren233/stream"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -461,4 +464,14 @@ func NewSignalGrpcConn(ctx context.Context, conf *Backend) (*grpc.ClientConn, er
 		return nil, err
 	}
 	return con, nil
+}
+
+func SortUUID() string {
+	return SortUUIDWithUUID(uuid.New())
+}
+
+func SortUUIDWithUUID(src uuid.UUID) string {
+	dst := make([]byte, 32)
+	hex.Encode(dst, src[:])
+	return stream.BytesToString(dst)
 }

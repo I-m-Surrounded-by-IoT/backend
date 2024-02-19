@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package api.user;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/user;user";
+
+import "google/api/annotations.proto";
+
+service User {
+  rpc CreateUser(CreateUserReq) returns (GetUserResp) {
+    option (google.api.http) = {
+      post : "/v1/user"
+      body : "*"
+    };
+  }
+
+  rpc GetUser(GetUserReq) returns (GetUserResp) {
+    option (google.api.http) = {
+      get : "/v1/user/{id}"
+    };
+  }
+
+  rpc ValidateUserPassword(ValidateUserPasswordReq)
+      returns (ValidateUserPasswordResp) {
+    option (google.api.http) = {
+      post : "/v1/user/validate"
+      body : "*"
+    };
+  }
+
+  rpc SetUserPassword(SetUserPasswordReq) returns (Empty) {
+    option (google.api.http) = {
+      put : "/v1/user/password"
+      body : "*"
+    };
+  }
+
+  rpc SetUserRole(SetUserRoleReq) returns (Empty) {
+    option (google.api.http) = {
+      put : "/v1/user/role"
+      body : "*"
+    };
+  }
+
+  rpc SetUserStatus(SetUserStatusReq) returns (Empty) {
+    option (google.api.http) = {
+      put : "/v1/user/status"
+      body : "*"
+    };
+  }
+
+  rpc SetUserName(SetUserNameReq) returns (Empty) {
+    option (google.api.http) = {
+      put : "/v1/user/name"
+      body : "*"
+    };
+  }
+}
+
+message Empty {}
+
+enum Role {
+  USER = 0;
+  ADMIN = 1;
+}
+
+enum Status {
+  ACTIVE = 0;
+  INACTIVE = 1;
+}
+
+message CreateUserReq {
+  string name = 1;
+  string password = 2;
+  Role role = 3;
+  Status status = 4;
+}
+
+message GetUserReq { string id = 1; }
+
+message GetUserResp {
+  string id = 1;
+  int64 created_at = 2;
+  int64 updated_at = 3;
+  string name = 4;
+  Role role = 5;
+  Status status = 6;
+}
+
+message ValidateUserPasswordReq {
+  string id = 1;
+  string password = 2;
+}
+
+message ValidateUserPasswordResp { bool valid = 1; }
+
+message SetUserPasswordReq {
+  string id = 1;
+  string password = 2;
+}
+
+message SetUserRoleReq {
+  string id = 1;
+  Role role = 2;
+}
+
+message SetUserStatusReq {
+  string id = 1;
+  Status status = 2;
+}
+
+message SetUserNameReq {
+  string id = 1;
+  string name = 2;
+}
