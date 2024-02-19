@@ -205,7 +205,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			}
 
 			// TODO: 添加数据后处理服务
-			topics := []string{"device-collection-record"}
+			topics := []string{"device-collection-report"}
 			for _, topic := range topics {
 				c.kafkaProducer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,

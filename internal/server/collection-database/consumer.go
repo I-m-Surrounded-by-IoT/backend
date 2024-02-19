@@ -1,4 +1,4 @@
-package log
+package collection_database
 
 import (
 	"strings"
@@ -32,7 +32,7 @@ func NewLogConsumer(
 		log.Fatalf("failed to create kafka client: %v", err)
 	}
 	consumerGroup, err := sarama.NewConsumerGroupFromClient(
-		"log",
+		"device-collection-report",
 		client,
 	)
 	if err != nil {

@@ -9,7 +9,7 @@ package collection_database
 import (
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
-	"github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection-database"
+	collection_database2 "github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection-database"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection-database"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
@@ -21,11 +21,14 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(grpcServer *conf.GrpcServer, confRegistry *conf.Registry, databaseConfig *conf.DatabaseConfig, logger log.Logger) (*kratos.App, func(), error) {
-	collectionDatabaseService := collection_database.NewDatabaseService(databaseConfig)
-	grpcGatewayServer := database.NewDatabaseServer(grpcServer, collectionDatabaseService)
+func wireApp(grpcServer *conf.GrpcServer, confRegistry *conf.Registry, databaseConfig *conf.DatabaseConfig, kafkaConfig *conf.KafkaConfig, logger log.Logger) (*kratos.App, func(), error) {
+	collectionDatabaseService := collection_database.NewCollectionDatabase(databaseConfig)
+	grpcGatewayServer := collection_database2.NewCollectionDatabase(grpcServer, collectionDatabaseService)
+	consumerGroup := collection_database2.NewLogConsumer(kafkaConfig)
+	collectionConsumer := collection_database.NewCollectionConsumer(collectionDatabaseService)
+	collectionConsumerServer := collection_database2.NewCollectionConsumerServer(consumerGroup, collectionConsumer)
 	registrar := registry.NewRegistry(confRegistry)
-	app := newApp(logger, grpcGatewayServer, registrar)
+	app := newApp(logger, grpcGatewayServer, collectionConsumerServer, registrar)
 	return app, func() {
 	}, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
+	database "github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection-database"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -27,7 +28,7 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *database.CollectionConsumerServer, r registry.Registrar) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
 		panic(err)
@@ -92,7 +93,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}

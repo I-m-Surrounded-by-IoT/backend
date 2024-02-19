@@ -1,4 +1,4 @@
-package database
+package collection_database
 
 import (
 	collection_databaseApi "github.com/I-m-Surrounded-by-IoT/backend/api/collection-database"
@@ -7,7 +7,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 )
 
-func NewDatabaseServer(
+func NewCollectionDatabase(
 	config *conf.GrpcServer,
 	db *collection_database.CollectionDatabaseService,
 ) *utils.GrpcGatewayServer {

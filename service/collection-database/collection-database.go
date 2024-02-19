@@ -17,7 +17,7 @@ type CollectionDatabaseService struct {
 	collection_database.UnimplementedCollectionDatabaseServer
 }
 
-func NewDatabaseService(c *conf.DatabaseConfig) *CollectionDatabaseService {
+func NewCollectionDatabase(c *conf.DatabaseConfig) *CollectionDatabaseService {
 	d, err := dbdial.NewDatabase(context.Background(), c)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)

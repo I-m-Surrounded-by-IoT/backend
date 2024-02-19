@@ -1,9 +1,11 @@
-package database
+package collection_database
 
 import (
 	"github.com/google/wire"
 )
 
 var ProviderSet = wire.NewSet(
-	NewDatabaseServer,
+	NewCollectionDatabase,
+	NewLogConsumer,
+	NewCollectionConsumerServer,
 )
