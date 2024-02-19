@@ -28,7 +28,7 @@ func NewDeviceLogServer(
 func (l *DeviceLogServer) Start(ctx context.Context) error {
 	logrus.Infof("start log consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
-	err := l.consumerGroup.Consume(l.ctx, []string{"device-log"}, l.deviceLog)
+	err := l.consumerGroup.Consume(l.ctx, []string{"log-device"}, l.deviceLog)
 	if err != nil {
 		logrus.Errorf("failed to consume: %v", err)
 	}

@@ -9,49 +9,49 @@ import "google/api/annotations.proto";
 service User {
   rpc CreateUser(CreateUserReq) returns (GetUserResp) {
     option (google.api.http) = {
-      post : "/v1/user"
+      post : "/user"
       body : "*"
     };
   }
 
   rpc GetUser(GetUserReq) returns (GetUserResp) {
     option (google.api.http) = {
-      get : "/v1/user/{id}"
+      get : "/user/{id}"
     };
   }
 
   rpc ValidateUserPassword(ValidateUserPasswordReq)
       returns (ValidateUserPasswordResp) {
     option (google.api.http) = {
-      post : "/v1/user/validate"
+      post : "/user/validate"
       body : "*"
     };
   }
 
   rpc SetUserPassword(SetUserPasswordReq) returns (Empty) {
     option (google.api.http) = {
-      put : "/v1/user/password"
+      put : "/user/password"
       body : "*"
     };
   }
 
   rpc SetUserRole(SetUserRoleReq) returns (Empty) {
     option (google.api.http) = {
-      put : "/v1/user/role"
+      put : "/user/role"
       body : "*"
     };
   }
 
   rpc SetUserStatus(SetUserStatusReq) returns (Empty) {
     option (google.api.http) = {
-      put : "/v1/user/status"
+      put : "/user/status"
       body : "*"
     };
   }
 
   rpc SetUserName(SetUserNameReq) returns (Empty) {
     option (google.api.http) = {
-      put : "/v1/user/name"
+      put : "/user/name"
       body : "*"
     };
   }

@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package api.collection_database;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection_database;collection_database";
+
+import "google/api/annotations.proto";
+
+service CollectionDatabase {
+  rpc CreateCollectionRecord(CollectionRecord) returns (Empty) {
+    option (google.api.http) = {
+      post : "/collection"
+      body : "*"
+    };
+  }
+
+  rpc ListCollectionRecord(ListCollectionRecordReq)
+      returns (ListCollectionRecordResp) {
+    option (google.api.http) = {
+      get : "/collection"
+    };
+  }
+}
+
+message GeoPoint {
+  double lat = 1;
+  double lng = 2;
+}
+
+message CollectionRecord {
+  uint64 device_id = 1;
+  int64 timestamp = 2;
+  GeoPoint geo_point = 3;
+  float temperature = 4;
+}
+
+message Empty {}
+
+message ListCollectionRecordReq {
+  uint64 page = 1;
+  uint64 page_size = 2;
+  uint64 device_id = 3;
+  int64 start_timestamp = 4;
+  int64 end_timestamp = 5;
+}
+
+message ListCollectionRecordResp {
+  message CollectionRecord {
+    int64 created_at = 1;
+    uint64 device_id = 2;
+    int64 timestamp = 3;
+    GeoPoint geo_point = 4;
+  }
+  repeated CollectionRecord collection_infos = 1;
+}

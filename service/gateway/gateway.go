@@ -35,46 +35,7 @@ func (s *Servers) Get() []string {
 }
 
 type GatewayService struct {
-	servers *Servers
-}
-
-func (g *GatewayService) ServeTcp(ctx context.Context, conn net.Conn) error {
-	log.Infof("receive connection from collector: %s", conn.RemoteAddr().String())
-	Conn := tcpconn.NewConn(conn)
-	defer Conn.Close()
-	err := Conn.SayHello()
-	if err != nil {
-		return fmt.Errorf("say hello to collector failed: %w", err)
-	}
-	for {
-		b, err := Conn.NextMessage()
-		if err != nil {
-			return fmt.Errorf("receive message from collector failed: %w", err)
-		}
-		msg := gateway.GetServerReq{}
-		err = proto.Unmarshal(b, &msg)
-		if err != nil {
-			return fmt.Errorf("unmarshal message from collector failed: %w", err)
-		}
-		log.Infof("receive message from collector: %s", msg.String())
-		s := g.servers.Get()
-		if len(s) == 0 {
-			log.Errorf("no collector available")
-			continue
-		}
-		addr := utils.GetRand(s)
-		resp := gateway.GetServerResp{
-			ServerAddr: strings.TrimPrefix(addr, "tcp://"),
-		}
-		b, err = proto.Marshal(&resp)
-		if err != nil {
-			return fmt.Errorf("marshal message to collector failed: %w", err)
-		}
-		err = Conn.Send(b)
-		if err != nil {
-			return fmt.Errorf("send message to collector failed: %w", err)
-		}
-	}
+	collectorServers *Servers
 }
 
 func NewGatewayService(c *conf.GatewayConfig, reg registry.Registrar) utils.TCPHandler {
@@ -108,6 +69,45 @@ func NewGatewayService(c *conf.GatewayConfig, reg registry.Registrar) utils.TCPH
 		panic("invalid registry")
 	}
 	return &GatewayService{
-		servers: ss,
+		collectorServers: ss,
+	}
+}
+
+func (g *GatewayService) ServeTcp(ctx context.Context, conn net.Conn) error {
+	log.Infof("receive connection from collector: %s", conn.RemoteAddr().String())
+	Conn := tcpconn.NewConn(conn)
+	defer Conn.Close()
+	err := Conn.SayHello()
+	if err != nil {
+		return fmt.Errorf("say hello to collector failed: %w", err)
+	}
+	for {
+		b, err := Conn.NextMessage()
+		if err != nil {
+			return fmt.Errorf("receive message from collector failed: %w", err)
+		}
+		msg := gateway.GetServerReq{}
+		err = proto.Unmarshal(b, &msg)
+		if err != nil {
+			return fmt.Errorf("unmarshal message from collector failed: %w", err)
+		}
+		log.Infof("receive message from collector: %s", msg.String())
+		s := g.collectorServers.Get()
+		if len(s) == 0 {
+			log.Errorf("no collector available")
+			continue
+		}
+		addr := utils.GetRand(s)
+		resp := gateway.GetServerResp{
+			ServerAddr: strings.TrimPrefix(addr, "tcp://"),
+		}
+		b, err = proto.Marshal(&resp)
+		if err != nil {
+			return fmt.Errorf("marshal message to collector failed: %w", err)
+		}
+		err = Conn.Send(b)
+		if err != nil {
+			return fmt.Errorf("send message to collector failed: %w", err)
+		}
 	}
 }

@@ -11,10 +11,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type Collection struct {
+type CollectionRecord struct {
 	DeviceID    uint64    `gorm:"primarykey"`
-	Timestamp   time.Time `gorm:"primarykey"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
+	Timestamp   time.Time `gorm:"primarykey"`
 	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326);index:,type:gist"`
 	Temperature float32   `gorm:"not null"`
 }

@@ -1,6 +1,6 @@
-package database
+package device
 
 import "github.com/google/wire"
 
 // ProviderSet is service providers.
-var ProviderSet = wire.NewSet(NewDatabaseService)
+var ProviderSet = wire.NewSet(NewDeviceService)

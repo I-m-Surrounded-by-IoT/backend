@@ -1,4 +1,4 @@
-package database
+package device
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar)
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("database"),
+		kratos.Name("device"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -46,9 +46,9 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar)
 	)
 }
 
-var DatabaseCmd = &cobra.Command{
-	Use:   "database",
-	Short: "Start backend database",
+var DeviceCmd = &cobra.Command{
+	Use:   "device",
+	Short: "Start backend device",
 	Run:   Server,
 }
 
@@ -86,7 +86,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
-		"service.name", "database",
+		"service.name", "device",
 		"service.version", flags.Version,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
@@ -104,5 +104,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	DatabaseCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	DeviceCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

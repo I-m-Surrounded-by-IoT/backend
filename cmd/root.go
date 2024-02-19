@@ -5,10 +5,13 @@ import (
 	"os"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/client"
+	collection_database "github.com/I-m-Surrounded-by-IoT/backend/cmd/collection-database"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/collector"
-	"github.com/I-m-Surrounded-by-IoT/backend/cmd/database"
+	"github.com/I-m-Surrounded-by-IoT/backend/cmd/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/gateway"
+	"github.com/I-m-Surrounded-by-IoT/backend/cmd/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/cmd/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/bootstrap"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/joho/godotenv"
@@ -43,10 +46,13 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.AddCommand(collector.CollectorCmd)
 	RootCmd.AddCommand(gateway.GatewayCmd)
-	RootCmd.AddCommand(database.DatabaseCmd)
+	RootCmd.AddCommand(collector.CollectorCmd)
+	RootCmd.AddCommand(collection_database.DatabaseCmd)
+	RootCmd.AddCommand(device.DeviceCmd)
 	RootCmd.AddCommand(client.ClientCmd)
+	RootCmd.AddCommand(log.LogCmd)
+	RootCmd.AddCommand(user.UserCmd)
 }
 
 func init() {

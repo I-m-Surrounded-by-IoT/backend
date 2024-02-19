@@ -39,13 +39,13 @@ type UserHTTPServer interface {
 
 func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/user", _User_CreateUser0_HTTP_Handler(srv))
-	r.GET("/v1/user/{id}", _User_GetUser0_HTTP_Handler(srv))
-	r.POST("/v1/user/validate", _User_ValidateUserPassword0_HTTP_Handler(srv))
-	r.PUT("/v1/user/password", _User_SetUserPassword0_HTTP_Handler(srv))
-	r.PUT("/v1/user/role", _User_SetUserRole0_HTTP_Handler(srv))
-	r.PUT("/v1/user/status", _User_SetUserStatus0_HTTP_Handler(srv))
-	r.PUT("/v1/user/name", _User_SetUserName0_HTTP_Handler(srv))
+	r.POST("/user", _User_CreateUser0_HTTP_Handler(srv))
+	r.GET("/user/{id}", _User_GetUser0_HTTP_Handler(srv))
+	r.POST("/user/validate", _User_ValidateUserPassword0_HTTP_Handler(srv))
+	r.PUT("/user/password", _User_SetUserPassword0_HTTP_Handler(srv))
+	r.PUT("/user/role", _User_SetUserRole0_HTTP_Handler(srv))
+	r.PUT("/user/status", _User_SetUserStatus0_HTTP_Handler(srv))
+	r.PUT("/user/name", _User_SetUserName0_HTTP_Handler(srv))
 }
 
 func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -222,7 +222,7 @@ func NewUserHTTPClient(client *http.Client) UserHTTPClient {
 
 func (c *UserHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserReq, opts ...http.CallOption) (*GetUserResp, error) {
 	var out GetUserResp
-	pattern := "/v1/user"
+	pattern := "/user"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserCreateUser))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -235,7 +235,7 @@ func (c *UserHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserReq, 
 
 func (c *UserHTTPClientImpl) GetUser(ctx context.Context, in *GetUserReq, opts ...http.CallOption) (*GetUserResp, error) {
 	var out GetUserResp
-	pattern := "/v1/user/{id}"
+	pattern := "/user/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserGetUser))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -248,7 +248,7 @@ func (c *UserHTTPClientImpl) GetUser(ctx context.Context, in *GetUserReq, opts .
 
 func (c *UserHTTPClientImpl) SetUserName(ctx context.Context, in *SetUserNameReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/user/name"
+	pattern := "/user/name"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUserName))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -261,7 +261,7 @@ func (c *UserHTTPClientImpl) SetUserName(ctx context.Context, in *SetUserNameReq
 
 func (c *UserHTTPClientImpl) SetUserPassword(ctx context.Context, in *SetUserPasswordReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/user/password"
+	pattern := "/user/password"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUserPassword))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -274,7 +274,7 @@ func (c *UserHTTPClientImpl) SetUserPassword(ctx context.Context, in *SetUserPas
 
 func (c *UserHTTPClientImpl) SetUserRole(ctx context.Context, in *SetUserRoleReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/user/role"
+	pattern := "/user/role"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUserRole))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -287,7 +287,7 @@ func (c *UserHTTPClientImpl) SetUserRole(ctx context.Context, in *SetUserRoleReq
 
 func (c *UserHTTPClientImpl) SetUserStatus(ctx context.Context, in *SetUserStatusReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/user/status"
+	pattern := "/user/status"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUserStatus))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -300,7 +300,7 @@ func (c *UserHTTPClientImpl) SetUserStatus(ctx context.Context, in *SetUserStatu
 
 func (c *UserHTTPClientImpl) ValidateUserPassword(ctx context.Context, in *ValidateUserPasswordReq, opts ...http.CallOption) (*ValidateUserPasswordResp, error) {
 	var out ValidateUserPasswordResp
-	pattern := "/v1/user/validate"
+	pattern := "/user/validate"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserValidateUserPassword))
 	opts = append(opts, http.PathTemplate(pattern))

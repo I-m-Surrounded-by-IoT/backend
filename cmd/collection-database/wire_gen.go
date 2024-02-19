@@ -4,13 +4,13 @@
 //go:build !wireinject
 // +build !wireinject
 
-package database
+package collection_database
 
 import (
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
-	database2 "github.com/I-m-Surrounded-by-IoT/backend/internal/server/database"
-	"github.com/I-m-Surrounded-by-IoT/backend/service/database"
+	"github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection-database"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/collection-database"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -22,8 +22,8 @@ import (
 // Injectors from wire.go:
 
 func wireApp(grpcServer *conf.GrpcServer, confRegistry *conf.Registry, databaseConfig *conf.DatabaseConfig, logger log.Logger) (*kratos.App, func(), error) {
-	databaseService := database.NewDatabaseService(databaseConfig)
-	grpcGatewayServer := database2.NewDatabaseServer(grpcServer, databaseService)
+	collectionDatabaseService := collection_database.NewDatabaseService(databaseConfig)
+	grpcGatewayServer := database.NewDatabaseServer(grpcServer, collectionDatabaseService)
 	registrar := registry.NewRegistry(confRegistry)
 	app := newApp(logger, grpcGatewayServer, registrar)
 	return app, func() {

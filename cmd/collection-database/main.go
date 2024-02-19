@@ -1,4 +1,4 @@
-package log
+package collection_database
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	logServer "github.com/I-m-Surrounded-by-IoT/backend/internal/server/log"
 	"github.com/caarlos0/env/v9"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -28,14 +27,14 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLogServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
 		panic(err)
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("log"),
+		kratos.Name("collection-database"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -47,9 +46,9 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLo
 	)
 }
 
-var LogCmd = &cobra.Command{
-	Use:   "log",
-	Short: "Start backend database",
+var DatabaseCmd = &cobra.Command{
+	Use:   "collection-database",
+	Short: "Start backend collection database",
 	Run:   Server,
 }
 
@@ -87,13 +86,13 @@ func Server(cmd *cobra.Command, args []string) {
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
-		"service.name", "log",
+		"service.name", "collection-database",
 		"service.version", flags.Version,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -105,5 +104,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	LogCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	DatabaseCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

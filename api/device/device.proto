@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package api.device;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/device;device";
+
+import "google/api/annotations.proto";
+
+service Device {
+  rpc GetDevice(GetDeviceReq) returns (DeviceRecord) {
+    option (google.api.http) = {
+      get : "/device/{id}"
+    };
+  }
+
+  rpc GetDeviceByMac(GetDeviceByMacReq) returns (DeviceRecord) {
+    option (google.api.http) = {
+      get : "/device/mac/{mac}"
+    };
+  }
+
+  rpc CreateDevice(CreateDeviceReq) returns (DeviceRecord) {
+    option (google.api.http) = {
+      post : "/device"
+      body : "*"
+    };
+  }
+
+  rpc GetOrCreateDevice(GetOrCreateDeviceReq) returns (DeviceRecord) {
+    option (google.api.http) = {
+      post : "/device/get_or_create"
+      body : "*"
+    };
+  }
+}
+
+message DeviceRecord {
+  uint64 id = 1;
+  int64 created_at = 2;
+  int64 updated_at = 3;
+  string mac = 4;
+  string comment = 5;
+}
+
+message GetDeviceReq { uint64 id = 1; }
+
+message GetDeviceByMacReq { string mac = 1; }
+
+message CreateDeviceReq { string mac = 1; }
+
+message GetOrCreateDeviceReq { string mac = 1; }

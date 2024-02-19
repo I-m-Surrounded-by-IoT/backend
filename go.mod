@@ -16,7 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
-	github.com/zijiren233/logrus-kafka-hook v0.1.0
+	github.com/zijiren233/logrus-kafka-hook v0.1.1
 	github.com/zijiren233/stream v0.5.1
 	go.etcd.io/etcd/client/v3 v3.5.12
 	go.uber.org/automaxprocs v1.5.3

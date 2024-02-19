@@ -7,13 +7,15 @@ import (
 	"strings"
 	"time"
 
+	collection_database "github.com/I-m-Surrounded-by-IoT/backend/api/collection-database"
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
-	"github.com/I-m-Surrounded-by-IoT/backend/api/database"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/proto/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	tcpconn "github.com/I-m-Surrounded-by-IoT/backend/utils/tcpConn"
+	"github.com/IBM/sarama"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	log "github.com/sirupsen/logrus"
@@ -22,11 +24,71 @@ import (
 )
 
 type CollectorService struct {
-	db           database.DatabaseClient
-	grpcEndpoint string
-	er           *registryClient.EtcdRegistry
+	deviceClient  device.DeviceClient
+	grpcEndpoint  string
+	er            *registryClient.EtcdRegistry
+	kafkaClient   sarama.Client
+	kafkaProducer sarama.AsyncProducer
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
+}
+
+func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
+	s := &CollectorService{}
+	switch reg := reg.(type) {
+	case *registryClient.EtcdRegistry:
+		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+			Endpoint: "discovery:///device",
+			Tls:      c.DatabaseTls,
+		}, reg)
+		if err != nil {
+			panic(err)
+		}
+		s.deviceClient = device.NewDeviceClient(cc)
+		s.er = reg
+	default:
+		panic("invalid registry")
+	}
+
+	if k == nil || k.Brokers == "" {
+		log.Fatal("kafka config is empty")
+	} else {
+		opts := []logkafka.KafkaOptionFunc{
+			logkafka.WithKafkaSASLHandshake(true),
+			logkafka.WithKafkaSASLUser(k.User),
+			logkafka.WithKafkaSASLPassword(k.Password),
+		}
+		if k.User != "" || k.Password != "" {
+			opts = append(opts,
+				logkafka.WithKafkaSASLEnable(true),
+			)
+		}
+		client, err := logkafka.NewKafkaClient(
+			strings.Split(k.Brokers, ","),
+			opts...,
+		)
+		if err != nil {
+			log.Fatalf("failed to create kafka client: %v", err)
+		}
+		s.kafkaClient = client
+		lkh, err := logkafka.NewLogKafkaHookFromClient(
+			client,
+			[]string{"log-device"},
+			logkafka.WithHookMustHasFields([]string{"device_id"}),
+			logkafka.WithHookKeyFormatter(new(kafkaDeviceLogKeyFormatter)),
+		)
+		if err != nil {
+			log.Fatalf("failed to create kafka hook: %v", err)
+		}
+		log.Infof("add kafka hook to logrus")
+		log.AddHook(lkh)
+	}
+	producer, err := sarama.NewAsyncProducerFromClient(s.kafkaClient)
+	if err != nil {
+		log.Fatalf("failed to create kafka producer: %v", err)
+	}
+	s.kafkaProducer = producer
+	return s
 }
 
 func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
@@ -54,18 +116,18 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("invalid first message type: %v", msg.Type)
 	}
 
-	device, err := c.db.FirstOrCreateDevice(ctx, &database.CreateDeviceReq{
+	d, err := c.deviceClient.GetOrCreateDevice(ctx, &device.GetOrCreateDeviceReq{
 		Mac: msg.GetMac(),
 	})
 	if err != nil {
 		return fmt.Errorf("find or create device failed: %w", err)
 	}
 
-	log := log.WithField("device_id", device.DeviceId)
+	log := log.WithField("device_id", d.Id)
 
 	devicdService := &registry.ServiceInstance{
-		ID:   device.Mac,
-		Name: fmt.Sprintf("device-%v", device.DeviceId),
+		ID:   d.Mac,
+		Name: fmt.Sprintf("device-%v", d.Id),
 		Metadata: map[string]string{
 			"endpoint": c.grpcEndpoint,
 		},
@@ -127,18 +189,31 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 				continue
 			}
 			log.Infof("receive report message from collector: %v", payload)
-			_, err = c.db.CreateCollectionInfo(ctx, &database.CollectionInfo{
-				DeviceId:  device.DeviceId,
+			info := &collection_database.CollectionRecord{
+				DeviceId:  d.Id,
 				Timestamp: payload.Timestamp,
-				GeoPoint: &database.GeoPoint{
+				GeoPoint: &collection_database.GeoPoint{
 					Lng: payload.GeoPoint.Longitude,
 					Lat: payload.GeoPoint.Latitude,
 				},
 				Temperature: payload.Temperature,
-			})
-			if err != nil {
-				return fmt.Errorf("create collection info failed: %w", err)
 			}
+			bytes, err := proto.Marshal(info)
+			if err != nil {
+				log.Errorf("failed to marshal collection info: %v", err)
+				continue
+			}
+
+			// TODO: 添加数据后处理服务
+			topics := []string{"device-collection-record"}
+			for _, topic := range topics {
+				c.kafkaProducer.Input() <- &sarama.ProducerMessage{
+					Topic: topic,
+					Key:   sarama.StringEncoder(fmt.Sprintf("%v", d.Id)),
+					Value: sarama.ByteEncoder(bytes),
+				}
+			}
+
 		case collector.MessageType_ReportLog:
 			payload := msg.GetLogPayload()
 			if payload == nil {
@@ -163,51 +238,4 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			continue
 		}
 	}
-}
-
-func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
-	s := &CollectorService{}
-	switch reg := reg.(type) {
-	case *registryClient.EtcdRegistry:
-		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
-			Endpoint: "discovery:///database",
-			Tls:      c.DatabaseTls,
-		}, reg)
-		if err != nil {
-			panic(err)
-		}
-		s.db = database.NewDatabaseClient(cc)
-		s.er = reg
-	default:
-		panic("invalid registry")
-	}
-
-	if k != nil && k.Brokers != "" {
-		opts := []logkafka.KafkaOptionFunc{
-			logkafka.WithKafkaSASLHandshake(true),
-			logkafka.WithKafkaSASLUser(k.User),
-			logkafka.WithKafkaSASLPassword(k.Password),
-		}
-		if k.User != "" || k.Password != "" {
-			opts = append(opts,
-				logkafka.WithKafkaSASLEnable(true),
-			)
-		}
-		lkh, err := logkafka.NewLogKafkaHook(
-			strings.Split(k.Brokers, ","),
-			[]string{"device-log"},
-			opts,
-			logkafka.WithLogKafkaHookMustHasFields([]string{"device_id"}),
-			logkafka.WithLogKafkaHookKeyFormatter(new(kafkaLogKeyFormatter)),
-		)
-		if err != nil {
-			log.Fatalf("failed to create kafka hook: %v", err)
-		}
-		log.Infof("add kafka hook to logrus")
-		log.AddHook(lkh)
-	} else {
-		log.Warnf("kafka config is empty")
-	}
-
-	return s
 }

@@ -161,6 +161,8 @@ github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb h1:0DyOxf/
 github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb/go.mod h1:6TCzjDiQ8+5gWZiwsC3pnA5M0vUy2jV2Y7ciHJh729g=
 github.com/zijiren233/logrus-kafka-hook v0.1.0 h1:tbtKLWGMjpwe7No01FCBwn/j/kEwaKUvrMk+gZdlL14=
 github.com/zijiren233/logrus-kafka-hook v0.1.0/go.mod h1:HXLPCJNHWmMO1srVgANeFgqHGF5JgBg+fwbfOTE5e2c=
+github.com/zijiren233/logrus-kafka-hook v0.1.1 h1:Ey2hRQ4szpFjrvV46BiiYV1U7ZSETbc4GPyY1GkmiLQ=
+github.com/zijiren233/logrus-kafka-hook v0.1.1/go.mod h1:psIpAsO3XwCb31pj3d93yqQPpRRt4atFpzJZ2vv50tI=
 github.com/zijiren233/stream v0.5.1 h1:9SUwM/fpET6frtBRT5WZBHnan0Hyzkezk/P8N78cgZQ=
 github.com/zijiren233/stream v0.5.1/go.mod h1:iIrOm3qgIepQFmptD/HDY+YzamSSzQOtPjpVcK7FCOw=
 go.etcd.io/etcd/api/v3 v3.5.12 h1:W4sw5ZoU2Juc9gBWuLk5U6fHfNVyY1WC5g9uiXZio/c=

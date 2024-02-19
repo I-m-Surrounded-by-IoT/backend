@@ -6,11 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var _ logrus.Formatter = (*kafkaLogKeyFormatter)(nil)
+var _ logrus.Formatter = (*kafkaDeviceLogKeyFormatter)(nil)
 
-type kafkaLogKeyFormatter struct{}
+type kafkaDeviceLogKeyFormatter struct{}
 
-func (k *kafkaLogKeyFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+func (k *kafkaDeviceLogKeyFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	deviceIDI, ok := entry.Data["device_id"]
 	if !ok {
 		return nil, fmt.Errorf("missing device_id field")

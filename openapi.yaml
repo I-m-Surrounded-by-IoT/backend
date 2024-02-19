@@ -6,6 +6,164 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /collection:
+        get:
+            tags:
+                - CollectionDatabase
+            operationId: CollectionDatabase_ListCollectionRecord
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: string
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: string
+                - name: deviceId
+                  in: query
+                  schema:
+                    type: string
+                - name: startTimestamp
+                  in: query
+                  schema:
+                    type: string
+                - name: endTimestamp
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection_database.ListCollectionRecordResp'
+        post:
+            tags:
+                - CollectionDatabase
+            operationId: CollectionDatabase_CreateCollectionRecord
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection_database.CollectionRecord'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection_database.Empty'
+    /collector/report_immediately:
+        post:
+            tags:
+                - Collector
+            operationId: Collector_ReportImmediately
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collector.ReportImmediatelyReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collector.ReportImmediatelyResp'
+    /collector/set_report_interval:
+        post:
+            tags:
+                - Collector
+            operationId: Collector_SetReportInterval
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collector.SetReportIntervalReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collector.SetReportIntervalResp'
+    /device:
+        post:
+            tags:
+                - Device
+            operationId: Device_CreateDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.CreateDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceRecord'
+    /device/get_or_create:
+        post:
+            tags:
+                - Device
+            operationId: Device_GetOrCreateDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.GetOrCreateDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceRecord'
+    /device/mac/{mac}:
+        get:
+            tags:
+                - Device
+            operationId: Device_GetDeviceByMac
+            parameters:
+                - name: mac
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceRecord'
+    /device/{id}:
+        get:
+            tags:
+                - Device
+            operationId: Device_GetDevice
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceRecord'
     /log/device:
         get:
             tags:
@@ -48,151 +206,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.log.Empty'
-    /v1/collector/report_immediately:
-        post:
-            tags:
-                - Collector
-            operationId: Collector_ReportImmediately
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.collector.ReportImmediatelyReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.collector.ReportImmediatelyResp'
-    /v1/collector/set_report_interval:
-        post:
-            tags:
-                - Collector
-            operationId: Collector_SetReportInterval
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.collector.SetReportIntervalReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.collector.SetReportIntervalResp'
-    /v1/database/create_collection_info:
-        post:
-            tags:
-                - Database
-            operationId: Database_CreateCollectionInfo
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.CollectionInfo'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.Empty'
-    /v1/database/create_device:
-        post:
-            tags:
-                - Database
-            operationId: Database_CreateDevice
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.CreateDeviceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.Device'
-    /v1/database/find_or_create_device:
-        post:
-            tags:
-                - Database
-            operationId: Database_FirstOrCreateDevice
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.CreateDeviceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.Device'
-    /v1/database/get_device:
-        post:
-            tags:
-                - Database
-            operationId: Database_GetDevice
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.GetDeviceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.Device'
-    /v1/database/get_device_with_mac:
-        post:
-            tags:
-                - Database
-            operationId: Database_GetDeviceWithMac
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.GetDeviceWithMacReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.Device'
-    /v1/database/list_collection_info:
-        post:
-            tags:
-                - Database
-            operationId: Database_ListCollectionInfo
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.database.ListCollectionInfoReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.database.ListCollectionInfoResp'
-    /v1/user:
+    /user:
         post:
             tags:
                 - User
@@ -210,7 +224,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.GetUserResp'
-    /v1/user/name:
+    /user/name:
         put:
             tags:
                 - User
@@ -228,7 +242,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
-    /v1/user/password:
+    /user/password:
         put:
             tags:
                 - User
@@ -246,7 +260,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
-    /v1/user/role:
+    /user/role:
         put:
             tags:
                 - User
@@ -264,7 +278,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
-    /v1/user/status:
+    /user/status:
         put:
             tags:
                 - User
@@ -282,7 +296,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
-    /v1/user/validate:
+    /user/validate:
         post:
             tags:
                 - User
@@ -300,7 +314,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.ValidateUserPasswordResp'
-    /v1/user/{id}:
+    /user/{id}:
         get:
             tags:
                 - User
@@ -320,6 +334,48 @@ paths:
                                 $ref: '#/components/schemas/api.user.GetUserResp'
 components:
     schemas:
+        api.collection_database.CollectionRecord:
+            type: object
+            properties:
+                deviceId:
+                    type: string
+                timestamp:
+                    type: string
+                geoPoint:
+                    $ref: '#/components/schemas/api.collection_database.GeoPoint'
+                temperature:
+                    type: number
+                    format: float
+        api.collection_database.Empty:
+            type: object
+            properties: {}
+        api.collection_database.GeoPoint:
+            type: object
+            properties:
+                lat:
+                    type: number
+                    format: double
+                lng:
+                    type: number
+                    format: double
+        api.collection_database.ListCollectionRecordResp:
+            type: object
+            properties:
+                collectionInfos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.collection_database.ListCollectionRecordResp_CollectionRecord'
+        api.collection_database.ListCollectionRecordResp_CollectionRecord:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                deviceId:
+                    type: string
+                timestamp:
+                    type: string
+                geoPoint:
+                    $ref: '#/components/schemas/api.collection_database.GeoPoint'
         api.collector.ReportImmediatelyReq:
             type: object
             properties:
@@ -338,27 +394,15 @@ components:
         api.collector.SetReportIntervalResp:
             type: object
             properties: {}
-        api.database.CollectionInfo:
-            type: object
-            properties:
-                deviceId:
-                    type: string
-                timestamp:
-                    type: string
-                geoPoint:
-                    $ref: '#/components/schemas/api.database.GeoPoint'
-                temperature:
-                    type: number
-                    format: float
-        api.database.CreateDeviceReq:
+        api.device.CreateDeviceReq:
             type: object
             properties:
                 mac:
                     type: string
-        api.database.Device:
+        api.device.DeviceRecord:
             type: object
             properties:
-                deviceId:
+                id:
                     type: string
                 createdAt:
                     type: string
@@ -366,59 +410,13 @@ components:
                     type: string
                 mac:
                     type: string
-        api.database.Empty:
-            type: object
-            properties: {}
-        api.database.GeoPoint:
-            type: object
-            properties:
-                lat:
-                    type: number
-                    format: double
-                lng:
-                    type: number
-                    format: double
-        api.database.GetDeviceReq:
-            type: object
-            properties:
-                deviceId:
+                comment:
                     type: string
-        api.database.GetDeviceWithMacReq:
+        api.device.GetOrCreateDeviceReq:
             type: object
             properties:
                 mac:
                     type: string
-        api.database.ListCollectionInfoReq:
-            type: object
-            properties:
-                page:
-                    type: string
-                pageSize:
-                    type: string
-                deviceId:
-                    type: string
-                startTimestamp:
-                    type: string
-                endTimestamp:
-                    type: string
-        api.database.ListCollectionInfoResp:
-            type: object
-            properties:
-                collectionInfos:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/api.database.ListCollectionInfoResp_CollectionInfo'
-        api.database.ListCollectionInfoResp_CollectionInfo:
-            type: object
-            properties:
-                createdAt:
-                    type: string
-                deviceId:
-                    type: string
-                timestamp:
-                    type: string
-                geoPoint:
-                    $ref: '#/components/schemas/api.database.GeoPoint'
         api.log.DeviceLog:
             type: object
             properties:
@@ -505,7 +503,8 @@ components:
                 valid:
                     type: boolean
 tags:
+    - name: CollectionDatabase
     - name: Collector
-    - name: Database
+    - name: Device
     - name: Log
     - name: User

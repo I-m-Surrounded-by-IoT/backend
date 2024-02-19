@@ -29,8 +29,8 @@ type CollectorHTTPServer interface {
 
 func RegisterCollectorHTTPServer(s *http.Server, srv CollectorHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/collector/report_immediately", _Collector_ReportImmediately0_HTTP_Handler(srv))
-	r.POST("/v1/collector/set_report_interval", _Collector_SetReportInterval0_HTTP_Handler(srv))
+	r.POST("/collector/report_immediately", _Collector_ReportImmediately0_HTTP_Handler(srv))
+	r.POST("/collector/set_report_interval", _Collector_SetReportInterval0_HTTP_Handler(srv))
 }
 
 func _Collector_ReportImmediately0_HTTP_Handler(srv CollectorHTTPServer) func(ctx http.Context) error {
@@ -92,7 +92,7 @@ func NewCollectorHTTPClient(client *http.Client) CollectorHTTPClient {
 
 func (c *CollectorHTTPClientImpl) ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...http.CallOption) (*ReportImmediatelyResp, error) {
 	var out ReportImmediatelyResp
-	pattern := "/v1/collector/report_immediately"
+	pattern := "/collector/report_immediately"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCollectorReportImmediately))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -105,7 +105,7 @@ func (c *CollectorHTTPClientImpl) ReportImmediately(ctx context.Context, in *Rep
 
 func (c *CollectorHTTPClientImpl) SetReportInterval(ctx context.Context, in *SetReportIntervalReq, opts ...http.CallOption) (*SetReportIntervalResp, error) {
 	var out SetReportIntervalResp
-	pattern := "/v1/collector/set_report_interval"
+	pattern := "/collector/set_report_interval"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCollectorSetReportInterval))
 	opts = append(opts, http.PathTemplate(pattern))
