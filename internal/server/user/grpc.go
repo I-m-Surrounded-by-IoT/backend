@@ -8,7 +8,7 @@ import (
 )
 
 func NewUserServer(
-	config *conf.GrpcServer,
+	config *conf.GrpcServerConfig,
 	db *user.UserService,
 ) *utils.GrpcGatewayServer {
 	ggs := utils.NewGrpcGatewayServer(config)

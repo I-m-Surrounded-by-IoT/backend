@@ -17,12 +17,12 @@ type CollectionDatabaseService struct {
 	collection_database.UnimplementedCollectionDatabaseServer
 }
 
-func NewCollectionDatabase(c *conf.DatabaseConfig) *CollectionDatabaseService {
-	d, err := dbdial.NewDatabase(context.Background(), c)
+func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectorDatabaseConfig) *CollectionDatabaseService {
+	d, err := dbdial.NewDatabase(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
-	if c.AutoMigrate {
+	if dc.AutoMigrate {
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.CollectionRecord),

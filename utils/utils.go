@@ -163,7 +163,7 @@ func (s *GrpcGatewayServer) Endpoints() ([]*url.URL, error) {
 	return []*url.URL{ge, he}, nil
 }
 
-func NewGrpcGatewayServer(config *conf.GrpcServer) *GrpcGatewayServer {
+func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 	middlewares := []middleware.Middleware{recovery.Recovery()}
 	if config.JwtSecret != "" {
 		jwtSecret := []byte(config.JwtSecret)

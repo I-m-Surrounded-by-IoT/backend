@@ -6,10 +6,16 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-func DefaultGrpcServer() *GrpcServer {
-	return &GrpcServer{
+func DefaultGrpcServer() *GrpcServerConfig {
+	return &GrpcServerConfig{
 		Addr:    ":9000",
 		Timeout: durationpb.New(time.Second * 15),
+	}
+}
+
+func DefaultWebServer() *WebServerConfig {
+	return &WebServerConfig{
+		Addr: ":8080",
 	}
 }
 

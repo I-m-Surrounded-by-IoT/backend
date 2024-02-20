@@ -15,12 +15,12 @@ type UserService struct {
 	user.UnimplementedUserServer
 }
 
-func NewUserService(c *conf.DatabaseConfig) *UserService {
-	d, err := dbdial.NewDatabase(context.Background(), c)
+func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig) *UserService {
+	d, err := dbdial.NewDatabase(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
-	if c.AutoMigrate {
+	if dc.AutoMigrate {
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.User),

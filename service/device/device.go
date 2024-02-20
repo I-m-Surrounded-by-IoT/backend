@@ -15,12 +15,12 @@ type DeviceService struct {
 	device.UnimplementedDeviceServer
 }
 
-func NewDeviceService(c *conf.DatabaseConfig) *DeviceService {
-	d, err := dbdial.NewDatabase(context.Background(), c)
+func NewDeviceService(dc *conf.DatabaseServerConfig, deviceConfig *conf.DeviceConfig) *DeviceService {
+	d, err := dbdial.NewDatabase(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
-	if c.AutoMigrate {
+	if dc.AutoMigrate {
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.Device),

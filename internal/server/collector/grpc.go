@@ -8,7 +8,7 @@ import (
 )
 
 func NewCollectorGrpcServer(
-	config *conf.GrpcServer,
+	config *conf.GrpcServerConfig,
 	collector *collector.CollectorService,
 ) *utils.GrpcGatewayServer {
 	ggs := utils.NewGrpcGatewayServer(config)

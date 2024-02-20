@@ -1,12 +1,13 @@
-package user
+package web
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/go-kratos/kratos/v2/transport/http"
+
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
-	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -27,14 +28,10 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
-	es, err := s.Endpoints()
-	if err != nil {
-		panic(err)
-	}
+func newApp(logger log.Logger, s *http.Server, r registry.Registrar) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("database"),
+		kratos.Name("web"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -42,22 +39,20 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar)
 			s,
 		),
 		kratos.Registrar(r),
-		kratos.Endpoint(es...),
 	)
 }
 
 var UserCmd = &cobra.Command{
-	Use:   "user",
-	Short: "Start backend user",
+	Use:   "web",
+	Short: "Start backend web",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	uc := conf.UserServer{
-		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseServerConfig{},
+	uc := conf.WebServer{
+		Server:   conf.DefaultWebServer(),
 		Registry: conf.DefaultRegistry(),
-		Config:   &conf.UserConfig{},
+		Config:   &conf.WebConfig{},
 	}
 
 	if flagconf != "" {
@@ -86,13 +81,13 @@ func Server(cmd *cobra.Command, args []string) {
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
-		"service.name", "database",
+		"service.name", "web",
 		"service.version", flags.Version,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Database, uc.Config, logger)
+	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Config, logger)
 	if err != nil {
 		panic(err)
 	}

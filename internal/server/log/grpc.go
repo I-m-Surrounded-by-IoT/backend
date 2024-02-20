@@ -8,7 +8,7 @@ import (
 )
 
 func NewLogServer(
-	config *conf.GrpcServer,
+	config *conf.GrpcServerConfig,
 	lg *log.LogService,
 ) *utils.GrpcGatewayServer {
 	ggs := utils.NewGrpcGatewayServer(config)

@@ -15,7 +15,7 @@ message Registry {
   Etcd etcd = 2;
 }
 
-message WebServer {
+message WebServerConfig {
   message TLS {
     string cert_file = 1; // @gotags: env:"WEB_CERT_FILE"
     string key_file = 2;  // @gotags: env:"WEB_KEY_FILE"
@@ -26,7 +26,7 @@ message WebServer {
   string custom_endpoint = 3; // @gotags: env:"WEB_CUSTOM_ENDPOINT"
 }
 
-message GrpcServer {
+message GrpcServerConfig {
   message TLS {
     string cert_file = 1; // @gotags: env:"GRPC_CERT_FILE"
     string key_file = 2;  // @gotags: env:"GRPC_KEY_FILE"
@@ -65,9 +65,19 @@ message KafkaConfig {
 
 message CollectorServer {
   TcpServer tcp_server = 1;
-  GrpcServer grpc_server = 2;
+  GrpcServerConfig grpc_server = 2;
   Registry registry = 3;
   CollectorConfig config = 4;
+  KafkaConfig kafka = 5;
+}
+
+message CollectorDatabaseConfig {}
+
+message CollectorDatabaseServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  DatabaseServerConfig database = 3;
+  CollectorDatabaseConfig config = 4;
   KafkaConfig kafka = 5;
 }
 
@@ -79,7 +89,7 @@ message GatewayServer {
   GatewayConfig config = 3;
 }
 
-message DatabaseConfig {
+message DatabaseServerConfig {
   string host = 1;       // @gotags: env:"DATABASE_HOST"
   uint32 port = 2;       // @gotags: env:"DATABASE_PORT"
   string user = 3;       // @gotags: env:"DATABASE_USER"
@@ -90,17 +100,44 @@ message DatabaseConfig {
 }
 
 message DatabaseServer {
-  GrpcServer server = 1;
+  GrpcServerConfig server = 1;
   Registry registry = 2;
-  DatabaseConfig database = 3;
+  DatabaseServerConfig database = 3;
   KafkaConfig kafka = 4;
 }
 
 message UserConfig {}
 
 message UserServer {
-  GrpcServer server = 1;
+  GrpcServerConfig server = 1;
   Registry registry = 2;
-  DatabaseConfig database = 3;
+  DatabaseServerConfig database = 3;
   UserConfig config = 4;
+}
+
+message WebConfig {}
+
+message WebServer {
+  WebServerConfig server = 1;
+  Registry registry = 2;
+  WebConfig config = 3;
+}
+
+message LogConfig {}
+
+message LogServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  DatabaseServerConfig database = 3;
+  LogConfig config = 4;
+  KafkaConfig kafka = 5;
+}
+
+message DeviceConfig {}
+
+message DeviceServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  DatabaseServerConfig database = 3;
+  DeviceConfig config = 4;
 }

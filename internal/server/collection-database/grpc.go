@@ -8,7 +8,7 @@ import (
 )
 
 func NewCollectionDatabase(
-	config *conf.GrpcServer,
+	config *conf.GrpcServerConfig,
 	db *collection_database.CollectionDatabaseService,
 ) *utils.GrpcGatewayServer {
 	ggs := utils.NewGrpcGatewayServer(config)

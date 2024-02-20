@@ -15,12 +15,12 @@ type LogService struct {
 	logApi.UnimplementedLogServer
 }
 
-func NewLogService(c *conf.DatabaseConfig) *LogService {
-	d, err := dbdial.NewDatabase(context.Background(), c)
+func NewLogService(dc *conf.DatabaseServerConfig, lc *conf.LogConfig) *LogService {
+	d, err := dbdial.NewDatabase(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
-	if c.AutoMigrate {
+	if dc.AutoMigrate {
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.DeviceLog),

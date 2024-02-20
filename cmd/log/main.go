@@ -54,11 +54,12 @@ var LogCmd = &cobra.Command{
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	bc := conf.DatabaseServer{
+	bc := conf.LogServer{
 		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseConfig{},
+		Database: &conf.DatabaseServerConfig{},
 		Registry: conf.DefaultRegistry(),
 		Kafka:    conf.DefaultKafka(),
+		Config:   &conf.LogConfig{},
 	}
 
 	if flagconf != "" {
@@ -93,7 +94,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, bc.Config, logger)
 	if err != nil {
 		panic(err)
 	}
