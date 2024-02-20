@@ -106,13 +106,6 @@ message DatabaseServerConfig {
   bool auto_migrate = 7; // @gotags: env:"DATABASE_AUTOMIGRATE"
 }
 
-message DatabaseServer {
-  GrpcServerConfig server = 1;
-  Registry registry = 2;
-  DatabaseServerConfig database = 3;
-  KafkaConfig kafka = 4;
-}
-
 message UserConfig {}
 
 message UserServer {
@@ -124,8 +117,8 @@ message UserServer {
 
 message WebConfig {
   message JWT {
-    string secret = 1;
-    string expire = 2;
+    string secret = 1; // @gotags: env:"WEB_JWT_SECRET"
+    string expire = 2; // @gotags: env:"WEB_JWT_EXPIRE"
   }
   JWT jwt = 1;
 }

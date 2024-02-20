@@ -1,11 +1,11 @@
-version: '3.3'
+version: "3.3"
 services:
   gateway:
-    image: 'zijiren/backend:latest'
-    container_name: backend-getaway
+    image: "zijiren/backend:latest"
+    container_name: getaway
     restart: unless-stopped
     ports:
-      - '8000:8000'
+      - "8000:8000"
     environment:
       - PUID=0
       - PGID=0
@@ -14,12 +14,79 @@ services:
       - ETCD_ENDPOINT=${ETCD_ENDPOINT}
       - TCP_CUSTOM_ENDPOINT=tcp://${CUSTON_EXTERNAL_IP}:8000
     command: gateway
-  database:
-    image: 'zijiren/backend:latest'
-    container_name: backend-database
+
+  web:
+    image: "zijiren/backend:latest"
+    container_name: web
     restart: unless-stopped
     ports:
-      - '9000:9000'
+      - "9500:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:9500
+      - REDIS_ADDR=${REDIS_ADDR}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+      - WEB_JWT_SECRET=${WEB_JWT_SECRET}
+      - WEB_JWT_EXPIRE=${WEB_JWT_EXPIRE}
+    command: web
+
+  log:
+    image: "zijiren/backend:latest"
+    container_name: log
+    restart: unless-stopped
+    ports:
+      - "10000:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:10000
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-false}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${COLLECTION_DATABASE_NAME}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
+    command: log
+
+  device:
+    image: "zijiren/backend:latest"
+    container_name: device
+    restart: unless-stopped
+    ports:
+      - "8500:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:8500
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-false}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${COLLECTION_DATABASE_NAME}
+    command: device
+
+  collection:
+    image: "zijiren/backend:latest"
+    container_name: collection
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
     environment:
       - PUID=0
       - PGID=0
@@ -27,24 +94,45 @@ services:
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=${ETCD_ENDPOINT}
       - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:9000
-      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-true}
-      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-false}
       - DATABASE_HOST=${DATABASE_HOST}
       - DATABASE_PORT=${DATABASE_PORT}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME-backend}
+      - DATABASE_NAME=${COLLECTION_DATABASE_NAME}
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_USER=${KAFKA_USER}
       - KAFKA_PASSWORD=${KAFKA_PASSWORD}
-    command: database
-  collector:
-    image: 'zijiren/backend:latest'
-    container_name: backend-collector
+    command: collection
+
+  user:
+    image: "zijiren/backend:latest"
+    container_name: user
     restart: unless-stopped
     ports:
-      - '10000:8000'
-      - '11000:9000'
+      - "12000:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:12000
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-false}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${COLLECTION_DATABASE_NAME}
+    command: user
+
+  collector:
+    image: "zijiren/backend:latest"
+    container_name: collector
+    restart: unless-stopped
+    ports:
+      - "10000:8000"
+      - "11000:9000"
     environment:
       - PUID=0
       - PGID=0
