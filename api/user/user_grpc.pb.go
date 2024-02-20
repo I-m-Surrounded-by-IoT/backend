@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	User_CreateUser_FullMethodName           = "/api.user.User/CreateUser"
 	User_GetUser_FullMethodName              = "/api.user.User/GetUser"
+	User_GetUserByName_FullMethodName        = "/api.user.User/GetUserByName"
 	User_ValidateUserPassword_FullMethodName = "/api.user.User/ValidateUserPassword"
 	User_SetUserPassword_FullMethodName      = "/api.user.User/SetUserPassword"
 	User_SetUserRole_FullMethodName          = "/api.user.User/SetUserRole"
@@ -34,6 +35,7 @@ const (
 type UserClient interface {
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*UserInfo, error)
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error)
+	GetUserByName(ctx context.Context, in *GetUserByNameReq, opts ...grpc.CallOption) (*UserInfo, error)
 	ValidateUserPassword(ctx context.Context, in *ValidateUserPasswordReq, opts ...grpc.CallOption) (*ValidateUserPasswordResp, error)
 	SetUserPassword(ctx context.Context, in *SetUserPasswordReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserRole(ctx context.Context, in *SetUserRoleReq, opts ...grpc.CallOption) (*Empty, error)
@@ -61,6 +63,15 @@ func (c *userClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...
 func (c *userClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error) {
 	out := new(UserInfo)
 	err := c.cc.Invoke(ctx, User_GetUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetUserByName(ctx context.Context, in *GetUserByNameReq, opts ...grpc.CallOption) (*UserInfo, error) {
+	out := new(UserInfo)
+	err := c.cc.Invoke(ctx, User_GetUserByName_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +129,7 @@ func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts .
 type UserServer interface {
 	CreateUser(context.Context, *CreateUserReq) (*UserInfo, error)
 	GetUser(context.Context, *GetUserReq) (*UserInfo, error)
+	GetUserByName(context.Context, *GetUserByNameReq) (*UserInfo, error)
 	ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
@@ -135,6 +147,9 @@ func (UnimplementedUserServer) CreateUser(context.Context, *CreateUserReq) (*Use
 }
 func (UnimplementedUserServer) GetUser(context.Context, *GetUserReq) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserServer) GetUserByName(context.Context, *GetUserByNameReq) (*UserInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByName not implemented")
 }
 func (UnimplementedUserServer) ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateUserPassword not implemented")
@@ -196,6 +211,24 @@ func _User_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServer).GetUser(ctx, req.(*GetUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetUserByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByNameReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserByName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserByName(ctx, req.(*GetUserByNameReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -304,6 +337,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _User_GetUser_Handler,
+		},
+		{
+			MethodName: "GetUserByName",
+			Handler:    _User_GetUserByName_Handler,
 		},
 		{
 			MethodName: "ValidateUserPassword",

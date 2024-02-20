@@ -23,7 +23,7 @@ type DatabaseConfig interface {
 	GetUser() string
 }
 
-func NewDatabase(ctx context.Context, dbConf DatabaseConfig) (*gorm.DB, error) {
+func Dial(ctx context.Context, dbConf DatabaseConfig) (*gorm.DB, error) {
 	dialector, err := createDialector(dbConf)
 	if err != nil {
 		return nil, err

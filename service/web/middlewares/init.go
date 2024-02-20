@@ -9,6 +9,7 @@ func Init(e *gin.Engine) {
 	w := log.StandardLogger().Writer()
 	e.
 		Use(gin.LoggerWithWriter(w), gin.RecoveryWithWriter(w)).
+		Use(SetDateToHeader).
 		Use(NewCors()).
 		Use(NewLog(log.StandardLogger()))
 	// if conf.Conf.RateLimit.Enable {

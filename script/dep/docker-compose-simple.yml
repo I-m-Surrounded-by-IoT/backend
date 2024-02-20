@@ -34,7 +34,24 @@ services:
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     volumes:
       - kafka_0_data:/bitnami/kafka
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    logging:
+      options:
+        max-size: "3m"
+    volumes:
+      - redis_data:/data
+    environment:
+      TZ: ${TZ-Asia/Shanghai}
+    command: >-
+      --requirepass "" --maxclients 10000 --appendonly yes --appendfsync everysec --maxmemory 512mb --loglevel warning --databases 1 --save "" --stop-writes-on-bgsave-error yes --rdbcompression yes --rdbchecksum yes --dbfilename dump.rdb
 
 volumes:
+  redis_data:
+    driver: local
   kafka_0_data:
     driver: local

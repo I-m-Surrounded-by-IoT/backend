@@ -242,6 +242,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
+    /user/name/{name}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserByName
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.UserInfo'
     /user/password:
         put:
             tags:
@@ -325,6 +349,12 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK

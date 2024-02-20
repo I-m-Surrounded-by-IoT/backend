@@ -16,7 +16,7 @@ type DeviceService struct {
 }
 
 func NewDeviceService(dc *conf.DatabaseServerConfig, deviceConfig *conf.DeviceConfig) *DeviceService {
-	d, err := dbdial.NewDatabase(context.Background(), dc)
+	d, err := dbdial.Dial(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}

@@ -12,6 +12,7 @@ func NewWebServer(
 	web *web.WebService,
 ) *http.Server {
 	eng := gin.New()
+	web.Init(eng)
 	s := http.NewServer(
 		http.Address(
 			config.Addr,

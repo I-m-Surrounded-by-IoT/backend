@@ -49,7 +49,7 @@ func (h *WebService) AuthUser(ctx context.Context, Authorization string) (*user.
 		return nil, ErrAuthFailed
 	}
 
-	i, err := h.ucache.GetPasswordVersion(ctx, claims.UserId)
+	i, err := h.ucache.GetUserPasswordVersion(ctx, claims.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +58,11 @@ func (h *WebService) AuthUser(ctx context.Context, Authorization string) (*user.
 		return nil, ErrAuthExpired
 	}
 
-	return h.ucache.GetUser(ctx, claims.UserId)
+	return h.ucache.GetUserInfo(ctx, claims.UserId)
 }
 
-func (ws *WebService) NewAuthUserToken(ctx context.Context, ID string) (string, error) {
-	version, err := ws.ucache.GetPasswordVersion(ctx, ID)
+func (ws *WebService) NewUserAuthToken(ctx context.Context, ID string) (string, error) {
+	version, err := ws.ucache.GetUserPasswordVersion(ctx, ID)
 	if err != nil {
 		return "", err
 	}

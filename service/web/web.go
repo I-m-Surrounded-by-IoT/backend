@@ -16,7 +16,6 @@ import (
 	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 )
 
 type jwtConfig struct {
@@ -25,15 +24,12 @@ type jwtConfig struct {
 }
 
 type WebService struct {
-	config *conf.WebConfig
-	jwt    *jwtConfig
-	rdb    *redis.Client
-	rsync  *redsync.Redsync
-	ucache *rcache.UserRcache
-}
-
-func newUserRcache(cache *rcache.Rcache, conn *grpc.ClientConn) *rcache.UserRcache {
-	return rcache.NewUserRcache(cache, user.NewUserClient(conn))
+	config  *conf.WebConfig
+	jwt     *jwtConfig
+	rdb     *redis.Client
+	rsync   *redsync.Redsync
+	uclient user.UserClient
+	ucache  *rcache.UserRcache
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -55,8 +51,9 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		Password: rc.Password,
 		DB:       int(rc.Db),
 	})
-	cache := rcache.NewRcache(rdb)
 	rsync := redsync.New(goredis.NewPool(rdb))
+	cache := rcache.NewRcacheWithRsync(rdb, rsync)
+	uclient := user.NewUserClient(conn)
 
 	return &WebService{
 		config: c,
@@ -64,13 +61,14 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 			secret: []byte(c.Jwt.Secret),
 			expire: jwtExpire,
 		},
-		rdb:    rdb,
-		rsync:  rsync,
-		ucache: newUserRcache(cache, conn),
+		rdb:     rdb,
+		rsync:   rsync,
+		uclient: uclient,
+		ucache:  rcache.NewUserRcache(cache, uclient),
 	}
 }
 
-func (ws *WebService) RegisterGinRouter(eng *gin.Engine) {
+func (ws *WebService) Init(eng *gin.Engine) {
 	middlewares.Init(eng)
-
+	ws.RegisterRouter(eng)
 }

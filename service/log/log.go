@@ -16,7 +16,7 @@ type LogService struct {
 }
 
 func NewLogService(dc *conf.DatabaseServerConfig, lc *conf.LogConfig) *LogService {
-	d, err := dbdial.NewDatabase(context.Background(), dc)
+	d, err := dbdial.Dial(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}

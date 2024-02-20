@@ -16,7 +16,7 @@ type UserService struct {
 }
 
 func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig) *UserService {
-	d, err := dbdial.NewDatabase(context.Background(), dc)
+	d, err := dbdial.Dial(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
 	}
@@ -31,7 +31,7 @@ func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig) *UserSer
 	}
 
 	db := &UserService{
-		db: newDBUtils(d),
+		db: NewDBUtils(d),
 	}
 	return db
 }
@@ -66,7 +66,15 @@ func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) 
 }
 
 func (us *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.UserInfo, error) {
-	u, err := us.db.GetUser(req.Id)
+	u, err := us.db.GetUser(req.Id, req.Fields...)
+	if err != nil {
+		return nil, err
+	}
+	return user2GetUserResp(u), nil
+}
+
+func (us *UserService) GetUserByName(ctx context.Context, req *user.GetUserByNameReq) (*user.UserInfo, error) {
+	u, err := us.db.GetUserByName(req.Name, req.Fields...)
 	if err != nil {
 		return nil, err
 	}

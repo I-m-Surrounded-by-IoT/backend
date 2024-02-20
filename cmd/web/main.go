@@ -8,6 +8,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
+	"github.com/I-m-Surrounded-by-IoT/backend/internal/bootstrap"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -45,7 +46,13 @@ func newApp(logger log.Logger, s *http.Server, r registry.Registrar) *kratos.App
 var WebCmd = &cobra.Command{
 	Use:   "web",
 	Short: "Start backend web",
-	Run:   Server,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := bootstrap.InitGinMode(cmd.Context())
+		if err != nil {
+			logrus.Fatalf("error init gin mode: %v", err)
+		}
+	},
+	Run: Server,
 }
 
 const defaultJwtSecret = "jwt_secret"

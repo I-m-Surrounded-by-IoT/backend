@@ -9,6 +9,23 @@ services:
       - 2380:2380
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    logging:
+      options:
+        max-size: "3m"
+    volumes:
+      - redis_data:/data
+    environment:
+      TZ: ${TZ-Asia/Shanghai}
+    command: >-
+      --requirepass "" --maxclients 10000 --appendonly yes --appendfsync everysec --maxmemory 512mb --loglevel warning --databases 1 --save "" --stop-writes-on-bgsave-error yes --rdbcompression yes --rdbchecksum yes --dbfilename dump.rdb
+
   kafka-0:
     image: docker.io/bitnami/kafka:3.6
     container_name: backend-kafka-0
@@ -86,6 +103,8 @@ services:
       - kafka_2_data:/bitnami/kafka
 
 volumes:
+  redis_data:
+    driver: local
   kafka_0_data:
     driver: local
   kafka_1_data:

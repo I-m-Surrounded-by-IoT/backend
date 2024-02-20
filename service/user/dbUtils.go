@@ -1,6 +1,8 @@
 package user
 
 import (
+	"errors"
+
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/user/model"
 	"golang.org/x/crypto/bcrypt"
@@ -11,13 +13,16 @@ type dbUtils struct {
 	*gorm.DB
 }
 
-func newDBUtils(db *gorm.DB) *dbUtils {
+func NewDBUtils(db *gorm.DB) *dbUtils {
 	return &dbUtils{DB: db}
 }
 
 const Salt = "https://github.com/I-m-Surrounded-by-IoT/"
 
 func GenUserPassword(password string) ([]byte, error) {
+	if len(password) < 6 {
+		return nil, errors.New("password too short")
+	}
 	return bcrypt.GenerateFromPassword([]byte(Salt+password), bcrypt.DefaultCost)
 }
 
@@ -38,9 +43,18 @@ func SetUserPassword(u *model.User, password string) error {
 	return nil
 }
 
-func (u *dbUtils) GetUser(id string, scopes ...func(*gorm.DB) *gorm.DB) (*model.User, error) {
+func (u *dbUtils) GetUser(id string, fields ...string) (*model.User, error) {
 	user := new(model.User)
-	err := u.Scopes(scopes...).Where("id = ?", id).First(user).Error
+	err := u.Select(fields).Where("id = ?", id).First(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *dbUtils) GetUserByName(name string, fields ...string) (*model.User, error) {
+	user := new(model.User)
+	err := u.Select(fields).Where("username = ?", name).First(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +123,7 @@ func (u *dbUtils) SetUserRole(id string, role user.Role) error {
 }
 
 func (u *dbUtils) GetUserPassword(id string) ([]byte, error) {
-	user, err := u.GetUser(id, func(d *gorm.DB) *gorm.DB {
-		return d.Select("hashed_password")
-	})
+	user, err := u.GetUser(id, "hashed_password")
 	if err != nil {
 		return nil, err
 	}
