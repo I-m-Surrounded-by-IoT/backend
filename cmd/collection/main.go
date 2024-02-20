@@ -1,4 +1,4 @@
-package collection_database
+package collection
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
-	database "github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection-database"
+	collection "github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -28,14 +28,14 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *database.CollectionConsumerServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *collection.CollectionConsumerServer, r registry.Registrar) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
 		panic(err)
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("collection-database"),
+		kratos.Name("collection"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -48,17 +48,19 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *database.Collectio
 }
 
 var DatabaseCmd = &cobra.Command{
-	Use:   "collection-database",
+	Use:   "collection",
 	Short: "Start backend collection database",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	bc := conf.CollectorDatabaseServer{
-		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseServerConfig{},
+	bc := conf.CollectionServer{
+		Server: conf.DefaultGrpcServer(),
+		Database: &conf.DatabaseServerConfig{
+			Name: "collection",
+		},
 		Registry: conf.DefaultRegistry(),
-		Config:   &conf.CollectorDatabaseConfig{},
+		Config:   &conf.CollectionConfig{},
 		Kafka:    conf.DefaultKafka(),
 	}
 
@@ -88,7 +90,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
-		"service.name", "collection-database",
+		"service.name", "collection",
 		"service.version", flags.Version,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),

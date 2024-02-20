@@ -42,18 +42,25 @@ func newApp(logger log.Logger, s *http.Server, r registry.Registrar) *kratos.App
 	)
 }
 
-var UserCmd = &cobra.Command{
+var WebCmd = &cobra.Command{
 	Use:   "web",
 	Short: "Start backend web",
 	Run:   Server,
 }
 
+const defaultJwtSecret = "jwt_secret"
+
 func Server(cmd *cobra.Command, args []string) {
 	uc := conf.WebServer{
 		Server:   conf.DefaultWebServer(),
 		Registry: conf.DefaultRegistry(),
-		Config:   &conf.WebConfig{},
-		Redis:    &conf.RedisConfig{},
+		Config: &conf.WebConfig{
+			Jwt: &conf.WebConfig_JWT{
+				Secret: defaultJwtSecret,
+				Expire: "24h",
+			},
+		},
+		Redis: &conf.RedisConfig{},
 	}
 
 	if flagconf != "" {
@@ -100,5 +107,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	UserCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	WebCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

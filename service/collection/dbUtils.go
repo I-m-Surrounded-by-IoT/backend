@@ -1,7 +1,7 @@
-package collection_database
+package collection
 
 import (
-	"github.com/I-m-Surrounded-by-IoT/backend/service/collection-database/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"gorm.io/gorm"
 )
 

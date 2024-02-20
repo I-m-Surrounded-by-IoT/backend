@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package api.collection_database;
+package api.collection;
 
-option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection_database;collection_database";
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection;collection";
 
 import "google/api/annotations.proto";
 
-service CollectionDatabase {
+service Collection {
   rpc CreateCollectionRecord(CollectionRecord) returns (Empty) {
     option (google.api.http) = {
       post : "/collection"

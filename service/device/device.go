@@ -42,7 +42,7 @@ func (s *DeviceService) GetDevice(ctx context.Context, req *device.GetDeviceReq)
 		return nil, err
 	}
 	return &device.DeviceRecord{
-		Id:        d.DeviceID,
+		Id:        d.ID,
 		CreatedAt: d.CreatedAt.UnixMicro(),
 		UpdatedAt: d.UpdatedAt.UnixMicro(),
 		Mac:       d.Mac,

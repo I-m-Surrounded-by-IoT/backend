@@ -54,8 +54,10 @@ var DeviceCmd = &cobra.Command{
 
 func Server(cmd *cobra.Command, args []string) {
 	bc := conf.DeviceServer{
-		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseServerConfig{},
+		Server: conf.DefaultGrpcServer(),
+		Database: &conf.DatabaseServerConfig{
+			Name: "device",
+		},
 		Registry: conf.DefaultRegistry(),
 		Config:   &conf.DeviceConfig{},
 	}

@@ -1,23 +1,23 @@
-package collection_database
+package collection
 
 import (
 	"context"
 	"time"
 
-	collection_database "github.com/I-m-Surrounded-by-IoT/backend/api/collection-database"
+	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
-	"github.com/I-m-Surrounded-by-IoT/backend/service/collection-database/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/dbdial"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-type CollectionDatabaseService struct {
+type CollectionService struct {
 	db *dbUtils
-	collection_database.UnimplementedCollectionDatabaseServer
+	collection.UnimplementedCollectionServer
 }
 
-func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectorDatabaseConfig) *CollectionDatabaseService {
+func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectionConfig) *CollectionService {
 	d, err := dbdial.NewDatabase(context.Background(), dc)
 	if err != nil {
 		log.Fatalf("failed to create database: %v", err)
@@ -32,13 +32,13 @@ func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectorData
 		}
 	}
 
-	db := &CollectionDatabaseService{
+	db := &CollectionService{
 		db: newDBUtils(d),
 	}
 	return db
 }
 
-func (s *CollectionDatabaseService) CreateCollectionRecord(ctx context.Context, req *collection_database.CollectionRecord) (*collection_database.Empty, error) {
+func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *collection.CollectionRecord) (*collection.Empty, error) {
 	err := s.db.CreateCollection(&model.CollectionRecord{
 		DeviceID:  req.DeviceId,
 		Timestamp: time.UnixMicro(int64(req.Timestamp)),
@@ -51,10 +51,10 @@ func (s *CollectionDatabaseService) CreateCollectionRecord(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return &collection_database.Empty{}, nil
+	return &collection.Empty{}, nil
 }
 
-func (s *CollectionDatabaseService) ListCollectionRecord(ctx context.Context, req *collection_database.ListCollectionRecordReq) (*collection_database.ListCollectionRecordResp, error) {
+func (s *CollectionService) ListCollectionRecord(ctx context.Context, req *collection.ListCollectionRecordReq) (*collection.ListCollectionRecordResp, error) {
 	scopes := make([]func(*gorm.DB) *gorm.DB, 0)
 
 	if req.StartTimestamp != 0 {
@@ -75,15 +75,15 @@ func (s *CollectionDatabaseService) ListCollectionRecord(ctx context.Context, re
 	if err != nil {
 		return nil, err
 	}
-	resp := collection_database.ListCollectionRecordResp{
-		CollectionInfos: make([]*collection_database.ListCollectionRecordResp_CollectionRecord, len(c)),
+	resp := collection.ListCollectionRecordResp{
+		CollectionInfos: make([]*collection.ListCollectionRecordResp_CollectionRecord, len(c)),
 	}
 	for i, info := range c {
-		resp.CollectionInfos[i] = &collection_database.ListCollectionRecordResp_CollectionRecord{
+		resp.CollectionInfos[i] = &collection.ListCollectionRecordResp_CollectionRecord{
 			CreatedAt: info.CreatedAt.UnixMicro(),
 			DeviceId:  info.DeviceID,
 			Timestamp: info.Timestamp.UnixMicro(),
-			GeoPoint: &collection_database.GeoPoint{
+			GeoPoint: &collection.GeoPoint{
 				Lat: info.GeoPoint.Lat,
 				Lng: info.GeoPoint.Lng,
 			},

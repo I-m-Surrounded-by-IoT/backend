@@ -1,4 +1,4 @@
-package collection_database
+package collection
 
 import (
 	"strings"

@@ -34,7 +34,7 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, r registry.Registrar)
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("database"),
+		kratos.Name("user"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -54,8 +54,10 @@ var UserCmd = &cobra.Command{
 
 func Server(cmd *cobra.Command, args []string) {
 	uc := conf.UserServer{
-		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseServerConfig{},
+		Server: conf.DefaultGrpcServer(),
+		Database: &conf.DatabaseServerConfig{
+			Name: "users",
+		},
 		Registry: conf.DefaultRegistry(),
 		Config:   &conf.UserConfig{},
 	}
@@ -86,7 +88,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
-		"service.name", "database",
+		"service.name", "user",
 		"service.version", flags.Version,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),

@@ -9,8 +9,8 @@ paths:
     /collection:
         get:
             tags:
-                - CollectionDatabase
-            operationId: CollectionDatabase_ListCollectionRecord
+                - Collection
+            operationId: Collection_ListCollectionRecord
             parameters:
                 - name: page
                   in: query
@@ -38,16 +38,16 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collection_database.ListCollectionRecordResp'
+                                $ref: '#/components/schemas/api.collection.ListCollectionRecordResp'
         post:
             tags:
-                - CollectionDatabase
-            operationId: CollectionDatabase_CreateCollectionRecord
+                - Collection
+            operationId: Collection_CreateCollectionRecord
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.collection_database.CollectionRecord'
+                            $ref: '#/components/schemas/api.collection.CollectionRecord'
                 required: true
             responses:
                 "200":
@@ -55,7 +55,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collection_database.Empty'
+                                $ref: '#/components/schemas/api.collection.Empty'
     /collector/report_immediately:
         post:
             tags:
@@ -334,7 +334,7 @@ paths:
                                 $ref: '#/components/schemas/api.user.UserInfo'
 components:
     schemas:
-        api.collection_database.CollectionRecord:
+        api.collection.CollectionRecord:
             type: object
             properties:
                 deviceId:
@@ -342,14 +342,14 @@ components:
                 timestamp:
                     type: string
                 geoPoint:
-                    $ref: '#/components/schemas/api.collection_database.GeoPoint'
+                    $ref: '#/components/schemas/api.collection.GeoPoint'
                 temperature:
                     type: number
                     format: float
-        api.collection_database.Empty:
+        api.collection.Empty:
             type: object
             properties: {}
-        api.collection_database.GeoPoint:
+        api.collection.GeoPoint:
             type: object
             properties:
                 lat:
@@ -358,14 +358,14 @@ components:
                 lng:
                     type: number
                     format: double
-        api.collection_database.ListCollectionRecordResp:
+        api.collection.ListCollectionRecordResp:
             type: object
             properties:
                 collectionInfos:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.collection_database.ListCollectionRecordResp_CollectionRecord'
-        api.collection_database.ListCollectionRecordResp_CollectionRecord:
+                        $ref: '#/components/schemas/api.collection.ListCollectionRecordResp_CollectionRecord'
+        api.collection.ListCollectionRecordResp_CollectionRecord:
             type: object
             properties:
                 createdAt:
@@ -375,7 +375,7 @@ components:
                 timestamp:
                     type: string
                 geoPoint:
-                    $ref: '#/components/schemas/api.collection_database.GeoPoint'
+                    $ref: '#/components/schemas/api.collection.GeoPoint'
         api.collector.ReportImmediatelyReq:
             type: object
             properties:
@@ -503,7 +503,7 @@ components:
                 valid:
                     type: boolean
 tags:
-    - name: CollectionDatabase
+    - name: Collection
     - name: Collector
     - name: Device
     - name: Log

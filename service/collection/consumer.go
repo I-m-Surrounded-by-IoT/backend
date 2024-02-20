@@ -1,11 +1,11 @@
-package collection_database
+package collection
 
 import (
 	"strconv"
 	"time"
 
-	database "github.com/I-m-Surrounded-by-IoT/backend/api/collection-database"
-	"github.com/I-m-Surrounded-by-IoT/backend/service/collection-database/model"
+	database "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
@@ -17,7 +17,7 @@ type CollectionConsumer struct {
 	db *dbUtils
 }
 
-func NewCollectionConsumer(dbs *CollectionDatabaseService) *CollectionConsumer {
+func NewCollectionConsumer(dbs *CollectionService) *CollectionConsumer {
 	return &CollectionConsumer{
 		db: dbs.db,
 	}

@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-http v2.7.1
 // - protoc             v4.25.3
-// source: collection-database/collection-database.proto
+// source: collection/collection.proto
 
-package collection_database
+package collection
 
 import (
 	context "context"
@@ -19,21 +19,21 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationCollectionDatabaseCreateCollectionRecord = "/api.collection_database.CollectionDatabase/CreateCollectionRecord"
-const OperationCollectionDatabaseListCollectionRecord = "/api.collection_database.CollectionDatabase/ListCollectionRecord"
+const OperationCollectionCreateCollectionRecord = "/api.collection.Collection/CreateCollectionRecord"
+const OperationCollectionListCollectionRecord = "/api.collection.Collection/ListCollectionRecord"
 
-type CollectionDatabaseHTTPServer interface {
+type CollectionHTTPServer interface {
 	CreateCollectionRecord(context.Context, *CollectionRecord) (*Empty, error)
 	ListCollectionRecord(context.Context, *ListCollectionRecordReq) (*ListCollectionRecordResp, error)
 }
 
-func RegisterCollectionDatabaseHTTPServer(s *http.Server, srv CollectionDatabaseHTTPServer) {
+func RegisterCollectionHTTPServer(s *http.Server, srv CollectionHTTPServer) {
 	r := s.Route("/")
-	r.POST("/collection", _CollectionDatabase_CreateCollectionRecord0_HTTP_Handler(srv))
-	r.GET("/collection", _CollectionDatabase_ListCollectionRecord0_HTTP_Handler(srv))
+	r.POST("/collection", _Collection_CreateCollectionRecord0_HTTP_Handler(srv))
+	r.GET("/collection", _Collection_ListCollectionRecord0_HTTP_Handler(srv))
 }
 
-func _CollectionDatabase_CreateCollectionRecord0_HTTP_Handler(srv CollectionDatabaseHTTPServer) func(ctx http.Context) error {
+func _Collection_CreateCollectionRecord0_HTTP_Handler(srv CollectionHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CollectionRecord
 		if err := ctx.Bind(&in); err != nil {
@@ -42,7 +42,7 @@ func _CollectionDatabase_CreateCollectionRecord0_HTTP_Handler(srv CollectionData
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCollectionDatabaseCreateCollectionRecord)
+		http.SetOperation(ctx, OperationCollectionCreateCollectionRecord)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.CreateCollectionRecord(ctx, req.(*CollectionRecord))
 		})
@@ -55,13 +55,13 @@ func _CollectionDatabase_CreateCollectionRecord0_HTTP_Handler(srv CollectionData
 	}
 }
 
-func _CollectionDatabase_ListCollectionRecord0_HTTP_Handler(srv CollectionDatabaseHTTPServer) func(ctx http.Context) error {
+func _Collection_ListCollectionRecord0_HTTP_Handler(srv CollectionHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListCollectionRecordReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationCollectionDatabaseListCollectionRecord)
+		http.SetOperation(ctx, OperationCollectionListCollectionRecord)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.ListCollectionRecord(ctx, req.(*ListCollectionRecordReq))
 		})
@@ -74,24 +74,24 @@ func _CollectionDatabase_ListCollectionRecord0_HTTP_Handler(srv CollectionDataba
 	}
 }
 
-type CollectionDatabaseHTTPClient interface {
+type CollectionHTTPClient interface {
 	CreateCollectionRecord(ctx context.Context, req *CollectionRecord, opts ...http.CallOption) (rsp *Empty, err error)
 	ListCollectionRecord(ctx context.Context, req *ListCollectionRecordReq, opts ...http.CallOption) (rsp *ListCollectionRecordResp, err error)
 }
 
-type CollectionDatabaseHTTPClientImpl struct {
+type CollectionHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewCollectionDatabaseHTTPClient(client *http.Client) CollectionDatabaseHTTPClient {
-	return &CollectionDatabaseHTTPClientImpl{client}
+func NewCollectionHTTPClient(client *http.Client) CollectionHTTPClient {
+	return &CollectionHTTPClientImpl{client}
 }
 
-func (c *CollectionDatabaseHTTPClientImpl) CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...http.CallOption) (*Empty, error) {
+func (c *CollectionHTTPClientImpl) CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
 	pattern := "/collection"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationCollectionDatabaseCreateCollectionRecord))
+	opts = append(opts, http.Operation(OperationCollectionCreateCollectionRecord))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -100,11 +100,11 @@ func (c *CollectionDatabaseHTTPClientImpl) CreateCollectionRecord(ctx context.Co
 	return &out, err
 }
 
-func (c *CollectionDatabaseHTTPClientImpl) ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...http.CallOption) (*ListCollectionRecordResp, error) {
+func (c *CollectionHTTPClientImpl) ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...http.CallOption) (*ListCollectionRecordResp, error) {
 	var out ListCollectionRecordResp
 	pattern := "/collection"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationCollectionDatabaseListCollectionRecord))
+	opts = append(opts, http.Operation(OperationCollectionListCollectionRecord))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

@@ -1,0 +1,4 @@
+export DATABASE_USER=log
+export DATABASE_PASSWORD=Database_$DATABASE_USER
+export DATABASE_NAME=$DATABASE_USER
+TCP_ADDR=0.0.0.0:21000 go run . log --dev

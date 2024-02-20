@@ -42,7 +42,7 @@ func (u *dbUtils) GetDeviceWithMac(mac string) (*model.Device, error) {
 
 func Device2Proto(d *model.Device) *device.DeviceRecord {
 	return &device.DeviceRecord{
-		Id:        d.DeviceID,
+		Id:        d.ID,
 		Mac:       d.Mac,
 		CreatedAt: d.CreatedAt.UnixMicro(),
 		UpdatedAt: d.UpdatedAt.UnixMicro(),

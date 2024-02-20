@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	collection_database "github.com/I-m-Surrounded-by-IoT/backend/api/collection-database"
+	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
@@ -188,10 +188,10 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 				continue
 			}
 			log.Infof("receive report message from collector: %v", payload)
-			info := &collection_database.CollectionRecord{
+			info := &collection.CollectionRecord{
 				DeviceId:  d.Id,
 				Timestamp: payload.Timestamp,
-				GeoPoint: &collection_database.GeoPoint{
+				GeoPoint: &collection.GeoPoint{
 					Lng: payload.GeoPoint.Longitude,
 					Lat: payload.GeoPoint.Latitude,
 				},

@@ -1,9 +1,9 @@
-package collection_database
+package collection
 
 import (
 	"context"
 
-	collection_database "github.com/I-m-Surrounded-by-IoT/backend/service/collection-database"
+	collection "github.com/I-m-Surrounded-by-IoT/backend/service/collection"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +17,7 @@ type CollectionConsumerServer struct {
 
 func NewCollectionConsumerServer(
 	consumerGroup sarama.ConsumerGroup,
-	c *collection_database.CollectionConsumer,
+	c *collection.CollectionConsumer,
 ) *CollectionConsumerServer {
 	return &CollectionConsumerServer{
 		consumerGroup: consumerGroup,

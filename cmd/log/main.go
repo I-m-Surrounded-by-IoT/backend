@@ -28,7 +28,11 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLogServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger,
+	s *utils.GrpcGatewayServer,
+	l *logServer.DeviceLogServer,
+	r registry.Registrar,
+) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
 		panic(err)
@@ -41,6 +45,7 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLo
 		kratos.Logger(logger),
 		kratos.Server(
 			s,
+			l,
 		),
 		kratos.Registrar(r),
 		kratos.Endpoint(es...),
@@ -49,14 +54,16 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, l *logServer.DeviceLo
 
 var LogCmd = &cobra.Command{
 	Use:   "log",
-	Short: "Start backend database",
+	Short: "Start backend log",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
 	bc := conf.LogServer{
-		Server:   conf.DefaultGrpcServer(),
-		Database: &conf.DatabaseServerConfig{},
+		Server: conf.DefaultGrpcServer(),
+		Database: &conf.DatabaseServerConfig{
+			Name: "log",
+		},
 		Registry: conf.DefaultRegistry(),
 		Kafka:    conf.DefaultKafka(),
 		Config:   &conf.LogConfig{},

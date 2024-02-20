@@ -78,13 +78,13 @@ message CollectorServer {
   KafkaConfig kafka = 5;
 }
 
-message CollectorDatabaseConfig {}
+message CollectionConfig {}
 
-message CollectorDatabaseServer {
+message CollectionServer {
   GrpcServerConfig server = 1;
   Registry registry = 2;
   DatabaseServerConfig database = 3;
-  CollectorDatabaseConfig config = 4;
+  CollectionConfig config = 4;
   KafkaConfig kafka = 5;
 }
 
