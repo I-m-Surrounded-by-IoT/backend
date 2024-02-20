@@ -36,8 +36,8 @@ func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig) *UserSer
 	return db
 }
 
-func user2GetUserResp(u *model.User) *user.GetUserResp {
-	return &user.GetUserResp{
+func user2GetUserResp(u *model.User) *user.UserInfo {
+	return &user.UserInfo{
 		Id:        u.ID,
 		CreatedAt: u.CreatedAt.UnixMicro(),
 		UpdatedAt: u.UpdatedAt.UnixMicro(),
@@ -48,7 +48,7 @@ func user2GetUserResp(u *model.User) *user.GetUserResp {
 
 }
 
-func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.GetUserResp, error) {
+func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.UserInfo, error) {
 	u := &model.User{
 		Username: req.Name,
 		Role:     req.Role,
@@ -65,7 +65,7 @@ func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) 
 	return user2GetUserResp(u), nil
 }
 
-func (us *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.GetUserResp, error) {
+func (us *UserService) GetUser(ctx context.Context, req *user.GetUserReq) (*user.UserInfo, error) {
 	u, err := us.db.GetUser(req.Id)
 	if err != nil {
 		return nil, err

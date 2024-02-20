@@ -31,15 +31,3 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	}
 	return nil
 }
-
-func (u *User) IsAdmin() bool {
-	return u.Role == user.Role_ADMIN
-}
-
-func (u *User) IsActice() bool {
-	return u.Status == user.Status_ACTIVE
-}
-
-func (u *User) IsInActive() bool {
-	return u.Status == user.Status_INACTIVE
-}

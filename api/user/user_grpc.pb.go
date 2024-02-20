@@ -32,8 +32,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
-	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
-	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error)
+	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*UserInfo, error)
+	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error)
 	ValidateUserPassword(ctx context.Context, in *ValidateUserPasswordReq, opts ...grpc.CallOption) (*ValidateUserPasswordResp, error)
 	SetUserPassword(ctx context.Context, in *SetUserPasswordReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserRole(ctx context.Context, in *SetUserRoleReq, opts ...grpc.CallOption) (*Empty, error)
@@ -49,8 +49,8 @@ func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
 }
 
-func (c *userClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*GetUserResp, error) {
-	out := new(GetUserResp)
+func (c *userClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*UserInfo, error) {
+	out := new(UserInfo)
 	err := c.cc.Invoke(ctx, User_CreateUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -58,8 +58,8 @@ func (c *userClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...
 	return out, nil
 }
 
-func (c *userClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserResp, error) {
-	out := new(GetUserResp)
+func (c *userClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error) {
+	out := new(UserInfo)
 	err := c.cc.Invoke(ctx, User_GetUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -116,8 +116,8 @@ func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts .
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
-	CreateUser(context.Context, *CreateUserReq) (*GetUserResp, error)
-	GetUser(context.Context, *GetUserReq) (*GetUserResp, error)
+	CreateUser(context.Context, *CreateUserReq) (*UserInfo, error)
+	GetUser(context.Context, *GetUserReq) (*UserInfo, error)
 	ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
@@ -130,10 +130,10 @@ type UserServer interface {
 type UnimplementedUserServer struct {
 }
 
-func (UnimplementedUserServer) CreateUser(context.Context, *CreateUserReq) (*GetUserResp, error) {
+func (UnimplementedUserServer) CreateUser(context.Context, *CreateUserReq) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServer) GetUser(context.Context, *GetUserReq) (*GetUserResp, error) {
+func (UnimplementedUserServer) GetUser(context.Context, *GetUserReq) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedUserServer) ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error) {

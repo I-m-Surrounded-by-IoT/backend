@@ -39,7 +39,6 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	case *registryClient.EtcdRegistry:
 		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 			Endpoint: "discovery:///device",
-			Tls:      c.DatabaseTls,
 		}, reg)
 		if err != nil {
 			panic(err)

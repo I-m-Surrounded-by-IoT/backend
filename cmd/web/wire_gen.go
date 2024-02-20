@@ -21,10 +21,10 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(webServerConfig *conf.WebServerConfig, confRegistry *conf.Registry, webConfig *conf.WebConfig, logger log.Logger) (*kratos.App, func(), error) {
-	webService := web.NewWebServer(webConfig)
-	server := web2.NewWebServer(webServerConfig, webService)
+func wireApp(webServerConfig *conf.WebServerConfig, confRegistry *conf.Registry, webConfig *conf.WebConfig, redisConfig *conf.RedisConfig, logger log.Logger) (*kratos.App, func(), error) {
 	registrar := registry.NewRegistry(confRegistry)
+	webService := web.NewWebServer(webConfig, registrar, redisConfig)
+	server := web2.NewWebServer(webServerConfig, webService)
 	app := newApp(logger, server, registrar)
 	return app, func() {
 	}, nil

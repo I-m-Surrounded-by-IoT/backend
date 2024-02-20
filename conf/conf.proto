@@ -63,6 +63,13 @@ message KafkaConfig {
   string password = 3; // @gotags: env:"KAFKA_PASSWORD"
 }
 
+message RedisConfig {
+  string addr = 1;     // @gotags: env:"REDIS_ADDR"
+  string username = 2; // @gotags: env:"REDIS_USERNAME"
+  string password = 3; // @gotags: env:"REDIS_PASSWORD"
+  int32 db = 4;        // @gotags: env:"REDIS_DB"
+}
+
 message CollectorServer {
   TcpServer tcp_server = 1;
   GrpcServerConfig grpc_server = 2;
@@ -115,12 +122,19 @@ message UserServer {
   UserConfig config = 4;
 }
 
-message WebConfig {}
+message WebConfig {
+  message JWT {
+    string secret = 1;
+    string expire = 2;
+  }
+  JWT jwt = 1;
+}
 
 message WebServer {
   WebServerConfig server = 1;
   Registry registry = 2;
   WebConfig config = 3;
+  RedisConfig redis = 4;
 }
 
 message LogConfig {}

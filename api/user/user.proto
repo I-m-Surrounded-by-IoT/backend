@@ -7,14 +7,14 @@ option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/user;user";
 import "google/api/annotations.proto";
 
 service User {
-  rpc CreateUser(CreateUserReq) returns (GetUserResp) {
+  rpc CreateUser(CreateUserReq) returns (UserInfo) {
     option (google.api.http) = {
       post : "/user"
       body : "*"
     };
   }
 
-  rpc GetUser(GetUserReq) returns (GetUserResp) {
+  rpc GetUser(GetUserReq) returns (UserInfo) {
     option (google.api.http) = {
       get : "/user/{id}"
     };
@@ -78,7 +78,7 @@ message CreateUserReq {
 
 message GetUserReq { string id = 1; }
 
-message GetUserResp {
+message UserInfo {
   string id = 1;
   int64 created_at = 2;
   int64 updated_at = 3;

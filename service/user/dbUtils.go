@@ -38,13 +38,13 @@ func SetUserPassword(u *model.User, password string) error {
 	return nil
 }
 
-func (u *dbUtils) GetUser(id string) (*model.User, error) {
-	var user model.User
-	err := u.First(&user, id).Error
+func (u *dbUtils) GetUser(id string, scopes ...func(*gorm.DB) *gorm.DB) (*model.User, error) {
+	user := new(model.User)
+	err := u.Scopes(scopes...).Where("id = ?", id).First(user).Error
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (u *dbUtils) CreateUser(user *model.User) error {
@@ -52,11 +52,11 @@ func (u *dbUtils) CreateUser(user *model.User) error {
 }
 
 func (u *dbUtils) CheckPassword(id string, password string) bool {
-	user, err := u.GetUser(id)
+	pwd, err := u.GetUserPassword(id)
 	if err != nil {
 		return false
 	}
-	return CheckUserPassword(user, password)
+	return CheckPassword(password, pwd)
 }
 
 func (u *dbUtils) UpdateUser(user *model.User) error {
@@ -106,6 +106,16 @@ func (u *dbUtils) SetUserStatus(id string, status user.Status) error {
 
 func (u *dbUtils) SetUserRole(id string, role user.Role) error {
 	return u.Model(&model.User{}).Where("id = ?", id).Update("role", role).Error
+}
+
+func (u *dbUtils) GetUserPassword(id string) ([]byte, error) {
+	user, err := u.GetUser(id, func(d *gorm.DB) *gorm.DB {
+		return d.Select("hashed_password")
+	})
+	if err != nil {
+		return nil, err
+	}
+	return user.HashedPassword, nil
 }
 
 func (u *dbUtils) SetUserPassword(id string, password string) error {

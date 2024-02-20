@@ -223,7 +223,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.user.GetUserResp'
+                                $ref: '#/components/schemas/api.user.UserInfo'
     /user/name:
         put:
             tags:
@@ -331,7 +331,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.user.GetUserResp'
+                                $ref: '#/components/schemas/api.user.UserInfo'
 components:
     schemas:
         api.collection_database.CollectionRecord:
@@ -443,23 +443,6 @@ components:
         api.user.Empty:
             type: object
             properties: {}
-        api.user.GetUserResp:
-            type: object
-            properties:
-                id:
-                    type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                name:
-                    type: string
-                role:
-                    type: integer
-                    format: enum
-                status:
-                    type: integer
-                    format: enum
         api.user.SetUserNameReq:
             type: object
             properties:
@@ -487,6 +470,23 @@ components:
             properties:
                 id:
                     type: string
+                status:
+                    type: integer
+                    format: enum
+        api.user.UserInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                name:
+                    type: string
+                role:
+                    type: integer
+                    format: enum
                 status:
                     type: integer
                     format: enum
