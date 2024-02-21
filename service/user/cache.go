@@ -22,9 +22,9 @@ func NewUserRcache(rcache *rcache.Rcache, client *dbUtils) *UserRcache {
 	}
 }
 
-func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, fileds ...string) (*user.UserInfo, error) {
+func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, fields ...string) (*user.UserInfo, error) {
 	info := new(user.UserInfo)
-	if len(fileds) == 0 {
+	if len(fields) == 0 {
 		resp := uc.rcache.HGetAll(ctx, fmt.Sprintf("userinfo:%s", id))
 		if resp.Err() != nil {
 			return nil, resp.Err()
@@ -34,7 +34,7 @@ func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, filed
 		}
 		return info, resp.Scan(info)
 	} else {
-		resp := uc.rcache.HMGet(ctx, fmt.Sprintf("userinfo:%s", id), fileds...)
+		resp := uc.rcache.HMGet(ctx, fmt.Sprintf("userinfo:%s", id), fields...)
 		if resp.Err() != nil {
 			return nil, resp.Err()
 		}

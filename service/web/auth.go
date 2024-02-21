@@ -49,7 +49,7 @@ func (h *WebService) AuthUser(ctx context.Context, Authorization string) (*user.
 		return nil, ErrAuthFailed
 	}
 
-	i, err := h.uclient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
+	i, err := h.userClient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
 		Id: claims.UserId,
 	})
 	if err != nil {
@@ -60,13 +60,13 @@ func (h *WebService) AuthUser(ctx context.Context, Authorization string) (*user.
 		return nil, ErrAuthExpired
 	}
 
-	return h.uclient.GetUserInfo(ctx, &user.GetUserInfoReq{
+	return h.userClient.GetUserInfo(ctx, &user.GetUserInfoReq{
 		Id: claims.UserId,
 	})
 }
 
 func (ws *WebService) NewUserAuthToken(ctx context.Context, ID string) (string, error) {
-	version, err := ws.uclient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
+	version, err := ws.userClient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
 		Id: ID,
 	})
 	if err != nil {

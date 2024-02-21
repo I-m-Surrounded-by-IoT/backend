@@ -93,6 +93,52 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.collector.SetReportIntervalResp'
     /device:
+        get:
+            tags:
+                - Device
+            operationId: Device_ListDevice
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: order
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: sort
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: id
+                  in: query
+                  schema:
+                    type: string
+                - name: mac
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.ListDeviceResp'
         post:
             tags:
                 - Device
@@ -109,7 +155,54 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceRecord'
+                                $ref: '#/components/schemas/api.device.DeviceInfo'
+    /device/deleted:
+        get:
+            tags:
+                - Device
+            operationId: Device_ListDeletedDeviceInfo
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: order
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: sort
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: id
+                  in: query
+                  schema:
+                    type: string
+                - name: mac
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.ListDeviceResp'
     /device/get_or_create:
         post:
             tags:
@@ -127,12 +220,36 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceRecord'
+                                $ref: '#/components/schemas/api.device.DeviceInfo'
     /device/mac/{mac}:
         get:
             tags:
                 - Device
-            operationId: Device_GetDeviceByMac
+            operationId: Device_GetDeviceInfoByMac
+            parameters:
+                - name: mac
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceInfo'
+    /device/mac/{mac}/id:
+        get:
+            tags:
+                - Device
+            operationId: Device_GetDeviceID
             parameters:
                 - name: mac
                   in: path
@@ -145,12 +262,60 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceRecord'
+                                $ref: '#/components/schemas/api.device.DeviceInfo'
     /device/{id}:
         get:
             tags:
                 - Device
-            operationId: Device_GetDevice
+            operationId: Device_GetDeviceInfo
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceInfo'
+    /device/{id}/delete:
+        post:
+            tags:
+                - Device
+            operationId: Device_DeleteDevice
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.DeleteDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.Empty'
+    /device/{id}/last_seen:
+        get:
+            tags:
+                - Device
+            operationId: Device_GetDeviceLastSeen
             parameters:
                 - name: id
                   in: path
@@ -163,7 +328,55 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceRecord'
+                                $ref: '#/components/schemas/api.device.GetDeviceLastSeenResp'
+    /device/{id}/undelete:
+        post:
+            tags:
+                - Device
+            operationId: Device_UnDeleteDevice
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.UnDeleteDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.Empty'
+    /device/{id}/update_last_seen:
+        post:
+            tags:
+                - Device
+            operationId: Device_UpdateDeviceLastSeen
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.UpdateDeviceLastSeenReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.Empty'
     /log/device:
         get:
             tags:
@@ -222,6 +435,22 @@ paths:
                   schema:
                     type: integer
                     format: int32
+                - name: order
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: sort
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
                 - name: id
                   in: query
                   schema:
@@ -233,13 +462,11 @@ paths:
                 - name: role
                   in: query
                   schema:
-                    type: integer
-                    format: enum
+                    type: string
                 - name: status
                   in: query
                   schema:
-                    type: integer
-                    format: enum
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -505,7 +732,12 @@ components:
             properties:
                 mac:
                     type: string
-        api.device.DeviceRecord:
+        api.device.DeleteDeviceReq:
+            type: object
+            properties:
+                id:
+                    type: string
+        api.device.DeviceInfo:
             type: object
             properties:
                 id:
@@ -518,10 +750,44 @@ components:
                     type: string
                 comment:
                     type: string
+        api.device.Empty:
+            type: object
+            properties: {}
+        api.device.GetDeviceLastSeenResp:
+            type: object
+            properties:
+                lastSeen:
+                    type: string
         api.device.GetOrCreateDeviceReq:
             type: object
             properties:
                 mac:
+                    type: string
+                fields:
+                    type: array
+                    items:
+                        type: string
+        api.device.ListDeviceResp:
+            type: object
+            properties:
+                devices:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.device.DeviceInfo'
+                total:
+                    type: integer
+                    format: int32
+        api.device.UnDeleteDeviceReq:
+            type: object
+            properties:
+                id:
+                    type: string
+        api.device.UpdateDeviceLastSeenReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                lastSeen:
                     type: string
         api.log.DeviceLog:
             type: object

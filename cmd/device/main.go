@@ -60,6 +60,7 @@ func Server(cmd *cobra.Command, args []string) {
 		},
 		Registry: conf.DefaultRegistry(),
 		Config:   &conf.DeviceConfig{},
+		Redis:    &conf.RedisConfig{},
 	}
 
 	if flagconf != "" {
@@ -94,7 +95,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Config, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Config, bc.Redis, logger)
 	if err != nil {
 		panic(err)
 	}

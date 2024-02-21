@@ -8,6 +8,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/user/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/zijiren233/stream"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -143,26 +144,12 @@ func (u *dbUtils) CountUser(scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
 	return count, nil
 }
 
-func WithPageAndPageSize(page, pageSize int) func(*gorm.DB) *gorm.DB {
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	} else if pageSize > 100 {
-		pageSize = 100
-	}
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset((page - 1) * pageSize).Limit(pageSize)
-	}
-}
-
 func (u *dbUtils) ListUserWithPageAndPageSize(page, pageSize int, scopes ...func(*gorm.DB) *gorm.DB) (int64, []*model.User, error) {
 	count, err := u.CountUser(scopes...)
 	if err != nil {
 		return 0, nil, err
 	}
-	l, err := u.ListUser(append(scopes, WithPageAndPageSize(page, pageSize))...)
+	l, err := u.ListUser(append(scopes, utils.WithPageAndPageSize(page, pageSize))...)
 	return count, l, err
 }
 

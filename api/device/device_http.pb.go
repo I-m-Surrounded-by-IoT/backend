@@ -20,65 +20,86 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationDeviceCreateDevice = "/api.device.Device/CreateDevice"
-const OperationDeviceGetDevice = "/api.device.Device/GetDevice"
-const OperationDeviceGetDeviceByMac = "/api.device.Device/GetDeviceByMac"
+const OperationDeviceDeleteDevice = "/api.device.Device/DeleteDevice"
+const OperationDeviceGetDeviceID = "/api.device.Device/GetDeviceID"
+const OperationDeviceGetDeviceInfo = "/api.device.Device/GetDeviceInfo"
+const OperationDeviceGetDeviceInfoByMac = "/api.device.Device/GetDeviceInfoByMac"
+const OperationDeviceGetDeviceLastSeen = "/api.device.Device/GetDeviceLastSeen"
 const OperationDeviceGetOrCreateDevice = "/api.device.Device/GetOrCreateDevice"
+const OperationDeviceListDeletedDeviceInfo = "/api.device.Device/ListDeletedDeviceInfo"
+const OperationDeviceListDevice = "/api.device.Device/ListDevice"
+const OperationDeviceUnDeleteDevice = "/api.device.Device/UnDeleteDevice"
+const OperationDeviceUpdateDeviceLastSeen = "/api.device.Device/UpdateDeviceLastSeen"
 
 type DeviceHTTPServer interface {
-	CreateDevice(context.Context, *CreateDeviceReq) (*DeviceRecord, error)
-	GetDevice(context.Context, *GetDeviceReq) (*DeviceRecord, error)
-	GetDeviceByMac(context.Context, *GetDeviceByMacReq) (*DeviceRecord, error)
-	GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceRecord, error)
+	CreateDevice(context.Context, *CreateDeviceReq) (*DeviceInfo, error)
+	DeleteDevice(context.Context, *DeleteDeviceReq) (*Empty, error)
+	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
+	GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error)
+	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
+	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error)
+	GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceInfo, error)
+	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
+	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
+	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
+	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
 }
 
 func RegisterDeviceHTTPServer(s *http.Server, srv DeviceHTTPServer) {
 	r := s.Route("/")
-	r.GET("/device/{id}", _Device_GetDevice0_HTTP_Handler(srv))
-	r.GET("/device/mac/{mac}", _Device_GetDeviceByMac0_HTTP_Handler(srv))
+	r.GET("/device/{id}", _Device_GetDeviceInfo0_HTTP_Handler(srv))
+	r.GET("/device/mac/{mac}", _Device_GetDeviceInfoByMac0_HTTP_Handler(srv))
 	r.POST("/device", _Device_CreateDevice0_HTTP_Handler(srv))
 	r.POST("/device/get_or_create", _Device_GetOrCreateDevice0_HTTP_Handler(srv))
+	r.POST("/device/{id}/delete", _Device_DeleteDevice0_HTTP_Handler(srv))
+	r.GET("/device/deleted", _Device_ListDeletedDeviceInfo0_HTTP_Handler(srv))
+	r.POST("/device/{id}/undelete", _Device_UnDeleteDevice0_HTTP_Handler(srv))
+	r.GET("/device", _Device_ListDevice0_HTTP_Handler(srv))
+	r.POST("/device/{id}/update_last_seen", _Device_UpdateDeviceLastSeen0_HTTP_Handler(srv))
+	r.GET("/device/{id}/last_seen", _Device_GetDeviceLastSeen0_HTTP_Handler(srv))
+	r.GET("/device/mac/{mac}/id", _Device_GetDeviceID0_HTTP_Handler(srv))
 }
 
-func _Device_GetDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+func _Device_GetDeviceInfo0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetDeviceReq
+		var in GetDeviceInfoReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationDeviceGetDevice)
+		http.SetOperation(ctx, OperationDeviceGetDeviceInfo)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDevice(ctx, req.(*GetDeviceReq))
+			return srv.GetDeviceInfo(ctx, req.(*GetDeviceInfoReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceRecord)
+		reply := out.(*DeviceInfo)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _Device_GetDeviceByMac0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+func _Device_GetDeviceInfoByMac0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetDeviceByMacReq
+		var in GetDeviceInfoByMacReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationDeviceGetDeviceByMac)
+		http.SetOperation(ctx, OperationDeviceGetDeviceInfoByMac)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDeviceByMac(ctx, req.(*GetDeviceByMacReq))
+			return srv.GetDeviceInfoByMac(ctx, req.(*GetDeviceInfoByMacReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceRecord)
+		reply := out.(*DeviceInfo)
 		return ctx.Result(200, reply)
 	}
 }
@@ -100,7 +121,7 @@ func _Device_CreateDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Cont
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceRecord)
+		reply := out.(*DeviceInfo)
 		return ctx.Result(200, reply)
 	}
 }
@@ -122,16 +143,180 @@ func _Device_GetOrCreateDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceRecord)
+		reply := out.(*DeviceInfo)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_DeleteDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteDeviceReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceDeleteDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteDevice(ctx, req.(*DeleteDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_ListDeletedDeviceInfo0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDeviceReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceListDeletedDeviceInfo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDeletedDeviceInfo(ctx, req.(*ListDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListDeviceResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_UnDeleteDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnDeleteDeviceReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceUnDeleteDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnDeleteDevice(ctx, req.(*UnDeleteDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_ListDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDeviceReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceListDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDevice(ctx, req.(*ListDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListDeviceResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_UpdateDeviceLastSeen0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateDeviceLastSeenReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceUpdateDeviceLastSeen)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateDeviceLastSeen(ctx, req.(*UpdateDeviceLastSeenReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_GetDeviceLastSeen0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDeviceLastSeenReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceGetDeviceLastSeen)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDeviceLastSeen(ctx, req.(*GetDeviceLastSeenReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDeviceLastSeenResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Device_GetDeviceID0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDeviceIDReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceGetDeviceID)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDeviceID(ctx, req.(*GetDeviceIDReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeviceInfo)
 		return ctx.Result(200, reply)
 	}
 }
 
 type DeviceHTTPClient interface {
-	CreateDevice(ctx context.Context, req *CreateDeviceReq, opts ...http.CallOption) (rsp *DeviceRecord, err error)
-	GetDevice(ctx context.Context, req *GetDeviceReq, opts ...http.CallOption) (rsp *DeviceRecord, err error)
-	GetDeviceByMac(ctx context.Context, req *GetDeviceByMacReq, opts ...http.CallOption) (rsp *DeviceRecord, err error)
-	GetOrCreateDevice(ctx context.Context, req *GetOrCreateDeviceReq, opts ...http.CallOption) (rsp *DeviceRecord, err error)
+	CreateDevice(ctx context.Context, req *CreateDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	DeleteDevice(ctx context.Context, req *DeleteDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
+	GetDeviceID(ctx context.Context, req *GetDeviceIDReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	GetDeviceInfo(ctx context.Context, req *GetDeviceInfoReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	GetDeviceInfoByMac(ctx context.Context, req *GetDeviceInfoByMacReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	GetDeviceLastSeen(ctx context.Context, req *GetDeviceLastSeenReq, opts ...http.CallOption) (rsp *GetDeviceLastSeenResp, err error)
+	GetOrCreateDevice(ctx context.Context, req *GetOrCreateDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	ListDeletedDeviceInfo(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
+	ListDevice(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
+	UnDeleteDevice(ctx context.Context, req *UnDeleteDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
+	UpdateDeviceLastSeen(ctx context.Context, req *UpdateDeviceLastSeenReq, opts ...http.CallOption) (rsp *Empty, err error)
 }
 
 type DeviceHTTPClientImpl struct {
@@ -142,8 +327,8 @@ func NewDeviceHTTPClient(client *http.Client) DeviceHTTPClient {
 	return &DeviceHTTPClientImpl{client}
 }
 
-func (c *DeviceHTTPClientImpl) CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...http.CallOption) (*DeviceRecord, error) {
-	var out DeviceRecord
+func (c *DeviceHTTPClientImpl) CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...http.CallOption) (*DeviceInfo, error) {
+	var out DeviceInfo
 	pattern := "/device"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDeviceCreateDevice))
@@ -155,11 +340,37 @@ func (c *DeviceHTTPClientImpl) CreateDevice(ctx context.Context, in *CreateDevic
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetDevice(ctx context.Context, in *GetDeviceReq, opts ...http.CallOption) (*DeviceRecord, error) {
-	var out DeviceRecord
+func (c *DeviceHTTPClientImpl) DeleteDevice(ctx context.Context, in *DeleteDeviceReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/device/{id}/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDeviceDeleteDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts ...http.CallOption) (*DeviceInfo, error) {
+	var out DeviceInfo
+	pattern := "/device/mac/{mac}/id"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDeviceGetDeviceID))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) GetDeviceInfo(ctx context.Context, in *GetDeviceInfoReq, opts ...http.CallOption) (*DeviceInfo, error) {
+	var out DeviceInfo
 	pattern := "/device/{id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDeviceGetDevice))
+	opts = append(opts, http.Operation(OperationDeviceGetDeviceInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -168,11 +379,11 @@ func (c *DeviceHTTPClientImpl) GetDevice(ctx context.Context, in *GetDeviceReq, 
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetDeviceByMac(ctx context.Context, in *GetDeviceByMacReq, opts ...http.CallOption) (*DeviceRecord, error) {
-	var out DeviceRecord
+func (c *DeviceHTTPClientImpl) GetDeviceInfoByMac(ctx context.Context, in *GetDeviceInfoByMacReq, opts ...http.CallOption) (*DeviceInfo, error) {
+	var out DeviceInfo
 	pattern := "/device/mac/{mac}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDeviceGetDeviceByMac))
+	opts = append(opts, http.Operation(OperationDeviceGetDeviceInfoByMac))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -181,11 +392,76 @@ func (c *DeviceHTTPClientImpl) GetDeviceByMac(ctx context.Context, in *GetDevice
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...http.CallOption) (*DeviceRecord, error) {
-	var out DeviceRecord
+func (c *DeviceHTTPClientImpl) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...http.CallOption) (*GetDeviceLastSeenResp, error) {
+	var out GetDeviceLastSeenResp
+	pattern := "/device/{id}/last_seen"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDeviceGetDeviceLastSeen))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...http.CallOption) (*DeviceInfo, error) {
+	var out DeviceInfo
 	pattern := "/device/get_or_create"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDeviceGetOrCreateDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) ListDeletedDeviceInfo(ctx context.Context, in *ListDeviceReq, opts ...http.CallOption) (*ListDeviceResp, error) {
+	var out ListDeviceResp
+	pattern := "/device/deleted"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDeviceListDeletedDeviceInfo))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) ListDevice(ctx context.Context, in *ListDeviceReq, opts ...http.CallOption) (*ListDeviceResp, error) {
+	var out ListDeviceResp
+	pattern := "/device"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationDeviceListDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) UnDeleteDevice(ctx context.Context, in *UnDeleteDeviceReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/device/{id}/undelete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDeviceUnDeleteDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) UpdateDeviceLastSeen(ctx context.Context, in *UpdateDeviceLastSeenReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/device/{id}/update_last_seen"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDeviceUpdateDeviceLastSeen))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

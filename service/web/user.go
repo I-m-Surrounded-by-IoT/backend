@@ -12,13 +12,21 @@ import (
 
 func (ws *WebService) Login(ctx *gin.Context) {
 	req := model.LoginUserReq{}
-	if err := model.Decode(ctx, &req); err != nil {
-		log.Errorf("decode error: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(fmt.Errorf("decode error: %v", err)))
+
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Errorf("bind json error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
 
-	ui, err := ws.uclient.GetUserInfoByName(ctx, &user.GetUserInfoByNameReq{
+	if err := req.Validate(); err != nil {
+		log.Errorf("validate error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	ui, err := ws.userClient.GetUserInfoByName(ctx, &user.GetUserInfoByNameReq{
 		Name: req.Username,
 	})
 	if err != nil {
@@ -32,7 +40,7 @@ func (ws *WebService) Login(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := ws.uclient.ValidateUserPassword(ctx, &user.ValidateUserPasswordReq{
+	resp, err := ws.userClient.ValidateUserPassword(ctx, &user.ValidateUserPasswordReq{
 		Id:       ui.Id,
 		Password: req.Password,
 	})

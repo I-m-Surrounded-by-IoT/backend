@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
@@ -12,13 +11,20 @@ import (
 
 func (ws *WebService) CreateUser(ctx *gin.Context) {
 	req := model.CreateUserReq{}
-	if err := model.Decode(ctx, &req); err != nil {
-		log.Errorf("decode error: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(fmt.Errorf("decode error: %v", err)))
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Errorf("bind json error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
 
-	info, err := ws.uclient.CreateUser(ctx, (*user.CreateUserReq)(&req))
+	if err := req.Validate(); err != nil {
+		log.Errorf("validate error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	info, err := ws.userClient.CreateUser(ctx, (*user.CreateUserReq)(&req))
 	if err != nil {
 		log.Errorf("create user error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
@@ -30,13 +36,20 @@ func (ws *WebService) CreateUser(ctx *gin.Context) {
 
 func (ws *WebService) ListUser(ctx *gin.Context) {
 	req := model.ListUserReq{}
-	if err := model.Decode(ctx, &req); err != nil {
-		log.Errorf("decode error: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(fmt.Errorf("decode error: %v", err)))
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		log.Errorf("bind query error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
 
-	list, err := ws.uclient.ListUser(ctx, (*user.ListUserReq)(&req))
+	if err := req.Validate(); err != nil {
+		log.Errorf("validate error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	list, err := ws.userClient.ListUser(ctx, (*user.ListUserReq)(&req))
 	if err != nil {
 		log.Errorf("list user error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))

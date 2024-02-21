@@ -21,8 +21,8 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, databaseServerConfig *conf.DatabaseServerConfig, deviceConfig *conf.DeviceConfig, logger log.Logger) (*kratos.App, func(), error) {
-	deviceService := device.NewDeviceService(databaseServerConfig, deviceConfig)
+func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, databaseServerConfig *conf.DatabaseServerConfig, deviceConfig *conf.DeviceConfig, redisConfig *conf.RedisConfig, logger log.Logger) (*kratos.App, func(), error) {
+	deviceService := device.NewDeviceService(databaseServerConfig, deviceConfig, redisConfig)
 	grpcGatewayServer := device2.NewDeviceServer(grpcServerConfig, deviceService)
 	registrar := registry.NewRegistry(confRegistry)
 	app := newApp(logger, grpcGatewayServer, registrar)

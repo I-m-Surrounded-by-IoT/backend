@@ -1,0 +1,29 @@
+package model
+
+import (
+	"errors"
+
+	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
+)
+
+var (
+	ErrInvalidMac = errors.New("invalid mac")
+)
+
+type CreateDeviceReq device.CreateDeviceReq
+
+func (c *CreateDeviceReq) Validate() error {
+	if len(c.Mac) != 17 {
+		return ErrInvalidMac
+	}
+	return nil
+}
+
+type GetDeviceDetailReq struct {
+	ID uint64 `form:"id" binding:"required"`
+}
+
+type GetDeviceDetailResp struct {
+	*device.DeviceInfo
+	LastSeen int64 `json:"last_seen"`
+}

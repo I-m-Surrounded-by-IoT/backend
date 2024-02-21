@@ -19,20 +19,34 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Device_GetDevice_FullMethodName         = "/api.device.Device/GetDevice"
-	Device_GetDeviceByMac_FullMethodName    = "/api.device.Device/GetDeviceByMac"
-	Device_CreateDevice_FullMethodName      = "/api.device.Device/CreateDevice"
-	Device_GetOrCreateDevice_FullMethodName = "/api.device.Device/GetOrCreateDevice"
+	Device_GetDeviceInfo_FullMethodName         = "/api.device.Device/GetDeviceInfo"
+	Device_GetDeviceInfoByMac_FullMethodName    = "/api.device.Device/GetDeviceInfoByMac"
+	Device_CreateDevice_FullMethodName          = "/api.device.Device/CreateDevice"
+	Device_GetOrCreateDevice_FullMethodName     = "/api.device.Device/GetOrCreateDevice"
+	Device_DeleteDevice_FullMethodName          = "/api.device.Device/DeleteDevice"
+	Device_ListDeletedDeviceInfo_FullMethodName = "/api.device.Device/ListDeletedDeviceInfo"
+	Device_UnDeleteDevice_FullMethodName        = "/api.device.Device/UnDeleteDevice"
+	Device_ListDevice_FullMethodName            = "/api.device.Device/ListDevice"
+	Device_UpdateDeviceLastSeen_FullMethodName  = "/api.device.Device/UpdateDeviceLastSeen"
+	Device_GetDeviceLastSeen_FullMethodName     = "/api.device.Device/GetDeviceLastSeen"
+	Device_GetDeviceID_FullMethodName           = "/api.device.Device/GetDeviceID"
 )
 
 // DeviceClient is the client API for Device service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DeviceClient interface {
-	GetDevice(ctx context.Context, in *GetDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error)
-	GetDeviceByMac(ctx context.Context, in *GetDeviceByMacReq, opts ...grpc.CallOption) (*DeviceRecord, error)
-	CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error)
-	GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error)
+	GetDeviceInfo(ctx context.Context, in *GetDeviceInfoReq, opts ...grpc.CallOption) (*DeviceInfo, error)
+	GetDeviceInfoByMac(ctx context.Context, in *GetDeviceInfoByMacReq, opts ...grpc.CallOption) (*DeviceInfo, error)
+	CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error)
+	GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error)
+	DeleteDevice(ctx context.Context, in *DeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	ListDeletedDeviceInfo(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error)
+	UnDeleteDevice(ctx context.Context, in *UnDeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	ListDevice(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error)
+	UpdateDeviceLastSeen(ctx context.Context, in *UpdateDeviceLastSeenReq, opts ...grpc.CallOption) (*Empty, error)
+	GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*GetDeviceLastSeenResp, error)
+	GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts ...grpc.CallOption) (*DeviceInfo, error)
 }
 
 type deviceClient struct {
@@ -43,26 +57,26 @@ func NewDeviceClient(cc grpc.ClientConnInterface) DeviceClient {
 	return &deviceClient{cc}
 }
 
-func (c *deviceClient) GetDevice(ctx context.Context, in *GetDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error) {
-	out := new(DeviceRecord)
-	err := c.cc.Invoke(ctx, Device_GetDevice_FullMethodName, in, out, opts...)
+func (c *deviceClient) GetDeviceInfo(ctx context.Context, in *GetDeviceInfoReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
+	out := new(DeviceInfo)
+	err := c.cc.Invoke(ctx, Device_GetDeviceInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) GetDeviceByMac(ctx context.Context, in *GetDeviceByMacReq, opts ...grpc.CallOption) (*DeviceRecord, error) {
-	out := new(DeviceRecord)
-	err := c.cc.Invoke(ctx, Device_GetDeviceByMac_FullMethodName, in, out, opts...)
+func (c *deviceClient) GetDeviceInfoByMac(ctx context.Context, in *GetDeviceInfoByMacReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
+	out := new(DeviceInfo)
+	err := c.cc.Invoke(ctx, Device_GetDeviceInfoByMac_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *deviceClient) CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error) {
-	out := new(DeviceRecord)
+func (c *deviceClient) CreateDevice(ctx context.Context, in *CreateDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
+	out := new(DeviceInfo)
 	err := c.cc.Invoke(ctx, Device_CreateDevice_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +84,72 @@ func (c *deviceClient) CreateDevice(ctx context.Context, in *CreateDeviceReq, op
 	return out, nil
 }
 
-func (c *deviceClient) GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...grpc.CallOption) (*DeviceRecord, error) {
-	out := new(DeviceRecord)
+func (c *deviceClient) GetOrCreateDevice(ctx context.Context, in *GetOrCreateDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
+	out := new(DeviceInfo)
 	err := c.cc.Invoke(ctx, Device_GetOrCreateDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) DeleteDevice(ctx context.Context, in *DeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Device_DeleteDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) ListDeletedDeviceInfo(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error) {
+	out := new(ListDeviceResp)
+	err := c.cc.Invoke(ctx, Device_ListDeletedDeviceInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) UnDeleteDevice(ctx context.Context, in *UnDeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Device_UnDeleteDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) ListDevice(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error) {
+	out := new(ListDeviceResp)
+	err := c.cc.Invoke(ctx, Device_ListDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) UpdateDeviceLastSeen(ctx context.Context, in *UpdateDeviceLastSeenReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Device_UpdateDeviceLastSeen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*GetDeviceLastSeenResp, error) {
+	out := new(GetDeviceLastSeenResp)
+	err := c.cc.Invoke(ctx, Device_GetDeviceLastSeen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceClient) GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
+	out := new(DeviceInfo)
+	err := c.cc.Invoke(ctx, Device_GetDeviceID_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +160,17 @@ func (c *deviceClient) GetOrCreateDevice(ctx context.Context, in *GetOrCreateDev
 // All implementations must embed UnimplementedDeviceServer
 // for forward compatibility
 type DeviceServer interface {
-	GetDevice(context.Context, *GetDeviceReq) (*DeviceRecord, error)
-	GetDeviceByMac(context.Context, *GetDeviceByMacReq) (*DeviceRecord, error)
-	CreateDevice(context.Context, *CreateDeviceReq) (*DeviceRecord, error)
-	GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceRecord, error)
+	GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error)
+	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
+	CreateDevice(context.Context, *CreateDeviceReq) (*DeviceInfo, error)
+	GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceInfo, error)
+	DeleteDevice(context.Context, *DeleteDeviceReq) (*Empty, error)
+	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
+	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
+	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
+	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
+	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error)
+	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
 	mustEmbedUnimplementedDeviceServer()
 }
 
@@ -94,17 +178,38 @@ type DeviceServer interface {
 type UnimplementedDeviceServer struct {
 }
 
-func (UnimplementedDeviceServer) GetDevice(context.Context, *GetDeviceReq) (*DeviceRecord, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDevice not implemented")
+func (UnimplementedDeviceServer) GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceInfo not implemented")
 }
-func (UnimplementedDeviceServer) GetDeviceByMac(context.Context, *GetDeviceByMacReq) (*DeviceRecord, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceByMac not implemented")
+func (UnimplementedDeviceServer) GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceInfoByMac not implemented")
 }
-func (UnimplementedDeviceServer) CreateDevice(context.Context, *CreateDeviceReq) (*DeviceRecord, error) {
+func (UnimplementedDeviceServer) CreateDevice(context.Context, *CreateDeviceReq) (*DeviceInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDevice not implemented")
 }
-func (UnimplementedDeviceServer) GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceRecord, error) {
+func (UnimplementedDeviceServer) GetOrCreateDevice(context.Context, *GetOrCreateDeviceReq) (*DeviceInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrCreateDevice not implemented")
+}
+func (UnimplementedDeviceServer) DeleteDevice(context.Context, *DeleteDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDevice not implemented")
+}
+func (UnimplementedDeviceServer) ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDeletedDeviceInfo not implemented")
+}
+func (UnimplementedDeviceServer) UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnDeleteDevice not implemented")
+}
+func (UnimplementedDeviceServer) ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDevice not implemented")
+}
+func (UnimplementedDeviceServer) UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeviceLastSeen not implemented")
+}
+func (UnimplementedDeviceServer) GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLastSeen not implemented")
+}
+func (UnimplementedDeviceServer) GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceID not implemented")
 }
 func (UnimplementedDeviceServer) mustEmbedUnimplementedDeviceServer() {}
 
@@ -119,38 +224,38 @@ func RegisterDeviceServer(s grpc.ServiceRegistrar, srv DeviceServer) {
 	s.RegisterService(&Device_ServiceDesc, srv)
 }
 
-func _Device_GetDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDeviceReq)
+func _Device_GetDeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceInfoReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetDevice(ctx, in)
+		return srv.(DeviceServer).GetDeviceInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Device_GetDevice_FullMethodName,
+		FullMethod: Device_GetDeviceInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetDevice(ctx, req.(*GetDeviceReq))
+		return srv.(DeviceServer).GetDeviceInfo(ctx, req.(*GetDeviceInfoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_GetDeviceByMac_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDeviceByMacReq)
+func _Device_GetDeviceInfoByMac_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceInfoByMacReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetDeviceByMac(ctx, in)
+		return srv.(DeviceServer).GetDeviceInfoByMac(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Device_GetDeviceByMac_FullMethodName,
+		FullMethod: Device_GetDeviceInfoByMac_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetDeviceByMac(ctx, req.(*GetDeviceByMacReq))
+		return srv.(DeviceServer).GetDeviceInfoByMac(ctx, req.(*GetDeviceInfoByMacReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -191,6 +296,132 @@ func _Device_GetOrCreateDevice_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Device_DeleteDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).DeleteDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_DeleteDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).DeleteDevice(ctx, req.(*DeleteDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_ListDeletedDeviceInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).ListDeletedDeviceInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_ListDeletedDeviceInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).ListDeletedDeviceInfo(ctx, req.(*ListDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_UnDeleteDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnDeleteDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).UnDeleteDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_UnDeleteDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).UnDeleteDevice(ctx, req.(*UnDeleteDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_ListDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).ListDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_ListDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).ListDevice(ctx, req.(*ListDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_UpdateDeviceLastSeen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDeviceLastSeenReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).UpdateDeviceLastSeen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_UpdateDeviceLastSeen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).UpdateDeviceLastSeen(ctx, req.(*UpdateDeviceLastSeenReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_GetDeviceLastSeen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceLastSeenReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).GetDeviceLastSeen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_GetDeviceLastSeen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).GetDeviceLastSeen(ctx, req.(*GetDeviceLastSeenReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Device_GetDeviceID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceIDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceServer).GetDeviceID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Device_GetDeviceID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceServer).GetDeviceID(ctx, req.(*GetDeviceIDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Device_ServiceDesc is the grpc.ServiceDesc for Device service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -199,12 +430,12 @@ var Device_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DeviceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetDevice",
-			Handler:    _Device_GetDevice_Handler,
+			MethodName: "GetDeviceInfo",
+			Handler:    _Device_GetDeviceInfo_Handler,
 		},
 		{
-			MethodName: "GetDeviceByMac",
-			Handler:    _Device_GetDeviceByMac_Handler,
+			MethodName: "GetDeviceInfoByMac",
+			Handler:    _Device_GetDeviceInfoByMac_Handler,
 		},
 		{
 			MethodName: "CreateDevice",
@@ -213,6 +444,34 @@ var Device_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOrCreateDevice",
 			Handler:    _Device_GetOrCreateDevice_Handler,
+		},
+		{
+			MethodName: "DeleteDevice",
+			Handler:    _Device_DeleteDevice_Handler,
+		},
+		{
+			MethodName: "ListDeletedDeviceInfo",
+			Handler:    _Device_ListDeletedDeviceInfo_Handler,
+		},
+		{
+			MethodName: "UnDeleteDevice",
+			Handler:    _Device_UnDeleteDevice_Handler,
+		},
+		{
+			MethodName: "ListDevice",
+			Handler:    _Device_ListDevice_Handler,
+		},
+		{
+			MethodName: "UpdateDeviceLastSeen",
+			Handler:    _Device_UpdateDeviceLastSeen_Handler,
+		},
+		{
+			MethodName: "GetDeviceLastSeen",
+			Handler:    _Device_GetDeviceLastSeen_Handler,
+		},
+		{
+			MethodName: "GetDeviceID",
+			Handler:    _Device_GetDeviceID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

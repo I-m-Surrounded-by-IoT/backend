@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-
-	"github.com/gin-gonic/gin"
-	json "github.com/json-iterator/go"
 )
 
 var (
@@ -35,10 +32,6 @@ type SetUserPasswordReq struct {
 	Password string `json:"password"`
 }
 
-func (s *SetUserPasswordReq) Decode(ctx *gin.Context) error {
-	return json.NewDecoder(ctx.Request.Body).Decode(s)
-}
-
 func (s *SetUserPasswordReq) Validate() error {
 	if s.Password == "" {
 		return FormatEmptyPasswordError("user")
@@ -53,10 +46,6 @@ func (s *SetUserPasswordReq) Validate() error {
 type LoginUserReq struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-func (l *LoginUserReq) Decode(ctx *gin.Context) error {
-	return json.NewDecoder(ctx.Request.Body).Decode(l)
 }
 
 func (l *LoginUserReq) Validate() error {
@@ -93,16 +82,8 @@ func (s *SetUsernameReq) Validate() error {
 	return nil
 }
 
-func (s *SetUsernameReq) Decode(ctx *gin.Context) error {
-	return json.NewDecoder(ctx.Request.Body).Decode(s)
-}
-
 type UserIDReq struct {
 	ID string `json:"id"`
-}
-
-func (u *UserIDReq) Decode(ctx *gin.Context) error {
-	return json.NewDecoder(ctx.Request.Body).Decode(u)
 }
 
 func (u *UserIDReq) Validate() error {

@@ -7,45 +7,143 @@ option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/device;device"
 import "google/api/annotations.proto";
 
 service Device {
-  rpc GetDevice(GetDeviceReq) returns (DeviceRecord) {
+  rpc GetDeviceInfo(GetDeviceInfoReq) returns (DeviceInfo) {
     option (google.api.http) = {
       get : "/device/{id}"
     };
   }
 
-  rpc GetDeviceByMac(GetDeviceByMacReq) returns (DeviceRecord) {
+  rpc GetDeviceInfoByMac(GetDeviceInfoByMacReq) returns (DeviceInfo) {
     option (google.api.http) = {
       get : "/device/mac/{mac}"
     };
   }
 
-  rpc CreateDevice(CreateDeviceReq) returns (DeviceRecord) {
+  rpc CreateDevice(CreateDeviceReq) returns (DeviceInfo) {
     option (google.api.http) = {
       post : "/device"
       body : "*"
     };
   }
 
-  rpc GetOrCreateDevice(GetOrCreateDeviceReq) returns (DeviceRecord) {
+  rpc GetOrCreateDevice(GetOrCreateDeviceReq) returns (DeviceInfo) {
     option (google.api.http) = {
       post : "/device/get_or_create"
       body : "*"
     };
   }
+
+  rpc DeleteDevice(DeleteDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/device/{id}/delete"
+      body : "*"
+    };
+  }
+
+  rpc ListDeletedDeviceInfo(ListDeviceReq) returns (ListDeviceResp) {
+    option (google.api.http) = {
+      get : "/device/deleted"
+    };
+  }
+
+  rpc UnDeleteDevice(UnDeleteDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/device/{id}/undelete"
+      body : "*"
+    };
+  }
+
+  rpc ListDevice(ListDeviceReq) returns (ListDeviceResp) {
+    option (google.api.http) = {
+      get : "/device"
+    };
+  }
+
+  rpc UpdateDeviceLastSeen(UpdateDeviceLastSeenReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/device/{id}/update_last_seen"
+      body : "*"
+    };
+  }
+
+  rpc GetDeviceLastSeen(GetDeviceLastSeenReq) returns (GetDeviceLastSeenResp) {
+    option (google.api.http) = {
+      get : "/device/{id}/last_seen"
+    };
+  }
+
+  rpc GetDeviceID(GetDeviceIDReq) returns (DeviceInfo) {
+    option (google.api.http) = {
+      get : "/device/mac/{mac}/id"
+    };
+  }
 }
 
-message DeviceRecord {
+message Empty {}
+
+message DeviceInfo {
+  uint64 id = 1;        // @gotags: redis:"id"
+  int64 created_at = 2; // @gotags: redis:"created_at"
+  int64 updated_at = 3; // @gotags: redis:"-" json:"-"
+  string mac = 4;       // @gotags: redis:"mac"
+  string comment = 5;   // @gotags: redis:",omitempty" json:",omitempty"
+}
+
+message GetDeviceIDReq { string mac = 1; }
+
+message GetDeviceInfoReq {
   uint64 id = 1;
-  int64 created_at = 2;
-  int64 updated_at = 3;
-  string mac = 4;
-  string comment = 5;
+  repeated string fields = 2;
 }
 
-message GetDeviceReq { uint64 id = 1; }
+message UpdateDeviceLastSeenReq {
+  uint64 id = 1;
+  int64 last_seen = 2;
+}
 
-message GetDeviceByMacReq { string mac = 1; }
+message GetDeviceLastSeenReq { uint64 id = 1; }
+
+message GetDeviceLastSeenResp { int64 last_seen = 1; }
+
+message GetDeviceInfoByMacReq {
+  string mac = 1;
+  repeated string fields = 2;
+}
 
 message CreateDeviceReq { string mac = 1; }
 
-message GetOrCreateDeviceReq { string mac = 1; }
+message GetOrCreateDeviceReq {
+  string mac = 1;
+  repeated string fields = 2;
+}
+
+message DeleteDeviceReq { uint64 id = 1; }
+
+message UnDeleteDeviceReq { uint64 id = 1; }
+
+enum ListDeviceOrder {
+  ID = 0;
+  MAC = 1;
+  CREATED_AT = 2;
+  UPDATED_AT = 3;
+}
+
+enum Sort {
+  DESC = 0;
+  ASC = 1;
+}
+
+message ListDeviceReq {
+  int32 page = 1;             // @gotags: form:"page"
+  int32 size = 2;             // @gotags: form:"size"
+  ListDeviceOrder order = 3;  // @gotags: form:"order"
+  Sort sort = 4;              // @gotags: form:"sort"
+  repeated string fields = 5; // @gotags: form:"fields"
+  uint64 id = 6;              // @gotags: form:"id"
+  string mac = 7;             // @gotags: form:"mac"
+}
+
+message ListDeviceResp {
+  repeated DeviceInfo devices = 1;
+  int32 total = 2;
+}

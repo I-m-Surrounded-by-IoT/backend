@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
@@ -21,20 +22,30 @@ type jwtConfig struct {
 }
 
 type WebService struct {
-	config  *conf.WebConfig
-	jwt     *jwtConfig
-	rdb     *redis.Client
-	uclient user.UserClient
+	config       *conf.WebConfig
+	jwt          *jwtConfig
+	rdb          *redis.Client
+	userClient   user.UserClient
+	deviceClient device.DeviceClient
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
 	etcd := reg.(*registryClient.EtcdRegistry)
-	conn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+	discoveryUserConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///user",
 	}, etcd)
 	if err != nil {
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
+	userClient := user.NewUserClient(discoveryUserConn)
+
+	discoveryDeviceConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///device",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	deviceClient := device.NewDeviceClient(discoveryDeviceConn)
 
 	jwtExpire, err := time.ParseDuration(c.Jwt.Expire)
 	if err != nil {
@@ -46,7 +57,6 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		Password: rc.Password,
 		DB:       int(rc.Db),
 	})
-	uclient := user.NewUserClient(conn)
 
 	return &WebService{
 		config: c,
@@ -54,8 +64,9 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 			secret: []byte(c.Jwt.Secret),
 			expire: jwtExpire,
 		},
-		rdb:     rdb,
-		uclient: uclient,
+		rdb:          rdb,
+		userClient:   userClient,
+		deviceClient: deviceClient,
 	}
 }
 

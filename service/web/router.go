@@ -24,6 +24,12 @@ func (ws *WebService) RegisterRouter(e *gin.Engine) {
 
 		ws.registerAdmin(adminApi)
 	}
+
+	{
+		deviceApi := needAuthUserApi.Group("/device")
+
+		ws.registerDevice(deviceApi)
+	}
 }
 
 func (ws *WebService) registerUser(api, needAuthUserApi *gin.RouterGroup) {
@@ -38,7 +44,15 @@ func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {
 
 		userApi.POST("/create", ws.CreateUser)
 
-		userApi.POST("/list", ws.ListUser)
+		userApi.GET("/list", ws.ListUser)
 	}
 
+}
+
+func (ws *WebService) registerDevice(deviceApi *gin.RouterGroup) {
+	deviceApi.GET("/list", ws.ListDevice)
+
+	deviceApi.POST("/create", ws.CreateDevice)
+
+	deviceApi.GET("/detail", ws.GetDeviceDetail)
 }

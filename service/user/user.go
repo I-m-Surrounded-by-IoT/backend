@@ -2,10 +2,12 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/user/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/dbdial"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/rcache"
 	redsync "github.com/go-redsync/redsync/v4"
@@ -61,9 +63,9 @@ func user2Proto(u *model.User) *user.UserInfo {
 }
 
 func users2Proto(us []*model.User) []*user.UserInfo {
-	res := make([]*user.UserInfo, 0, len(us))
-	for _, u := range us {
-		res = append(res, user2Proto(u))
+	res := make([]*user.UserInfo, len(us))
+	for i, u := range us {
+		res[i] = user2Proto(u)
 	}
 	return res
 }
@@ -98,23 +100,38 @@ func (us *UserService) GetUserInfoByName(ctx context.Context, req *user.GetUserI
 
 func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*user.ListUserResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
-	if req.Id != nil {
-		opts = append(opts, model.WithIDEq(*req.Id))
+	if req.Id != "" {
+		opts = append(opts, model.WithIDEq(req.Id))
 	}
-	if req.Name != nil {
-		opts = append(opts, model.WithNameLike(*req.Name))
+	if req.Name != "" {
+		opts = append(opts, model.WithNameLike(req.Name))
 	}
-	if req.Role != nil {
-		opts = append(opts, model.WithRoleEq(*req.Role))
+	if req.Role != "" {
+		opts = append(opts, model.WithRoleEq(user.StringToRole(req.Role)))
 	}
-	if req.Status != nil {
-		opts = append(opts, model.WithStatusEq(*req.Status))
+	if req.Status != "" {
+		opts = append(opts, model.WithStatusEq(user.StringToStatus(req.Status)))
 	}
 	count, err := us.db.CountUser(opts...)
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts, WithPageAndPageSize(int(req.Page), int(req.Size)))
+	opts = append(opts, utils.WithPageAndPageSize(int(req.Page), int(req.Size)))
+	switch req.Order {
+	case user.ListUserOrder_CREATED_AT:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
+	case user.ListUserOrder_UPDATED_AT:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("updated_at %s", req.Sort)))
+	case user.ListUserOrder_NAME:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("username %s", req.Sort)))
+	case user.ListUserOrder_ROLE:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("role %s", req.Sort)))
+	case user.ListUserOrder_STATUS:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("status %s", req.Sort)))
+	}
+	if len(req.Fields) != 0 {
+		opts = append(opts, model.WithFields(req.Fields...))
+	}
 	u, err := us.db.ListUser(opts...)
 	if err != nil {
 		return nil, err

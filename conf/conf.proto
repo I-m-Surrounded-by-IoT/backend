@@ -148,4 +148,5 @@ message DeviceServer {
   Registry registry = 2;
   DatabaseServerConfig database = 3;
   DeviceConfig config = 4;
+  RedisConfig redis = 5;
 }

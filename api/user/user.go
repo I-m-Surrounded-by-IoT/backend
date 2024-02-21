@@ -2,10 +2,19 @@ package user
 
 import (
 	"encoding"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zijiren233/stream"
 )
+
+func StringToRole(s string) Role {
+	return Role(Role_value[strings.ToUpper(s)])
+}
+
+func StringToStatus(s string) Status {
+	return Status(Status_value[strings.ToUpper(s)])
+}
 
 func (u Role) IsAdmin() bool {
 	return u == Role_ADMIN
