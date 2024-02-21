@@ -19,14 +19,14 @@ service Device {
     };
   }
 
-  rpc CreateDevice(CreateDeviceReq) returns (DeviceInfo) {
+  rpc RegisterDevice(RegisterDeviceReq) returns (DeviceInfo) {
     option (google.api.http) = {
       post : "/device"
       body : "*"
     };
   }
 
-  rpc GetOrCreateDevice(GetOrCreateDeviceReq) returns (DeviceInfo) {
+  rpc GetOrRegisterDevice(GetOrRegisterDeviceReq) returns (DeviceInfo) {
     option (google.api.http) = {
       post : "/device/get_or_create"
       body : "*"
@@ -110,9 +110,9 @@ message GetDeviceInfoByMacReq {
   repeated string fields = 2;
 }
 
-message CreateDeviceReq { string mac = 1; }
+message RegisterDeviceReq { string mac = 1; }
 
-message GetOrCreateDeviceReq {
+message GetOrRegisterDeviceReq {
   string mac = 1;
   repeated string fields = 2;
 }

@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
 	"github.com/gin-gonic/gin"
@@ -57,4 +58,29 @@ func (ws *WebService) ListUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, model.NewApiDataResp(list))
+}
+
+func (ws *WebService) RegisterDevice(ctx *gin.Context) {
+	req := model.RegisterDeviceReq{}
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Errorf("bind json error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		log.Errorf("validate error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	info, err := ws.deviceClient.RegisterDevice(ctx, (*device.RegisterDeviceReq)(&req))
+	if err != nil {
+		log.Errorf("create device error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, model.NewApiDataResp(info))
 }

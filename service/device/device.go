@@ -71,7 +71,7 @@ func (s *DeviceService) GetDeviceID(ctx context.Context, req *device.GetDeviceID
 	}, nil
 }
 
-func (s *DeviceService) CreateDevice(ctx context.Context, req *device.CreateDeviceReq) (*device.DeviceInfo, error) {
+func (s *DeviceService) RegisterDevice(ctx context.Context, req *device.RegisterDeviceReq) (*device.DeviceInfo, error) {
 	d := &model.Device{
 		Mac: req.Mac,
 	}
@@ -90,7 +90,7 @@ func (s *DeviceService) DeleteDevice(ctx context.Context, req *device.DeleteDevi
 	return &device.Empty{}, nil
 }
 
-func (s *DeviceService) GetOrCreateDevice(ctx context.Context, req *device.GetOrCreateDeviceReq) (*device.DeviceInfo, error) {
+func (s *DeviceService) GetOrRegisterDevice(ctx context.Context, req *device.GetOrRegisterDeviceReq) (*device.DeviceInfo, error) {
 	d := &model.Device{
 		Mac: req.Mac,
 	}

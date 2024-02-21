@@ -142,12 +142,12 @@ paths:
         post:
             tags:
                 - Device
-            operationId: Device_CreateDevice
+            operationId: Device_RegisterDevice
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.device.CreateDeviceReq'
+                            $ref: '#/components/schemas/api.device.RegisterDeviceReq'
                 required: true
             responses:
                 "200":
@@ -207,12 +207,12 @@ paths:
         post:
             tags:
                 - Device
-            operationId: Device_GetOrCreateDevice
+            operationId: Device_GetOrRegisterDevice
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.device.GetOrCreateDeviceReq'
+                            $ref: '#/components/schemas/api.device.GetOrRegisterDeviceReq'
                 required: true
             responses:
                 "200":
@@ -727,11 +727,6 @@ components:
         api.collector.SetReportIntervalResp:
             type: object
             properties: {}
-        api.device.CreateDeviceReq:
-            type: object
-            properties:
-                mac:
-                    type: string
         api.device.DeleteDeviceReq:
             type: object
             properties:
@@ -758,7 +753,7 @@ components:
             properties:
                 lastSeen:
                     type: string
-        api.device.GetOrCreateDeviceReq:
+        api.device.GetOrRegisterDeviceReq:
             type: object
             properties:
                 mac:
@@ -777,6 +772,11 @@ components:
                 total:
                     type: integer
                     format: int32
+        api.device.RegisterDeviceReq:
+            type: object
+            properties:
+                mac:
+                    type: string
         api.device.UnDeleteDeviceReq:
             type: object
             properties:
