@@ -9,11 +9,8 @@ import (
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/middlewares"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
-	"github.com/I-m-Surrounded-by-IoT/backend/utils/rcache"
 	"github.com/gin-gonic/gin"
 	"github.com/go-kratos/kratos/v2/registry"
-	redsync "github.com/go-redsync/redsync/v4"
-	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 )
@@ -27,9 +24,7 @@ type WebService struct {
 	config  *conf.WebConfig
 	jwt     *jwtConfig
 	rdb     *redis.Client
-	rsync   *redsync.Redsync
 	uclient user.UserClient
-	ucache  *rcache.UserRcache
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -51,8 +46,6 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		Password: rc.Password,
 		DB:       int(rc.Db),
 	})
-	rsync := redsync.New(goredis.NewPool(rdb))
-	cache := rcache.NewRcacheWithRsync(rdb, rsync)
 	uclient := user.NewUserClient(conn)
 
 	return &WebService{
@@ -62,9 +55,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 			expire: jwtExpire,
 		},
 		rdb:     rdb,
-		rsync:   rsync,
 		uclient: uclient,
-		ucache:  rcache.NewUserRcache(cache, uclient),
 	}
 }
 

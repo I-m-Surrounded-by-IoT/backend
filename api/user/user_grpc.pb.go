@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	User_CreateUser_FullMethodName           = "/api.user.User/CreateUser"
-	User_GetUser_FullMethodName              = "/api.user.User/GetUser"
-	User_GetUserByName_FullMethodName        = "/api.user.User/GetUserByName"
-	User_ValidateUserPassword_FullMethodName = "/api.user.User/ValidateUserPassword"
-	User_SetUserPassword_FullMethodName      = "/api.user.User/SetUserPassword"
-	User_SetUserRole_FullMethodName          = "/api.user.User/SetUserRole"
-	User_SetUserStatus_FullMethodName        = "/api.user.User/SetUserStatus"
-	User_SetUserName_FullMethodName          = "/api.user.User/SetUserName"
+	User_CreateUser_FullMethodName             = "/api.user.User/CreateUser"
+	User_GetUserInfo_FullMethodName            = "/api.user.User/GetUserInfo"
+	User_GetUserInfoByName_FullMethodName      = "/api.user.User/GetUserInfoByName"
+	User_GetUserId_FullMethodName              = "/api.user.User/GetUserId"
+	User_ValidateUserPassword_FullMethodName   = "/api.user.User/ValidateUserPassword"
+	User_GetUserPasswordVersion_FullMethodName = "/api.user.User/GetUserPasswordVersion"
+	User_SetUserPassword_FullMethodName        = "/api.user.User/SetUserPassword"
+	User_SetUserRole_FullMethodName            = "/api.user.User/SetUserRole"
+	User_SetUserStatus_FullMethodName          = "/api.user.User/SetUserStatus"
+	User_SetUserName_FullMethodName            = "/api.user.User/SetUserName"
 )
 
 // UserClient is the client API for User service.
@@ -34,13 +36,15 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*UserInfo, error)
-	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error)
-	GetUserByName(ctx context.Context, in *GetUserByNameReq, opts ...grpc.CallOption) (*UserInfo, error)
+	GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*UserInfo, error)
+	GetUserInfoByName(ctx context.Context, in *GetUserInfoByNameReq, opts ...grpc.CallOption) (*UserInfo, error)
+	GetUserId(ctx context.Context, in *GetUserIdReq, opts ...grpc.CallOption) (*GetUserIdResp, error)
 	ValidateUserPassword(ctx context.Context, in *ValidateUserPasswordReq, opts ...grpc.CallOption) (*ValidateUserPasswordResp, error)
+	GetUserPasswordVersion(ctx context.Context, in *GetUserPasswordVersionReq, opts ...grpc.CallOption) (*GetUserPasswordVersionResp, error)
 	SetUserPassword(ctx context.Context, in *SetUserPasswordReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserRole(ctx context.Context, in *SetUserRoleReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserStatus(ctx context.Context, in *SetUserStatusReq, opts ...grpc.CallOption) (*Empty, error)
-	SetUserName(ctx context.Context, in *SetUserNameReq, opts ...grpc.CallOption) (*Empty, error)
+	SetUserName(ctx context.Context, in *SetUserNameReq, opts ...grpc.CallOption) (*SetUserNameResp, error)
 }
 
 type userClient struct {
@@ -60,18 +64,27 @@ func (c *userClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...
 	return out, nil
 }
 
-func (c *userClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*UserInfo, error) {
+func (c *userClient) GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*UserInfo, error) {
 	out := new(UserInfo)
-	err := c.cc.Invoke(ctx, User_GetUser_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, User_GetUserInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userClient) GetUserByName(ctx context.Context, in *GetUserByNameReq, opts ...grpc.CallOption) (*UserInfo, error) {
+func (c *userClient) GetUserInfoByName(ctx context.Context, in *GetUserInfoByNameReq, opts ...grpc.CallOption) (*UserInfo, error) {
 	out := new(UserInfo)
-	err := c.cc.Invoke(ctx, User_GetUserByName_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, User_GetUserInfoByName_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetUserId(ctx context.Context, in *GetUserIdReq, opts ...grpc.CallOption) (*GetUserIdResp, error) {
+	out := new(GetUserIdResp)
+	err := c.cc.Invoke(ctx, User_GetUserId_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +94,15 @@ func (c *userClient) GetUserByName(ctx context.Context, in *GetUserByNameReq, op
 func (c *userClient) ValidateUserPassword(ctx context.Context, in *ValidateUserPasswordReq, opts ...grpc.CallOption) (*ValidateUserPasswordResp, error) {
 	out := new(ValidateUserPasswordResp)
 	err := c.cc.Invoke(ctx, User_ValidateUserPassword_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) GetUserPasswordVersion(ctx context.Context, in *GetUserPasswordVersionReq, opts ...grpc.CallOption) (*GetUserPasswordVersionResp, error) {
+	out := new(GetUserPasswordVersionResp)
+	err := c.cc.Invoke(ctx, User_GetUserPasswordVersion_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +136,8 @@ func (c *userClient) SetUserStatus(ctx context.Context, in *SetUserStatusReq, op
 	return out, nil
 }
 
-func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts ...grpc.CallOption) (*SetUserNameResp, error) {
+	out := new(SetUserNameResp)
 	err := c.cc.Invoke(ctx, User_SetUserName_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -128,13 +150,15 @@ func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts .
 // for forward compatibility
 type UserServer interface {
 	CreateUser(context.Context, *CreateUserReq) (*UserInfo, error)
-	GetUser(context.Context, *GetUserReq) (*UserInfo, error)
-	GetUserByName(context.Context, *GetUserByNameReq) (*UserInfo, error)
+	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
+	GetUserInfoByName(context.Context, *GetUserInfoByNameReq) (*UserInfo, error)
+	GetUserId(context.Context, *GetUserIdReq) (*GetUserIdResp, error)
 	ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error)
+	GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
 	SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error)
-	SetUserName(context.Context, *SetUserNameReq) (*Empty, error)
+	SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -145,14 +169,20 @@ type UnimplementedUserServer struct {
 func (UnimplementedUserServer) CreateUser(context.Context, *CreateUserReq) (*UserInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServer) GetUser(context.Context, *GetUserReq) (*UserInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+func (UnimplementedUserServer) GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserInfo not implemented")
 }
-func (UnimplementedUserServer) GetUserByName(context.Context, *GetUserByNameReq) (*UserInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserByName not implemented")
+func (UnimplementedUserServer) GetUserInfoByName(context.Context, *GetUserInfoByNameReq) (*UserInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserInfoByName not implemented")
+}
+func (UnimplementedUserServer) GetUserId(context.Context, *GetUserIdReq) (*GetUserIdResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserId not implemented")
 }
 func (UnimplementedUserServer) ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateUserPassword not implemented")
+}
+func (UnimplementedUserServer) GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserPasswordVersion not implemented")
 }
 func (UnimplementedUserServer) SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserPassword not implemented")
@@ -163,7 +193,7 @@ func (UnimplementedUserServer) SetUserRole(context.Context, *SetUserRoleReq) (*E
 func (UnimplementedUserServer) SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserStatus not implemented")
 }
-func (UnimplementedUserServer) SetUserName(context.Context, *SetUserNameReq) (*Empty, error) {
+func (UnimplementedUserServer) SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserName not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
@@ -197,38 +227,56 @@ func _User_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserReq)
+func _User_GetUserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserInfoReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).GetUser(ctx, in)
+		return srv.(UserServer).GetUserInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_GetUser_FullMethodName,
+		FullMethod: User_GetUserInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetUser(ctx, req.(*GetUserReq))
+		return srv.(UserServer).GetUserInfo(ctx, req.(*GetUserInfoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_GetUserByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserByNameReq)
+func _User_GetUserInfoByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserInfoByNameReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).GetUserByName(ctx, in)
+		return srv.(UserServer).GetUserInfoByName(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_GetUserByName_FullMethodName,
+		FullMethod: User_GetUserInfoByName_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetUserByName(ctx, req.(*GetUserByNameReq))
+		return srv.(UserServer).GetUserInfoByName(ctx, req.(*GetUserInfoByNameReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserId(ctx, req.(*GetUserIdReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -247,6 +295,24 @@ func _User_ValidateUserPassword_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServer).ValidateUserPassword(ctx, req.(*ValidateUserPasswordReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_GetUserPasswordVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserPasswordVersionReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserPasswordVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserPasswordVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserPasswordVersion(ctx, req.(*GetUserPasswordVersionReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -335,16 +401,24 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_CreateUser_Handler,
 		},
 		{
-			MethodName: "GetUser",
-			Handler:    _User_GetUser_Handler,
+			MethodName: "GetUserInfo",
+			Handler:    _User_GetUserInfo_Handler,
 		},
 		{
-			MethodName: "GetUserByName",
-			Handler:    _User_GetUserByName_Handler,
+			MethodName: "GetUserInfoByName",
+			Handler:    _User_GetUserInfoByName_Handler,
+		},
+		{
+			MethodName: "GetUserId",
+			Handler:    _User_GetUserId_Handler,
 		},
 		{
 			MethodName: "ValidateUserPassword",
 			Handler:    _User_ValidateUserPassword_Handler,
+		},
+		{
+			MethodName: "GetUserPasswordVersion",
+			Handler:    _User_GetUserPasswordVersion_Handler,
 		},
 		{
 			MethodName: "SetUserPassword",

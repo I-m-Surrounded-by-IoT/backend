@@ -241,12 +241,12 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.user.Empty'
+                                $ref: '#/components/schemas/api.user.SetUserNameResp'
     /user/name/{name}:
         get:
             tags:
                 - User
-            operationId: User_GetUserByName
+            operationId: User_GetUserInfoByName
             parameters:
                 - name: name
                   in: path
@@ -266,6 +266,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /user/name/{name}/id:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserId
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.GetUserIdResp'
     /user/password:
         put:
             tags:
@@ -284,6 +302,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
+    /user/password/version/{id}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserPasswordVersion
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.GetUserPasswordVersionResp'
     /user/role:
         put:
             tags:
@@ -342,7 +378,7 @@ paths:
         get:
             tags:
                 - User
-            operationId: User_GetUser
+            operationId: User_GetUserInfo
             parameters:
                 - name: id
                   in: path
@@ -473,11 +509,27 @@ components:
         api.user.Empty:
             type: object
             properties: {}
+        api.user.GetUserIdResp:
+            type: object
+            properties:
+                id:
+                    type: string
+        api.user.GetUserPasswordVersionResp:
+            type: object
+            properties:
+                version:
+                    type: integer
+                    format: uint32
         api.user.SetUserNameReq:
             type: object
             properties:
                 id:
                     type: string
+                name:
+                    type: string
+        api.user.SetUserNameResp:
+            type: object
+            properties:
                 name:
                     type: string
         api.user.SetUserPasswordReq:

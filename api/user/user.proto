@@ -14,15 +14,21 @@ service User {
     };
   }
 
-  rpc GetUser(GetUserReq) returns (UserInfo) {
+  rpc GetUserInfo(GetUserInfoReq) returns (UserInfo) {
     option (google.api.http) = {
       get : "/user/{id}"
     };
   }
 
-  rpc GetUserByName(GetUserByNameReq) returns (UserInfo) {
+  rpc GetUserInfoByName(GetUserInfoByNameReq) returns (UserInfo) {
     option (google.api.http) = {
       get : "/user/name/{name}"
+    };
+  }
+
+  rpc GetUserId(GetUserIdReq) returns (GetUserIdResp) {
+    option (google.api.http) = {
+      get : "/user/name/{name}/id"
     };
   }
 
@@ -31,6 +37,13 @@ service User {
     option (google.api.http) = {
       post : "/user/validate"
       body : "*"
+    };
+  }
+
+  rpc GetUserPasswordVersion(GetUserPasswordVersionReq)
+      returns (GetUserPasswordVersionResp) {
+    option (google.api.http) = {
+      get : "/user/password/version/{id}"
     };
   }
 
@@ -55,7 +68,7 @@ service User {
     };
   }
 
-  rpc SetUserName(SetUserNameReq) returns (Empty) {
+  rpc SetUserName(SetUserNameReq) returns (SetUserNameResp) {
     option (google.api.http) = {
       put : "/user/name"
       body : "*"
@@ -82,12 +95,12 @@ message CreateUserReq {
   Status status = 4;
 }
 
-message GetUserReq {
+message GetUserInfoReq {
   string id = 1;
   repeated string fields = 2;
 }
 
-message GetUserByNameReq {
+message GetUserInfoByNameReq {
   string name = 1;
   repeated string fields = 2;
 }
@@ -101,12 +114,20 @@ message UserInfo {
   Status status = 6;    // @gotags: redis:"status,omitempty" json:"status"
 }
 
+message GetUserIdReq { string name = 1; }
+
+message GetUserIdResp { string id = 1; }
+
 message ValidateUserPasswordReq {
   string id = 1;
   string password = 2;
 }
 
 message ValidateUserPasswordResp { bool valid = 1; }
+
+message GetUserPasswordVersionReq { string id = 1; }
+
+message GetUserPasswordVersionResp { uint32 version = 1; }
 
 message SetUserPasswordReq {
   string id = 1;
@@ -127,3 +148,5 @@ message SetUserNameReq {
   string id = 1;
   string name = 2;
 }
+
+message SetUserNameResp { string name = 1; }

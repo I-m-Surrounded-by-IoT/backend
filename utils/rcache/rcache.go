@@ -28,7 +28,7 @@ func NewRcacheWithRsync(rdb *redis.Client, rsync *redsync.Redsync) *Rcache {
 	}
 }
 
-func randExpireDuration(t time.Duration, maxRand time.Duration) time.Duration {
+func (rc *Rcache) RandExpireDuration(t time.Duration, maxRand time.Duration) time.Duration {
 	if maxRand == 0 {
 		return t
 	}

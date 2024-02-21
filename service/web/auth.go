@@ -21,7 +21,7 @@ var (
 
 type AuthClaims struct {
 	UserId      string `json:"u"`
-	UserVersion int64  `json:"v"`
+	UserVersion uint32 `json:"v"`
 	jwt.RegisteredClaims
 }
 
@@ -49,26 +49,32 @@ func (h *WebService) AuthUser(ctx context.Context, Authorization string) (*user.
 		return nil, ErrAuthFailed
 	}
 
-	i, err := h.ucache.GetUserPasswordVersion(ctx, claims.UserId)
+	i, err := h.uclient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
+		Id: claims.UserId,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	if i != claims.UserVersion {
+	if i.Version != claims.UserVersion {
 		return nil, ErrAuthExpired
 	}
 
-	return h.ucache.GetUserInfo(ctx, claims.UserId)
+	return h.uclient.GetUserInfo(ctx, &user.GetUserInfoReq{
+		Id: claims.UserId,
+	})
 }
 
 func (ws *WebService) NewUserAuthToken(ctx context.Context, ID string) (string, error) {
-	version, err := ws.ucache.GetUserPasswordVersion(ctx, ID)
+	version, err := ws.uclient.GetUserPasswordVersion(ctx, &user.GetUserPasswordVersionReq{
+		Id: ID,
+	})
 	if err != nil {
 		return "", err
 	}
 	claims := &AuthClaims{
 		UserId:      ID,
-		UserVersion: version,
+		UserVersion: version.Version,
 		RegisteredClaims: jwt.RegisteredClaims{
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ws.jwt.expire)),

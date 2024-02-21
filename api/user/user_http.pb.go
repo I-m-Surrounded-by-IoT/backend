@@ -20,8 +20,10 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationUserCreateUser = "/api.user.User/CreateUser"
-const OperationUserGetUser = "/api.user.User/GetUser"
-const OperationUserGetUserByName = "/api.user.User/GetUserByName"
+const OperationUserGetUserId = "/api.user.User/GetUserId"
+const OperationUserGetUserInfo = "/api.user.User/GetUserInfo"
+const OperationUserGetUserInfoByName = "/api.user.User/GetUserInfoByName"
+const OperationUserGetUserPasswordVersion = "/api.user.User/GetUserPasswordVersion"
 const OperationUserSetUserName = "/api.user.User/SetUserName"
 const OperationUserSetUserPassword = "/api.user.User/SetUserPassword"
 const OperationUserSetUserRole = "/api.user.User/SetUserRole"
@@ -30,9 +32,11 @@ const OperationUserValidateUserPassword = "/api.user.User/ValidateUserPassword"
 
 type UserHTTPServer interface {
 	CreateUser(context.Context, *CreateUserReq) (*UserInfo, error)
-	GetUser(context.Context, *GetUserReq) (*UserInfo, error)
-	GetUserByName(context.Context, *GetUserByNameReq) (*UserInfo, error)
-	SetUserName(context.Context, *SetUserNameReq) (*Empty, error)
+	GetUserId(context.Context, *GetUserIdReq) (*GetUserIdResp, error)
+	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
+	GetUserInfoByName(context.Context, *GetUserInfoByNameReq) (*UserInfo, error)
+	GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error)
+	SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
 	SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error)
@@ -42,9 +46,11 @@ type UserHTTPServer interface {
 func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r := s.Route("/")
 	r.POST("/user", _User_CreateUser0_HTTP_Handler(srv))
-	r.GET("/user/{id}", _User_GetUser0_HTTP_Handler(srv))
-	r.GET("/user/name/{name}", _User_GetUserByName0_HTTP_Handler(srv))
+	r.GET("/user/{id}", _User_GetUserInfo0_HTTP_Handler(srv))
+	r.GET("/user/name/{name}", _User_GetUserInfoByName0_HTTP_Handler(srv))
+	r.GET("/user/name/{name}/id", _User_GetUserId0_HTTP_Handler(srv))
 	r.POST("/user/validate", _User_ValidateUserPassword0_HTTP_Handler(srv))
+	r.GET("/user/password/version/{id}", _User_GetUserPasswordVersion0_HTTP_Handler(srv))
 	r.PUT("/user/password", _User_SetUserPassword0_HTTP_Handler(srv))
 	r.PUT("/user/role", _User_SetUserRole0_HTTP_Handler(srv))
 	r.PUT("/user/status", _User_SetUserStatus0_HTTP_Handler(srv))
@@ -73,18 +79,18 @@ func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _User_GetUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+func _User_GetUserInfo0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetUserReq
+		var in GetUserInfoReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationUserGetUser)
+		http.SetOperation(ctx, OperationUserGetUserInfo)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetUser(ctx, req.(*GetUserReq))
+			return srv.GetUserInfo(ctx, req.(*GetUserInfoReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -95,24 +101,46 @@ func _User_GetUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) erro
 	}
 }
 
-func _User_GetUserByName0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+func _User_GetUserInfoByName0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetUserByNameReq
+		var in GetUserInfoByNameReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationUserGetUserByName)
+		http.SetOperation(ctx, OperationUserGetUserInfoByName)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetUserByName(ctx, req.(*GetUserByNameReq))
+			return srv.GetUserInfoByName(ctx, req.(*GetUserInfoByNameReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
 		reply := out.(*UserInfo)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_GetUserId0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserIdReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserGetUserId)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserId(ctx, req.(*GetUserIdReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserIdResp)
 		return ctx.Result(200, reply)
 	}
 }
@@ -135,6 +163,28 @@ func _User_ValidateUserPassword0_HTTP_Handler(srv UserHTTPServer) func(ctx http.
 			return err
 		}
 		reply := out.(*ValidateUserPasswordResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_GetUserPasswordVersion0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserPasswordVersionReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserGetUserPasswordVersion)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserPasswordVersion(ctx, req.(*GetUserPasswordVersionReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetUserPasswordVersionResp)
 		return ctx.Result(200, reply)
 	}
 }
@@ -222,16 +272,18 @@ func _User_SetUserName0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) 
 		if err != nil {
 			return err
 		}
-		reply := out.(*Empty)
+		reply := out.(*SetUserNameResp)
 		return ctx.Result(200, reply)
 	}
 }
 
 type UserHTTPClient interface {
 	CreateUser(ctx context.Context, req *CreateUserReq, opts ...http.CallOption) (rsp *UserInfo, err error)
-	GetUser(ctx context.Context, req *GetUserReq, opts ...http.CallOption) (rsp *UserInfo, err error)
-	GetUserByName(ctx context.Context, req *GetUserByNameReq, opts ...http.CallOption) (rsp *UserInfo, err error)
-	SetUserName(ctx context.Context, req *SetUserNameReq, opts ...http.CallOption) (rsp *Empty, err error)
+	GetUserId(ctx context.Context, req *GetUserIdReq, opts ...http.CallOption) (rsp *GetUserIdResp, err error)
+	GetUserInfo(ctx context.Context, req *GetUserInfoReq, opts ...http.CallOption) (rsp *UserInfo, err error)
+	GetUserInfoByName(ctx context.Context, req *GetUserInfoByNameReq, opts ...http.CallOption) (rsp *UserInfo, err error)
+	GetUserPasswordVersion(ctx context.Context, req *GetUserPasswordVersionReq, opts ...http.CallOption) (rsp *GetUserPasswordVersionResp, err error)
+	SetUserName(ctx context.Context, req *SetUserNameReq, opts ...http.CallOption) (rsp *SetUserNameResp, err error)
 	SetUserPassword(ctx context.Context, req *SetUserPasswordReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserRole(ctx context.Context, req *SetUserRoleReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserStatus(ctx context.Context, req *SetUserStatusReq, opts ...http.CallOption) (rsp *Empty, err error)
@@ -259,11 +311,24 @@ func (c *UserHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserReq, 
 	return &out, err
 }
 
-func (c *UserHTTPClientImpl) GetUser(ctx context.Context, in *GetUserReq, opts ...http.CallOption) (*UserInfo, error) {
+func (c *UserHTTPClientImpl) GetUserId(ctx context.Context, in *GetUserIdReq, opts ...http.CallOption) (*GetUserIdResp, error) {
+	var out GetUserIdResp
+	pattern := "/user/name/{name}/id"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserGetUserId))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...http.CallOption) (*UserInfo, error) {
 	var out UserInfo
 	pattern := "/user/{id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserGetUser))
+	opts = append(opts, http.Operation(OperationUserGetUserInfo))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -272,11 +337,11 @@ func (c *UserHTTPClientImpl) GetUser(ctx context.Context, in *GetUserReq, opts .
 	return &out, err
 }
 
-func (c *UserHTTPClientImpl) GetUserByName(ctx context.Context, in *GetUserByNameReq, opts ...http.CallOption) (*UserInfo, error) {
+func (c *UserHTTPClientImpl) GetUserInfoByName(ctx context.Context, in *GetUserInfoByNameReq, opts ...http.CallOption) (*UserInfo, error) {
 	var out UserInfo
 	pattern := "/user/name/{name}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserGetUserByName))
+	opts = append(opts, http.Operation(OperationUserGetUserInfoByName))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -285,8 +350,21 @@ func (c *UserHTTPClientImpl) GetUserByName(ctx context.Context, in *GetUserByNam
 	return &out, err
 }
 
-func (c *UserHTTPClientImpl) SetUserName(ctx context.Context, in *SetUserNameReq, opts ...http.CallOption) (*Empty, error) {
-	var out Empty
+func (c *UserHTTPClientImpl) GetUserPasswordVersion(ctx context.Context, in *GetUserPasswordVersionReq, opts ...http.CallOption) (*GetUserPasswordVersionResp, error) {
+	var out GetUserPasswordVersionResp
+	pattern := "/user/password/version/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserGetUserPasswordVersion))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) SetUserName(ctx context.Context, in *SetUserNameReq, opts ...http.CallOption) (*SetUserNameResp, error) {
+	var out SetUserNameResp
 	pattern := "/user/name"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUserName))

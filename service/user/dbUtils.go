@@ -1,12 +1,15 @@
 package user
 
 import (
+	"context"
 	"errors"
+	"hash/crc32"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/user/model"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type dbUtils struct {
@@ -26,6 +29,10 @@ func GenUserPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(Salt+password), bcrypt.DefaultCost)
 }
 
+func GenUserPasswordVersion(hashedPassword []byte) uint32 {
+	return crc32.ChecksumIEEE(hashedPassword)
+}
+
 func CheckPassword(password string, hashedPassword []byte) bool {
 	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(Salt+password)) == nil
 }
@@ -43,18 +50,19 @@ func SetUserPassword(u *model.User, password string) error {
 	return nil
 }
 
-func (u *dbUtils) GetUser(id string, fields ...string) (*model.User, error) {
+func (u *dbUtils) GetUser(ctx context.Context, id string, fields ...string) (*model.User, error) {
 	user := new(model.User)
-	err := u.Select(fields).Where("id = ?", id).First(user).Error
+
+	err := u.WithContext(ctx).Select(fields).Where("id = ?", id).First(user).Error
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (u *dbUtils) GetUserByName(name string, fields ...string) (*model.User, error) {
+func (u *dbUtils) GetUserByName(ctx context.Context, name string, fields ...string) (*model.User, error) {
 	user := new(model.User)
-	err := u.Select(fields).Where("username = ?", name).First(user).Error
+	err := u.WithContext(ctx).Select(fields).Where("username = ?", name).First(user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +73,8 @@ func (u *dbUtils) CreateUser(user *model.User) error {
 	return u.Create(user).Error
 }
 
-func (u *dbUtils) CheckPassword(id string, password string) bool {
-	pwd, err := u.GetUserPassword(id)
+func (u *dbUtils) CheckPassword(ctx context.Context, id string, password string) bool {
+	pwd, err := u.GetUserPassword(ctx, id)
 	if err != nil {
 		return false
 	}
@@ -122,12 +130,20 @@ func (u *dbUtils) SetUserRole(id string, role user.Role) error {
 	return u.Model(&model.User{}).Where("id = ?", id).Update("role", role).Error
 }
 
-func (u *dbUtils) GetUserPassword(id string) ([]byte, error) {
-	user, err := u.GetUser(id, "hashed_password")
+func (u *dbUtils) GetUserPassword(ctx context.Context, id string) ([]byte, error) {
+	user, err := u.GetUser(ctx, id, "hashed_password")
 	if err != nil {
 		return nil, err
 	}
 	return user.HashedPassword, nil
+}
+
+func (u *dbUtils) GetUserPasswordVersion(ctx context.Context, id string) (uint32, error) {
+	pwd, err := u.GetUserPassword(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+	return GenUserPasswordVersion(pwd), nil
 }
 
 func (u *dbUtils) SetUserPassword(id string, password string) error {
@@ -138,6 +154,18 @@ func (u *dbUtils) SetUserPassword(id string, password string) error {
 	return u.Model(&model.User{}).Where("id = ?", id).Update("hashed_password", b).Error
 }
 
-func (u *dbUtils) SetUserName(id, username string) error {
-	return u.Model(&model.User{}).Where("id = ?", id).Update("username", username).Error
+func (u *dbUtils) SetUserName(id, username string) (string, error) {
+	user := model.User{}
+	err := u.Model(&user).
+		Clauses(clause.Returning{
+			Columns: []clause.Column{
+				{Name: "username"},
+			},
+		}).
+		Where("id = ?", id).
+		Update("username", username).Error
+	if err != nil {
+		return "", err
+	}
+	return user.Username, nil
 }

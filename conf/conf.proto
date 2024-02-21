@@ -113,6 +113,7 @@ message UserServer {
   Registry registry = 2;
   DatabaseServerConfig database = 3;
   UserConfig config = 4;
+  RedisConfig redis = 5;
 }
 
 message WebConfig {

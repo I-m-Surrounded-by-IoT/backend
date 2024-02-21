@@ -18,7 +18,9 @@ func (ws *WebService) Login(ctx *gin.Context) {
 		return
 	}
 
-	ui, err := ws.ucache.GetUserInfoByName(ctx, req.Username)
+	ui, err := ws.uclient.GetUserInfoByName(ctx, &user.GetUserInfoByNameReq{
+		Name: req.Username,
+	})
 	if err != nil {
 		log.Errorf("get user info by name error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(fmt.Errorf("get user info by name error: %v", err)))

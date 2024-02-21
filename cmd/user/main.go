@@ -63,6 +63,7 @@ func Load(path string) (*conf.UserServer, error) {
 		},
 		Registry: conf.DefaultRegistry(),
 		Config:   &conf.UserConfig{},
+		Redis:    &conf.RedisConfig{},
 	}
 
 	if path != "" {
@@ -111,7 +112,7 @@ func Server(cmd *cobra.Command, args []string) {
 		"span.id", tracing.SpanID(),
 	)
 
-	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Database, uc.Config, logger)
+	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Database, uc.Config, uc.Redis, logger)
 	if err != nil {
 		panic(err)
 	}
