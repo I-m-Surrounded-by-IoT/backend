@@ -94,6 +94,16 @@ func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
 	c.grpcEndpoint = endpoint
 }
 
+func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) {
+	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
+		Id:       id,
+		LastSeen: time.Now().UnixMicro(),
+	})
+	if err != nil {
+		log.Errorf("update device last seen failed: %v", err)
+	}
+}
+
 func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	log.Infof("receive connection from collector: %v", conn.RemoteAddr())
 	Conn := tcpconn.NewConn(conn)
@@ -115,7 +125,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("invalid first message type: %v", msg.Type)
 	}
 
-	d, err := c.deviceClient.GetOrCreateDevice(ctx, &device.GetOrCreateDeviceReq{
+	d, err := c.deviceClient.GetDeviceInfoByMac(ctx, &device.GetDeviceInfoByMacReq{
 		Mac: msg.GetMac(),
 	})
 	if err != nil {
@@ -123,6 +133,8 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	}
 
 	log := log.WithField("device_id", d.Id)
+
+	c.UpdateDeviceLastSeen(ctx, d.Id)
 
 	devicdService := &registry.ServiceInstance{
 		ID:   d.Mac,
@@ -172,6 +184,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		if err != nil {
 			return fmt.Errorf("receive message from collector failed: %w", err)
 		}
+		c.UpdateDeviceLastSeen(ctx, d.Id)
 		msg = collector.Message{}
 		err = proto.Unmarshal(b, &msg)
 		if err != nil {
