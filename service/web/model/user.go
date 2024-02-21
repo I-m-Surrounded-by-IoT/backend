@@ -78,13 +78,6 @@ func (l *LoginUserReq) Validate() error {
 	return nil
 }
 
-type UserInfoResp struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	// Role      dbModel.Role `json:"role"`
-	CreatedAt int64 `json:"createdAt"`
-}
-
 type SetUsernameReq struct {
 	Username string `json:"username"`
 }

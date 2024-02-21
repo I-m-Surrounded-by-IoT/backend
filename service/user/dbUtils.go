@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"hash/crc32"
+	"regexp"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/user/model"
+	"github.com/zijiren233/stream"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -20,13 +22,30 @@ func NewDBUtils(db *gorm.DB) *dbUtils {
 	return &dbUtils{DB: db}
 }
 
-const Salt = "https://github.com/I-m-Surrounded-by-IoT/"
+var (
+	ErrPasswordTooShort       = errors.New("password too short")
+	ErrPasswordTooLong        = errors.New("password too long")
+	ErrPasswordHasInvalidChar = errors.New("password has invalid char")
+
+	ErrUsernameTooShort       = errors.New("username too short")
+	ErrUsernameTooLong        = errors.New("username too long")
+	ErrUsernameHasInvalidChar = errors.New("username has invalid char")
+)
+
+var (
+	alnumReg         = regexp.MustCompile(`^[[:alnum:]]+$`)
+	alnumPrintReg    = regexp.MustCompile(`^[[:print:][:alnum:]]+$`)
+	alnumPrintHanReg = regexp.MustCompile(`^[[:print:][:alnum:]\p{Han}]+$`)
+)
 
 func GenUserPassword(password string) ([]byte, error) {
 	if len(password) < 6 {
-		return nil, errors.New("password too short")
+		return nil, ErrPasswordTooShort
 	}
-	return bcrypt.GenerateFromPassword([]byte(Salt+password), bcrypt.DefaultCost)
+	if len(password) > 32 {
+		return nil, ErrPasswordTooLong
+	}
+	return bcrypt.GenerateFromPassword(stream.StringToBytes(password), bcrypt.DefaultCost)
 }
 
 func GenUserPasswordVersion(hashedPassword []byte) uint32 {
@@ -34,14 +53,31 @@ func GenUserPasswordVersion(hashedPassword []byte) uint32 {
 }
 
 func CheckPassword(password string, hashedPassword []byte) bool {
-	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(Salt+password)) == nil
+	return bcrypt.CompareHashAndPassword(hashedPassword, stream.StringToBytes(password)) == nil
 }
 
 func CheckUserPassword(u *model.User, password string) bool {
 	return CheckPassword(password, u.HashedPassword)
 }
 
+func SetUserName(u *model.User, name string) error {
+	if len(name) < 6 {
+		return ErrUsernameTooShort
+	}
+	if len(name) > 32 {
+		return ErrUsernameTooLong
+	}
+	if !alnumPrintHanReg.MatchString(name) {
+		return ErrUsernameHasInvalidChar
+	}
+	u.Username = name
+	return nil
+}
+
 func SetUserPassword(u *model.User, password string) error {
+	if !alnumPrintReg.MatchString(password) {
+		return ErrPasswordHasInvalidChar
+	}
 	hashed, err := GenUserPassword(password)
 	if err != nil {
 		return err

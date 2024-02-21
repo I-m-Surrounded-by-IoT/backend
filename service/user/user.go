@@ -62,11 +62,14 @@ func user2Proto(u *model.User) *user.UserInfo {
 
 func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.UserInfo, error) {
 	u := &model.User{
-		Username: req.Name,
-		Role:     req.Role,
-		Status:   req.Status,
+		Role:   req.Role,
+		Status: req.Status,
 	}
-	err := SetUserPassword(u, req.Password)
+	err := SetUserName(u, req.Name)
+	if err != nil {
+		return nil, err
+	}
+	err = SetUserPassword(u, req.Password)
 	if err != nil {
 		return nil, err
 	}
