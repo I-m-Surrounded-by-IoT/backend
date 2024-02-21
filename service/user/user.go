@@ -12,6 +12,7 @@ import (
 	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -57,7 +58,14 @@ func user2Proto(u *model.User) *user.UserInfo {
 		Role:      u.Role,
 		Status:    u.Status,
 	}
+}
 
+func users2Proto(us []*model.User) []*user.UserInfo {
+	res := make([]*user.UserInfo, 0, len(us))
+	for _, u := range us {
+		res = append(res, user2Proto(u))
+	}
+	return res
 }
 
 func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) (*user.UserInfo, error) {
@@ -86,6 +94,35 @@ func (us *UserService) GetUserInfo(ctx context.Context, req *user.GetUserInfoReq
 
 func (us *UserService) GetUserInfoByName(ctx context.Context, req *user.GetUserInfoByNameReq) (*user.UserInfo, error) {
 	return us.urcache.GetUserInfoByName(ctx, req.Name, req.Fields...)
+}
+
+func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*user.ListUserResp, error) {
+	opts := []func(*gorm.DB) *gorm.DB{}
+	if req.Id != nil {
+		opts = append(opts, model.WithIDEq(*req.Id))
+	}
+	if req.Name != nil {
+		opts = append(opts, model.WithNameLike(*req.Name))
+	}
+	if req.Role != nil {
+		opts = append(opts, model.WithRoleEq(*req.Role))
+	}
+	if req.Status != nil {
+		opts = append(opts, model.WithStatusEq(*req.Status))
+	}
+	count, err := us.db.CountUser(opts...)
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, WithPageAndPageSize(int(req.Page), int(req.Size)))
+	u, err := us.db.ListUser(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &user.ListUserResp{
+		Users: users2Proto(u),
+		Total: int32(count),
+	}, nil
 }
 
 func (us *UserService) GetUserId(ctx context.Context, req *user.GetUserIdReq) (*user.GetUserIdResp, error) {

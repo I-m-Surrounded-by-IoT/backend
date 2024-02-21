@@ -74,6 +74,12 @@ service User {
       body : "*"
     };
   }
+
+  rpc ListUser(ListUserReq) returns (ListUserResp) {
+    option (google.api.http) = {
+      get : "/user"
+    };
+  }
 }
 
 message Empty {}
@@ -150,3 +156,17 @@ message SetUserNameReq {
 }
 
 message SetUserNameResp { string name = 1; }
+
+message ListUserReq {
+  int32 page = 1;
+  int32 size = 2;
+  optional string id = 3;
+  optional string name = 4;
+  optional Role role = 5;
+  optional Status status = 6;
+}
+
+message ListUserResp {
+  repeated UserInfo users = 1;
+  int32 total = 4;
+}

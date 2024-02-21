@@ -24,6 +24,7 @@ const OperationUserGetUserId = "/api.user.User/GetUserId"
 const OperationUserGetUserInfo = "/api.user.User/GetUserInfo"
 const OperationUserGetUserInfoByName = "/api.user.User/GetUserInfoByName"
 const OperationUserGetUserPasswordVersion = "/api.user.User/GetUserPasswordVersion"
+const OperationUserListUser = "/api.user.User/ListUser"
 const OperationUserSetUserName = "/api.user.User/SetUserName"
 const OperationUserSetUserPassword = "/api.user.User/SetUserPassword"
 const OperationUserSetUserRole = "/api.user.User/SetUserRole"
@@ -36,6 +37,7 @@ type UserHTTPServer interface {
 	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
 	GetUserInfoByName(context.Context, *GetUserInfoByNameReq) (*UserInfo, error)
 	GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error)
+	ListUser(context.Context, *ListUserReq) (*ListUserResp, error)
 	SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
@@ -55,6 +57,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.PUT("/user/role", _User_SetUserRole0_HTTP_Handler(srv))
 	r.PUT("/user/status", _User_SetUserStatus0_HTTP_Handler(srv))
 	r.PUT("/user/name", _User_SetUserName0_HTTP_Handler(srv))
+	r.GET("/user", _User_ListUser0_HTTP_Handler(srv))
 }
 
 func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -277,12 +280,32 @@ func _User_SetUserName0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) 
 	}
 }
 
+func _User_ListUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListUserReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserListUser)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListUser(ctx, req.(*ListUserReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListUserResp)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
 	CreateUser(ctx context.Context, req *CreateUserReq, opts ...http.CallOption) (rsp *UserInfo, err error)
 	GetUserId(ctx context.Context, req *GetUserIdReq, opts ...http.CallOption) (rsp *GetUserIdResp, err error)
 	GetUserInfo(ctx context.Context, req *GetUserInfoReq, opts ...http.CallOption) (rsp *UserInfo, err error)
 	GetUserInfoByName(ctx context.Context, req *GetUserInfoByNameReq, opts ...http.CallOption) (rsp *UserInfo, err error)
 	GetUserPasswordVersion(ctx context.Context, req *GetUserPasswordVersionReq, opts ...http.CallOption) (rsp *GetUserPasswordVersionResp, err error)
+	ListUser(ctx context.Context, req *ListUserReq, opts ...http.CallOption) (rsp *ListUserResp, err error)
 	SetUserName(ctx context.Context, req *SetUserNameReq, opts ...http.CallOption) (rsp *SetUserNameResp, err error)
 	SetUserPassword(ctx context.Context, req *SetUserPasswordReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserRole(ctx context.Context, req *SetUserRoleReq, opts ...http.CallOption) (rsp *Empty, err error)
@@ -355,6 +378,19 @@ func (c *UserHTTPClientImpl) GetUserPasswordVersion(ctx context.Context, in *Get
 	pattern := "/user/password/version/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserGetUserPasswordVersion))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) ListUser(ctx context.Context, in *ListUserReq, opts ...http.CallOption) (*ListUserResp, error) {
+	var out ListUserResp
+	pattern := "/user"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserListUser))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

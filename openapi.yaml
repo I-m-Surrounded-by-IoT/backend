@@ -207,6 +207,46 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/api.log.Empty'
     /user:
+        get:
+            tags:
+                - User
+            operationId: User_ListUser
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: id
+                  in: query
+                  schema:
+                    type: string
+                - name: name
+                  in: query
+                  schema:
+                    type: string
+                - name: role
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.ListUserResp'
         post:
             tags:
                 - User
@@ -520,6 +560,16 @@ components:
                 version:
                     type: integer
                     format: uint32
+        api.user.ListUserResp:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.user.UserInfo'
+                total:
+                    type: integer
+                    format: int32
         api.user.SetUserNameReq:
             type: object
             properties:

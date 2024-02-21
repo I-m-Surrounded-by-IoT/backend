@@ -29,6 +29,7 @@ const (
 	User_SetUserRole_FullMethodName            = "/api.user.User/SetUserRole"
 	User_SetUserStatus_FullMethodName          = "/api.user.User/SetUserStatus"
 	User_SetUserName_FullMethodName            = "/api.user.User/SetUserName"
+	User_ListUser_FullMethodName               = "/api.user.User/ListUser"
 )
 
 // UserClient is the client API for User service.
@@ -45,6 +46,7 @@ type UserClient interface {
 	SetUserRole(ctx context.Context, in *SetUserRoleReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserStatus(ctx context.Context, in *SetUserStatusReq, opts ...grpc.CallOption) (*Empty, error)
 	SetUserName(ctx context.Context, in *SetUserNameReq, opts ...grpc.CallOption) (*SetUserNameResp, error)
+	ListUser(ctx context.Context, in *ListUserReq, opts ...grpc.CallOption) (*ListUserResp, error)
 }
 
 type userClient struct {
@@ -145,6 +147,15 @@ func (c *userClient) SetUserName(ctx context.Context, in *SetUserNameReq, opts .
 	return out, nil
 }
 
+func (c *userClient) ListUser(ctx context.Context, in *ListUserReq, opts ...grpc.CallOption) (*ListUserResp, error) {
+	out := new(ListUserResp)
+	err := c.cc.Invoke(ctx, User_ListUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -159,6 +170,7 @@ type UserServer interface {
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
 	SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error)
 	SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error)
+	ListUser(context.Context, *ListUserReq) (*ListUserResp, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -195,6 +207,9 @@ func (UnimplementedUserServer) SetUserStatus(context.Context, *SetUserStatusReq)
 }
 func (UnimplementedUserServer) SetUserName(context.Context, *SetUserNameReq) (*SetUserNameResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserName not implemented")
+}
+func (UnimplementedUserServer) ListUser(context.Context, *ListUserReq) (*ListUserResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUser not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -389,6 +404,24 @@ func _User_SetUserName_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_ListUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ListUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ListUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ListUser(ctx, req.(*ListUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -435,6 +468,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUserName",
 			Handler:    _User_SetUserName_Handler,
+		},
+		{
+			MethodName: "ListUser",
+			Handler:    _User_ListUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

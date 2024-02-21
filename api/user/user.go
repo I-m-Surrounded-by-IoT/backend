@@ -1,6 +1,11 @@
 package user
 
-import "encoding"
+import (
+	"encoding"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/zijiren233/stream"
+)
 
 func (u Role) IsAdmin() bool {
 	return u == Role_ADMIN
@@ -15,25 +20,25 @@ func (u Status) IsInActive() bool {
 }
 
 var _ encoding.BinaryMarshaler = (*Role)(nil)
-var _ encoding.TextUnmarshaler = (*Role)(nil)
+var _ redis.Scanner = (*Role)(nil)
 
 func (u Role) MarshalBinary() ([]byte, error) {
-	return []byte{byte(u)}, nil
+	return stream.StringToBytes(u.String()), nil
 }
 
-func (u *Role) UnmarshalText(data []byte) error {
-	*u = Role(data[0])
+func (u *Role) ScanRedis(s string) error {
+	*u = Role(Role_value[s])
 	return nil
 }
 
 var _ encoding.BinaryMarshaler = (*Status)(nil)
-var _ encoding.TextUnmarshaler = (*Status)(nil)
+var _ redis.Scanner = (*Status)(nil)
 
 func (u Status) MarshalBinary() ([]byte, error) {
-	return []byte{byte(u)}, nil
+	return stream.StringToBytes(u.String()), nil
 }
 
-func (u *Status) UnmarshalText(data []byte) error {
-	*u = Status(data[0])
+func (u *Status) ScanRedis(s string) error {
+	*u = Status(Status_value[s])
 	return nil
 }
