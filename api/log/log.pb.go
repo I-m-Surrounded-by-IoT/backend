@@ -157,7 +157,7 @@ type DeviceLog struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id        uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	DeviceId  uint64 `protobuf:"varint,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	DeviceId  uint64 `protobuf:"varint,2,opt,name=device_id,json=deviceId,proto3" json:"deviceId"` // @gotags: json:"deviceId"
 	Message   string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Level     uint32 `protobuf:"varint,4,opt,name=level,proto3" json:"level,omitempty"`
 	Timestamp int64  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
@@ -235,12 +235,12 @@ type ListDeviceLogReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DeviceId    uint64         `protobuf:"varint,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty" form:"device_id"`         // @gotags: form:"device_id"
+	DeviceId    uint64         `protobuf:"varint,1,opt,name=device_id,json=deviceId,proto3" json:"deviceId" form:"deviceId"`         // @gotags: form:"deviceId" json:"deviceId"
 	Page        int64          `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty" form:"page"`                                 // @gotags: form:"page"
 	Size        int64          `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty" form:"size"`                                 // @gotags: form:"size"
 	Before      int64          `protobuf:"varint,4,opt,name=before,proto3" json:"before,omitempty" form:"before"`                             // @gotags: form:"before"
 	After       int64          `protobuf:"varint,5,opt,name=after,proto3" json:"after,omitempty" form:"after"`                               // @gotags: form:"after"
-	LevelFilter string         `protobuf:"bytes,6,opt,name=level_filter,json=levelFilter,proto3" json:"level_filter,omitempty" form:"level_filter"` // @gotags: form:"level_filter"
+	LevelFilter string         `protobuf:"bytes,6,opt,name=level_filter,json=levelFilter,proto3" json:"levelFilter" form:"levelFilter"` // @gotags: form:"levelFilter" json:"levelFilter"
 	Order       DeviceLogOrder `protobuf:"varint,7,opt,name=order,proto3,enum=api.log.DeviceLogOrder" json:"order,omitempty" form:"order"`   // @gotags: form:"order"
 	Sort        Sort           `protobuf:"varint,8,opt,name=sort,proto3,enum=api.log.Sort" json:"sort,omitempty" form:"sort"`               // @gotags: form:"sort"
 }

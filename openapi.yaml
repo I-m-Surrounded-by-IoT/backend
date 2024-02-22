@@ -356,7 +356,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.GetDeviceLastSeenResp'
+                                $ref: '#/components/schemas/api.device.DeviceLastSeen'
     /device/{id}/undelete:
         post:
             tags:
@@ -807,14 +807,16 @@ components:
                     type: string
                 comment:
                     type: string
+        api.device.DeviceLastSeen:
+            type: object
+            properties:
+                lastSeenAt:
+                    type: string
+                lastSeenIp:
+                    type: string
         api.device.Empty:
             type: object
             properties: {}
-        api.device.GetDeviceLastSeenResp:
-            type: object
-            properties:
-                lastSeen:
-                    type: string
         api.device.GetOrRegisterDeviceReq:
             type: object
             properties:
@@ -850,7 +852,7 @@ components:
                 id:
                     type: string
                 lastSeen:
-                    type: string
+                    $ref: '#/components/schemas/api.device.DeviceLastSeen'
         api.log.DeviceLog:
             type: object
             properties:

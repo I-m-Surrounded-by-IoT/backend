@@ -66,7 +66,7 @@ service Device {
     };
   }
 
-  rpc GetDeviceLastSeen(GetDeviceLastSeenReq) returns (GetDeviceLastSeenResp) {
+  rpc GetDeviceLastSeen(GetDeviceLastSeenReq) returns (DeviceLastSeen) {
     option (google.api.http) = {
       get : "/device/{id}/last_seen"
     };
@@ -83,7 +83,7 @@ message Empty {}
 
 message DeviceInfo {
   uint64 id = 1;        // @gotags: redis:"id"
-  int64 created_at = 2; // @gotags: redis:"created_at"
+  int64 created_at = 2; // @gotags: redis:"createdAt" json:"createdAt"
   int64 updated_at = 3; // @gotags: redis:"-" json:"-"
   string mac = 4;       // @gotags: redis:"mac"
   string comment = 5;   // @gotags: redis:",omitempty" json:",omitempty"
@@ -96,14 +96,17 @@ message GetDeviceInfoReq {
   repeated string fields = 2;
 }
 
+message DeviceLastSeen {
+  int64 last_seen_at = 1;  // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
+  string last_seen_ip = 2; // @gotags: redis:"lastSeenIp" json:"lastSeenIP"
+}
+
 message UpdateDeviceLastSeenReq {
   uint64 id = 1;
-  int64 last_seen = 2;
+  DeviceLastSeen last_seen = 2;
 }
 
 message GetDeviceLastSeenReq { uint64 id = 1; }
-
-message GetDeviceLastSeenResp { int64 last_seen = 1; }
 
 message GetDeviceInfoByMacReq {
   string mac = 1;
@@ -134,7 +137,7 @@ enum Sort {
 }
 
 message ListDeviceReq {
-  uint64 device_id = 6;       // @gotags: form:"device_id"
+  uint64 device_id = 6;       // @gotags: form:"deviceId" json:"deviceId"
   int32 page = 1;             // @gotags: form:"page"
   int32 size = 2;             // @gotags: form:"size"
   ListDeviceOrder order = 3;  // @gotags: form:"order"

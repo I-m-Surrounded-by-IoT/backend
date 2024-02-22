@@ -45,7 +45,7 @@ type DeviceClient interface {
 	UnDeleteDevice(ctx context.Context, in *UnDeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error)
 	ListDevice(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error)
 	UpdateDeviceLastSeen(ctx context.Context, in *UpdateDeviceLastSeenReq, opts ...grpc.CallOption) (*Empty, error)
-	GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*GetDeviceLastSeenResp, error)
+	GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*DeviceLastSeen, error)
 	GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts ...grpc.CallOption) (*DeviceInfo, error)
 }
 
@@ -138,8 +138,8 @@ func (c *deviceClient) UpdateDeviceLastSeen(ctx context.Context, in *UpdateDevic
 	return out, nil
 }
 
-func (c *deviceClient) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*GetDeviceLastSeenResp, error) {
-	out := new(GetDeviceLastSeenResp)
+func (c *deviceClient) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*DeviceLastSeen, error) {
+	out := new(DeviceLastSeen)
 	err := c.cc.Invoke(ctx, Device_GetDeviceLastSeen_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ type DeviceServer interface {
 	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
 	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
-	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error)
+	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error)
 	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
 	mustEmbedUnimplementedDeviceServer()
 }
@@ -205,7 +205,7 @@ func (UnimplementedDeviceServer) ListDevice(context.Context, *ListDeviceReq) (*L
 func (UnimplementedDeviceServer) UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeviceLastSeen not implemented")
 }
-func (UnimplementedDeviceServer) GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error) {
+func (UnimplementedDeviceServer) GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLastSeen not implemented")
 }
 func (UnimplementedDeviceServer) GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error) {

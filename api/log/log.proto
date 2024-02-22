@@ -25,7 +25,7 @@ message Empty {}
 
 message DeviceLog {
   uint64 id = 1;
-  uint64 device_id = 2;
+  uint64 device_id = 2; // @gotags: json:"deviceId"
   string message = 3;
   uint32 level = 4;
   int64 timestamp = 5;
@@ -42,12 +42,12 @@ enum Sort {
 }
 
 message ListDeviceLogReq {
-  uint64 device_id = 1;     // @gotags: form:"device_id"
+  uint64 device_id = 1;     // @gotags: form:"deviceId" json:"deviceId"
   int64 page = 2;           // @gotags: form:"page"
   int64 size = 3;           // @gotags: form:"size"
   int64 before = 4;         // @gotags: form:"before"
   int64 after = 5;          // @gotags: form:"after"
-  string level_filter = 6;  // @gotags: form:"level_filter"
+  string level_filter = 6;  // @gotags: form:"levelFilter" json:"levelFilter"
   DeviceLogOrder order = 7; // @gotags: form:"order"
   Sort sort = 8;            // @gotags: form:"sort"
 }

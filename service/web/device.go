@@ -51,7 +51,7 @@ func (ws *WebService) GenDeviceDetail(ctx context.Context, id uint64) (*model.Ge
 	if err != nil {
 		return nil, fmt.Errorf("get device last seen error: %v", err)
 	}
-	resp.LastSeen = lastSeen.LastSeen
+	resp.DeviceLastSeen = lastSeen
 
 	return resp, nil
 }

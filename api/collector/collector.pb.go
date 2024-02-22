@@ -205,7 +205,7 @@ type GetDeviceStreamLogReq struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id          uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty" form:"id" binding:"required"`                                     // @gotags: form:"id" binding:"required"
-	LevelFilter string `protobuf:"bytes,2,opt,name=level_filter,json=levelFilter,proto3" json:"level_filter,omitempty" form:"level_filter"` // @gotags: form:"level_filter"
+	LevelFilter string `protobuf:"bytes,2,opt,name=level_filter,json=levelFilter,proto3" json:"levelFilter" form:"levelFilter"` // @gotags: form:"levelFilter" json:"levelFilter"
 }
 
 func (x *GetDeviceStreamLogReq) Reset() {

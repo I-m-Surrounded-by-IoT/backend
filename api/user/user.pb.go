@@ -439,7 +439,7 @@ type UserInfo struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id        string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty" redis:"id"`                                 // @gotags: redis:"id"
-	CreatedAt int64  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty" redis:"created_at"` // @gotags: redis:"created_at"
+	CreatedAt int64  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"createdAt" redis:"createdAt"` // @gotags: redis:"createdAt" json:"createdAt"
 	UpdatedAt int64  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"-" redis:"-"` // @gotags: redis:"-" json:"-"`
 	Username  string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty" redis:"username"`                     // @gotags: redis:"username"
 	Role      Role   `protobuf:"varint,5,opt,name=role,proto3,enum=api.user.Role" json:"role" redis:"role,omitempty"`         // @gotags: redis:"role,omitempty" json:"role"
@@ -1035,7 +1035,7 @@ type SetUsernameResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OldUsername string `protobuf:"bytes,1,opt,name=old_username,json=oldUsername,proto3" json:"old_username,omitempty"`
+	OldUsername string `protobuf:"bytes,1,opt,name=old_username,json=oldUsername,proto3" json:"oldUsername"` // @gotags: json:"oldUsername"
 }
 
 func (x *SetUsernameResp) Reset() {

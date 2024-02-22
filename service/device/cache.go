@@ -3,7 +3,6 @@ package device
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/device/model"
@@ -210,17 +209,22 @@ func (dc *DeviceRcache) GetDeviceInfoByMac(ctx context.Context, mac string, fiel
 	return dc.GetDeviceInfo(ctx, id, fields...)
 }
 
-func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, timestamp int64) error {
-	return dc.rcache.HSet(ctx, "lastseen:device", strconv.FormatUint(id, 10), timestamp).Err()
+func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
+	return dc.rcache.HMSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastSeen).Err()
 }
 
-func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (int64, error) {
-	resp := dc.rcache.HGet(ctx, "lastseen:device", strconv.FormatUint(id, 10))
+func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*device.DeviceLastSeen, error) {
+	lastSeen := &device.DeviceLastSeen{}
+	resp := dc.rcache.HMGet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), "last_seen_at", "last_seen_ip")
 	if resp.Err() != nil {
 		if resp.Err() == redis.Nil {
-			return 0, nil
+			return lastSeen, nil
 		}
-		return 0, resp.Err()
+		return nil, resp.Err()
 	}
-	return resp.Int64()
+	err := resp.Scan(lastSeen)
+	if err != nil {
+		return nil, err
+	}
+	return lastSeen, nil
 }

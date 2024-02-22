@@ -36,7 +36,7 @@ type DeviceHTTPServer interface {
 	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
 	GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error)
 	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
-	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*GetDeviceLastSeenResp, error)
+	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error)
 	GetOrRegisterDevice(context.Context, *GetOrRegisterDeviceReq) (*DeviceInfo, error)
 	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
@@ -278,7 +278,7 @@ func _Device_GetDeviceLastSeen0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetDeviceLastSeenResp)
+		reply := out.(*DeviceLastSeen)
 		return ctx.Result(200, reply)
 	}
 }
@@ -310,7 +310,7 @@ type DeviceHTTPClient interface {
 	GetDeviceID(ctx context.Context, req *GetDeviceIDReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	GetDeviceInfo(ctx context.Context, req *GetDeviceInfoReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	GetDeviceInfoByMac(ctx context.Context, req *GetDeviceInfoByMacReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
-	GetDeviceLastSeen(ctx context.Context, req *GetDeviceLastSeenReq, opts ...http.CallOption) (rsp *GetDeviceLastSeenResp, err error)
+	GetDeviceLastSeen(ctx context.Context, req *GetDeviceLastSeenReq, opts ...http.CallOption) (rsp *DeviceLastSeen, err error)
 	GetOrRegisterDevice(ctx context.Context, req *GetOrRegisterDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	ListDeletedDeviceInfo(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
 	ListDevice(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
@@ -379,8 +379,8 @@ func (c *DeviceHTTPClientImpl) GetDeviceInfoByMac(ctx context.Context, in *GetDe
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...http.CallOption) (*GetDeviceLastSeenResp, error) {
-	var out GetDeviceLastSeenResp
+func (c *DeviceHTTPClientImpl) GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...http.CallOption) (*DeviceLastSeen, error) {
+	var out DeviceLastSeen
 	pattern := "/device/{id}/last_seen"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationDeviceGetDeviceLastSeen))

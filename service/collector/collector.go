@@ -102,10 +102,13 @@ func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
 	c.grpcEndpoint = endpoint
 }
 
-func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) {
+func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, ip string) {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
-		Id:       id,
-		LastSeen: time.Now().UnixMilli(),
+		Id: id,
+		LastSeen: &device.DeviceLastSeen{
+			LastSeenAt: time.Now().UnixMilli(),
+			LastSeenIp: ip,
+		},
 	})
 	if err != nil {
 		log.Errorf("update device last seen failed: %v", err)
@@ -162,7 +165,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	defer dlc.Close()
 	defer c.dlcr.UnregisterDevice(d.Id, dlc)
 
-	c.UpdateDeviceLastSeen(ctx, d.Id)
+	c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
 
 	dereg, err := c.RegisterDevice(ctx, d)
 	if err != nil {
@@ -192,7 +195,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		if err != nil {
 			return fmt.Errorf("receive message from collector failed: %w", err)
 		}
-		c.UpdateDeviceLastSeen(ctx, d.Id)
+		c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
 		msg = collector.Message{}
 		err = proto.Unmarshal(b, &msg)
 		if err != nil {

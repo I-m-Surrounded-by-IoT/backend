@@ -25,5 +25,5 @@ type GetDeviceDetailReq struct {
 
 type GetDeviceDetailResp struct {
 	*device.DeviceInfo
-	LastSeen int64 `json:"last_seen"`
+	*device.DeviceLastSeen
 }

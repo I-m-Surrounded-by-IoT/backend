@@ -177,12 +177,6 @@ func (s *DeviceService) UpdateDeviceLastSeen(ctx context.Context, req *device.Up
 	return &device.Empty{}, s.drcache.UpdateDeviceLastSeen(ctx, req.Id, req.LastSeen)
 }
 
-func (s *DeviceService) GetDeviceLastSeen(ctx context.Context, req *device.GetDeviceLastSeenReq) (*device.GetDeviceLastSeenResp, error) {
-	lastSeen, err := s.drcache.GetDeviceLastSeen(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	return &device.GetDeviceLastSeenResp{
-		LastSeen: lastSeen,
-	}, nil
+func (s *DeviceService) GetDeviceLastSeen(ctx context.Context, req *device.GetDeviceLastSeenReq) (*device.DeviceLastSeen, error) {
+	return s.drcache.GetDeviceLastSeen(ctx, req.Id)
 }

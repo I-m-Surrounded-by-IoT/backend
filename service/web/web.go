@@ -38,6 +38,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 	etcd := reg.(*registryClient.EtcdRegistry)
 	discoveryUserConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///user",
+		TimeOut:  "10s",
 	}, etcd)
 	if err != nil {
 		log.Fatalf("failed to create grpc conn: %v", err)
@@ -46,6 +47,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 
 	discoveryDeviceConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///device",
+		TimeOut:  "10s",
 	}, etcd)
 	if err != nil {
 		log.Fatalf("failed to create grpc conn: %v", err)
@@ -54,6 +56,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 
 	discoveryLogConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///log",
+		TimeOut:  "10s",
 	}, etcd)
 	if err != nil {
 		log.Fatalf("failed to create grpc conn: %v", err)
@@ -62,6 +65,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 
 	discoveryCollectionConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///collection",
+		TimeOut:  "10s",
 	}, etcd)
 	if err != nil {
 		log.Fatalf("failed to create grpc conn: %v", err)

@@ -29,10 +29,10 @@ message GeoPoint {
 
 message CollectionRecord {
   uint64 id = 1;
-  uint64 device_id = 2;
-  int64 created_at = 3;
+  uint64 device_id = 2; // @gotags: json:"deviceId"
+  int64 created_at = 3; // @gotags: json:"createdAt"
   int64 timestamp = 4;
-  GeoPoint geo_point = 5;
+  GeoPoint geo_point = 5; // @gotags: json:"geoPoint"
   float temperature = 6;
 }
 
@@ -49,7 +49,7 @@ enum Sort {
 }
 
 message ListCollectionRecordReq {
-  uint64 device_id = 1;            // @gotags: form:"device_id"
+  uint64 device_id = 1;            // @gotags: form:"deviceId" json:"deviceId"
   uint64 page = 2;                 // @gotags: form:"page"
   uint64 size = 3;                 // @gotags: form:"size"
   int64 before = 4;                // @gotags: form:"before"

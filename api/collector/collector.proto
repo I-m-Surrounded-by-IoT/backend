@@ -43,7 +43,7 @@ message SetReportIntervalResp {}
 
 message GetDeviceStreamLogReq {
   uint64 id = 1;           // @gotags: form:"id" binding:"required"
-  string level_filter = 2; // @gotags: form:"level_filter"
+  string level_filter = 2; // @gotags: form:"levelFilter" json:"levelFilter"
 }
 
 message GetDeviceStreamLogResp {

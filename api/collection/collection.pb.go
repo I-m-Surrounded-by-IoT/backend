@@ -174,10 +174,10 @@ type CollectionRecord struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id          uint64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	DeviceId    uint64    `protobuf:"varint,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
-	CreatedAt   int64     `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	DeviceId    uint64    `protobuf:"varint,2,opt,name=device_id,json=deviceId,proto3" json:"deviceId"`    // @gotags: json:"deviceId"
+	CreatedAt   int64     `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"createdAt"` // @gotags: json:"createdAt"
 	Timestamp   int64     `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	GeoPoint    *GeoPoint `protobuf:"bytes,5,opt,name=geo_point,json=geoPoint,proto3" json:"geo_point,omitempty"`
+	GeoPoint    *GeoPoint `protobuf:"bytes,5,opt,name=geo_point,json=geoPoint,proto3" json:"geoPoint"` // @gotags: json:"geoPoint"
 	Temperature float32   `protobuf:"fixed32,6,opt,name=temperature,proto3" json:"temperature,omitempty"`
 }
 
@@ -298,7 +298,7 @@ type ListCollectionRecordReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DeviceId uint64                `protobuf:"varint,1,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty" form:"device_id"`                     // @gotags: form:"device_id"
+	DeviceId uint64                `protobuf:"varint,1,opt,name=device_id,json=deviceId,proto3" json:"deviceId" form:"deviceId"`                     // @gotags: form:"deviceId" json:"deviceId"
 	Page     uint64                `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty" form:"page"`                                             // @gotags: form:"page"
 	Size     uint64                `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty" form:"size"`                                             // @gotags: form:"size"
 	Before   int64                 `protobuf:"varint,4,opt,name=before,proto3" json:"before,omitempty" form:"before"`                                         // @gotags: form:"before"
