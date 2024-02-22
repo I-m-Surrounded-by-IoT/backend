@@ -155,10 +155,10 @@ func (s *DeviceService) ListDevice(ctx context.Context, req *device.ListDeviceRe
 		opts = append(opts, model.WithOrder(fmt.Sprintf("id %s", req.Sort)))
 	case device.ListDeviceOrder_MAC:
 		opts = append(opts, model.WithOrder(fmt.Sprintf("mac %s", req.Sort)))
-	case device.ListDeviceOrder_CREATED_AT:
-		opts = append(opts, model.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
 	case device.ListDeviceOrder_UPDATED_AT:
 		opts = append(opts, model.WithOrder(fmt.Sprintf("updated_at %s", req.Sort)))
+	default: // device.ListDeviceOrder_CREATED_AT
+		opts = append(opts, model.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
 	}
 	if len(req.Fields) != 0 {
 		opts = append(opts, model.WithFields(req.Fields...))

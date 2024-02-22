@@ -29,7 +29,7 @@ type CollectorService struct {
 	er            *registryClient.EtcdRegistry
 	kafkaClient   sarama.Client
 	kafkaProducer sarama.AsyncProducer
-	dlcr          *DeviceLogChanRegistor
+	dlcr          *DeviceStreamLogRegistor
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
 }
@@ -37,7 +37,7 @@ type CollectorService struct {
 func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
 	s := &CollectorService{
 		reg:  reg,
-		dlcr: NewDeviceLogChanRegistor(),
+		dlcr: NewDeviceStreamLogRegistor(),
 	}
 	switch reg := reg.(type) {
 	case *registryClient.EtcdRegistry:
@@ -78,7 +78,8 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 			client,
 			[]string{"log-device"},
 			logkafka.WithHookMustHasFields([]string{"device_id"}),
-			logkafka.WithHookKeyFormatter(new(kafkaDeviceLogKeyFormatter)),
+			logkafka.WithHookKeyFormatter(&kafkaDeviceLogKeyFormatter{}),
+			logkafka.WithHookValueFormatter(&kafkaDeviceLogValueFormatter{}),
 		)
 		if err != nil {
 			log.Fatalf("failed to create kafka hook: %v", err)
@@ -263,7 +264,7 @@ func (c *CollectorService) GetDeviceStreamLog(req *collectorApi.GetDeviceStreamL
 	if !ok {
 		return fmt.Errorf("device log chan not found")
 	}
-	ch, f, err := dlc.Watch(req.MinLevel)
+	ch, f, err := dlc.Watch(req.LevelFilter)
 	if err != nil {
 		return err
 	}

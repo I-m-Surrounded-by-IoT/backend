@@ -30,6 +30,12 @@ func (ws *WebService) RegisterRouter(e *gin.Engine) {
 
 		ws.registerDevice(deviceApi)
 	}
+
+	{
+		logApi := needAuthUserApi.Group("/log")
+
+		ws.registerLog(logApi)
+	}
 }
 
 func (ws *WebService) registerUser(api, needAuthUserApi *gin.RouterGroup) {
@@ -72,4 +78,8 @@ func (ws *WebService) registerDevice(deviceApi *gin.RouterGroup) {
 	deviceApi.GET("/detail", ws.GetDeviceDetail)
 
 	deviceApi.GET("/log/stream", ws.GetDeviceStreamLog)
+}
+
+func (ws *WebService) registerLog(logApi *gin.RouterGroup) {
+	logApi.GET("/device", ws.ListDeviceLog)
 }

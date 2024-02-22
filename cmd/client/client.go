@@ -94,8 +94,9 @@ func handlerCollector(conn *tcpconn.Conn) {
 		for range t.C {
 			send.Payload = &collector.Message_LogPayload{
 				LogPayload: &collector.LogPayload{
-					Timestamp: time.Now().UnixMicro(),
+					Timestamp: time.Now().UnixMilli(),
 					Level:     collector.LogLevel_LogLevelInfo,
+					Message:   "this log is actively sent by the device",
 				},
 			}
 			b, err = proto.Marshal(&send)
@@ -117,7 +118,7 @@ func handlerCollector(conn *tcpconn.Conn) {
 		for range reportTicker.C {
 			send.Payload = &collector.Message_ReportPayload{
 				ReportPayload: &collector.ReportPayload{
-					Timestamp: time.Now().UnixMicro(),
+					Timestamp: time.Now().UnixMilli(),
 					GeoPoint: &collector.GeoPoint{
 						Latitude:  rand.Float64() * 180,
 						Longitude: rand.Float64() * 180,

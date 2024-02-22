@@ -118,16 +118,16 @@ func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*us
 	}
 	opts = append(opts, utils.WithPageAndPageSize(int(req.Page), int(req.Size)))
 	switch req.Order {
-	case user.ListUserOrder_CREATED_AT:
-		opts = append(opts, model.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
 	case user.ListUserOrder_UPDATED_AT:
 		opts = append(opts, model.WithOrder(fmt.Sprintf("updated_at %s", req.Sort)))
-	case user.ListUserOrder_NAME:
-		opts = append(opts, model.WithOrder(fmt.Sprintf("username %s", req.Sort)))
 	case user.ListUserOrder_ROLE:
 		opts = append(opts, model.WithOrder(fmt.Sprintf("role %s", req.Sort)))
 	case user.ListUserOrder_STATUS:
 		opts = append(opts, model.WithOrder(fmt.Sprintf("status %s", req.Sort)))
+	case user.ListUserOrder_NAME:
+		opts = append(opts, model.WithOrder(fmt.Sprintf("username %s", req.Sort)))
+	default: // user.ListUserOrder_CREATED_AT
+		opts = append(opts, model.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
 	}
 	if len(req.Fields) != 0 {
 		opts = append(opts, model.WithFields(req.Fields...))

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
+	logApi "github.com/I-m-Surrounded-by-IoT/backend/api/log"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
@@ -28,6 +29,7 @@ type WebService struct {
 	etcd         *registryClient.EtcdRegistry
 	userClient   user.UserClient
 	deviceClient device.DeviceClient
+	logClient    logApi.LogClient
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -47,6 +49,14 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
 	deviceClient := device.NewDeviceClient(discoveryDeviceConn)
+
+	discoveryLogConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///log",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	logClient := logApi.NewLogClient(discoveryLogConn)
 
 	jwtExpire, err := time.ParseDuration(c.Jwt.Expire)
 	if err != nil {
@@ -69,6 +79,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		etcd:         etcd,
 		userClient:   userClient,
 		deviceClient: deviceClient,
+		logClient:    logClient,
 	}
 }
 

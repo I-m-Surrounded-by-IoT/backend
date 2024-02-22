@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-http v2.7.1
 // - protoc             v4.25.3
-// source: log/user.proto
+// source: log/log.proto
 
 package log
 
@@ -19,21 +19,21 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationLogAddDeviceLog = "/api.log.Log/AddDeviceLog"
-const OperationLogGetDeviceLogs = "/api.log.Log/GetDeviceLogs"
+const OperationLogCreateDeviceLog = "/api.log.Log/CreateDeviceLog"
+const OperationLogListDeviceLog = "/api.log.Log/ListDeviceLog"
 
 type LogHTTPServer interface {
-	AddDeviceLog(context.Context, *DeviceLog) (*Empty, error)
-	GetDeviceLogs(context.Context, *GetDeviceLogsReq) (*DeviceLog, error)
+	CreateDeviceLog(context.Context, *DeviceLog) (*Empty, error)
+	ListDeviceLog(context.Context, *ListDeviceLogReq) (*ListDeviceLogResp, error)
 }
 
 func RegisterLogHTTPServer(s *http.Server, srv LogHTTPServer) {
 	r := s.Route("/")
-	r.POST("/log/device", _Log_AddDeviceLog0_HTTP_Handler(srv))
-	r.GET("/log/device", _Log_GetDeviceLogs0_HTTP_Handler(srv))
+	r.POST("/log/device", _Log_CreateDeviceLog0_HTTP_Handler(srv))
+	r.GET("/log/device", _Log_ListDeviceLog0_HTTP_Handler(srv))
 }
 
-func _Log_AddDeviceLog0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) error {
+func _Log_CreateDeviceLog0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeviceLog
 		if err := ctx.Bind(&in); err != nil {
@@ -42,9 +42,9 @@ func _Log_AddDeviceLog0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) e
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationLogAddDeviceLog)
+		http.SetOperation(ctx, OperationLogCreateDeviceLog)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AddDeviceLog(ctx, req.(*DeviceLog))
+			return srv.CreateDeviceLog(ctx, req.(*DeviceLog))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -55,28 +55,28 @@ func _Log_AddDeviceLog0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) e
 	}
 }
 
-func _Log_GetDeviceLogs0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) error {
+func _Log_ListDeviceLog0_HTTP_Handler(srv LogHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetDeviceLogsReq
+		var in ListDeviceLogReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationLogGetDeviceLogs)
+		http.SetOperation(ctx, OperationLogListDeviceLog)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDeviceLogs(ctx, req.(*GetDeviceLogsReq))
+			return srv.ListDeviceLog(ctx, req.(*ListDeviceLogReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceLog)
+		reply := out.(*ListDeviceLogResp)
 		return ctx.Result(200, reply)
 	}
 }
 
 type LogHTTPClient interface {
-	AddDeviceLog(ctx context.Context, req *DeviceLog, opts ...http.CallOption) (rsp *Empty, err error)
-	GetDeviceLogs(ctx context.Context, req *GetDeviceLogsReq, opts ...http.CallOption) (rsp *DeviceLog, err error)
+	CreateDeviceLog(ctx context.Context, req *DeviceLog, opts ...http.CallOption) (rsp *Empty, err error)
+	ListDeviceLog(ctx context.Context, req *ListDeviceLogReq, opts ...http.CallOption) (rsp *ListDeviceLogResp, err error)
 }
 
 type LogHTTPClientImpl struct {
@@ -87,11 +87,11 @@ func NewLogHTTPClient(client *http.Client) LogHTTPClient {
 	return &LogHTTPClientImpl{client}
 }
 
-func (c *LogHTTPClientImpl) AddDeviceLog(ctx context.Context, in *DeviceLog, opts ...http.CallOption) (*Empty, error) {
+func (c *LogHTTPClientImpl) CreateDeviceLog(ctx context.Context, in *DeviceLog, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
 	pattern := "/log/device"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationLogAddDeviceLog))
+	opts = append(opts, http.Operation(OperationLogCreateDeviceLog))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -100,11 +100,11 @@ func (c *LogHTTPClientImpl) AddDeviceLog(ctx context.Context, in *DeviceLog, opt
 	return &out, err
 }
 
-func (c *LogHTTPClientImpl) GetDeviceLogs(ctx context.Context, in *GetDeviceLogsReq, opts ...http.CallOption) (*DeviceLog, error) {
-	var out DeviceLog
+func (c *LogHTTPClientImpl) ListDeviceLog(ctx context.Context, in *ListDeviceLogReq, opts ...http.CallOption) (*ListDeviceLogResp, error) {
+	var out ListDeviceLogResp
 	pattern := "/log/device"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationLogGetDeviceLogs))
+	opts = append(opts, http.Operation(OperationLogListDeviceLog))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

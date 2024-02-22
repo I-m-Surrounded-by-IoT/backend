@@ -80,7 +80,7 @@ func (ws *WebService) GetDeviceDetail(ctx *gin.Context) {
 func (ws *WebService) GetDeviceStreamLog(ctx *gin.Context) {
 	log := ctx.MustGet("log").(*log.Entry)
 
-	req := model.GetDeviceStreamLogReq{}
+	req := collector.GetDeviceStreamLogReq{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
 		log.Errorf("bind query error: %v", err)
@@ -100,7 +100,7 @@ func (ws *WebService) GetDeviceStreamLog(ctx *gin.Context) {
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
 	cli := collector.NewCollectorClient(discoveryDeviceConn)
-	c, err := cli.GetDeviceStreamLog(ctx, (*collector.GetDeviceStreamLogReq)(&req))
+	c, err := cli.GetDeviceStreamLog(ctx, &req)
 	if err != nil {
 		log.Errorf("get device stream log error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))

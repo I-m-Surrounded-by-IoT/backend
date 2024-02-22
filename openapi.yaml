@@ -399,7 +399,7 @@ paths:
         get:
             tags:
                 - Log
-            operationId: Log_GetDeviceLogs
+            operationId: Log_ListDeviceLog
             parameters:
                 - name: deviceId
                   in: query
@@ -409,21 +409,38 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: pageSize
+                - name: size
                   in: query
                   schema:
                     type: string
+                - name: before
+                  in: query
+                  schema:
+                    type: string
+                - name: after
+                  in: query
+                  schema:
+                    type: string
+                - name: levelFilter
+                  in: query
+                  schema:
+                    type: string
+                - name: sort
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.log.DeviceLog'
+                                $ref: '#/components/schemas/api.log.ListDeviceLogResp'
         post:
             tags:
                 - Log
-            operationId: Log_AddDeviceLog
+            operationId: Log_CreateDeviceLog
             requestBody:
                 content:
                     application/json:
@@ -732,9 +749,8 @@ components:
             properties:
                 id:
                     type: string
-                minLevel:
-                    type: integer
-                    format: uint32
+                levelFilter:
+                    type: string
         api.collector.GetDeviceStreamLogResp:
             type: object
             properties:
@@ -830,11 +846,25 @@ components:
             properties:
                 deviceId:
                     type: string
-                log:
+                message:
+                    type: string
+                level:
+                    type: integer
+                    format: uint32
+                timestamp:
                     type: string
         api.log.Empty:
             type: object
             properties: {}
+        api.log.ListDeviceLogResp:
+            type: object
+            properties:
+                logs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.log.DeviceLog'
+                total:
+                    type: string
         api.user.CreateUserReq:
             type: object
             properties:

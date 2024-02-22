@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.25.3
-// source: log/user.proto
+// source: log/log.proto
 
 package log
 
@@ -19,16 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Log_AddDeviceLog_FullMethodName  = "/api.log.Log/AddDeviceLog"
-	Log_GetDeviceLogs_FullMethodName = "/api.log.Log/GetDeviceLogs"
+	Log_CreateDeviceLog_FullMethodName = "/api.log.Log/CreateDeviceLog"
+	Log_ListDeviceLog_FullMethodName   = "/api.log.Log/ListDeviceLog"
 )
 
 // LogClient is the client API for Log service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LogClient interface {
-	AddDeviceLog(ctx context.Context, in *DeviceLog, opts ...grpc.CallOption) (*Empty, error)
-	GetDeviceLogs(ctx context.Context, in *GetDeviceLogsReq, opts ...grpc.CallOption) (*DeviceLog, error)
+	CreateDeviceLog(ctx context.Context, in *DeviceLog, opts ...grpc.CallOption) (*Empty, error)
+	ListDeviceLog(ctx context.Context, in *ListDeviceLogReq, opts ...grpc.CallOption) (*ListDeviceLogResp, error)
 }
 
 type logClient struct {
@@ -39,18 +39,18 @@ func NewLogClient(cc grpc.ClientConnInterface) LogClient {
 	return &logClient{cc}
 }
 
-func (c *logClient) AddDeviceLog(ctx context.Context, in *DeviceLog, opts ...grpc.CallOption) (*Empty, error) {
+func (c *logClient) CreateDeviceLog(ctx context.Context, in *DeviceLog, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, Log_AddDeviceLog_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Log_CreateDeviceLog_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *logClient) GetDeviceLogs(ctx context.Context, in *GetDeviceLogsReq, opts ...grpc.CallOption) (*DeviceLog, error) {
-	out := new(DeviceLog)
-	err := c.cc.Invoke(ctx, Log_GetDeviceLogs_FullMethodName, in, out, opts...)
+func (c *logClient) ListDeviceLog(ctx context.Context, in *ListDeviceLogReq, opts ...grpc.CallOption) (*ListDeviceLogResp, error) {
+	out := new(ListDeviceLogResp)
+	err := c.cc.Invoke(ctx, Log_ListDeviceLog_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +61,8 @@ func (c *logClient) GetDeviceLogs(ctx context.Context, in *GetDeviceLogsReq, opt
 // All implementations must embed UnimplementedLogServer
 // for forward compatibility
 type LogServer interface {
-	AddDeviceLog(context.Context, *DeviceLog) (*Empty, error)
-	GetDeviceLogs(context.Context, *GetDeviceLogsReq) (*DeviceLog, error)
+	CreateDeviceLog(context.Context, *DeviceLog) (*Empty, error)
+	ListDeviceLog(context.Context, *ListDeviceLogReq) (*ListDeviceLogResp, error)
 	mustEmbedUnimplementedLogServer()
 }
 
@@ -70,11 +70,11 @@ type LogServer interface {
 type UnimplementedLogServer struct {
 }
 
-func (UnimplementedLogServer) AddDeviceLog(context.Context, *DeviceLog) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddDeviceLog not implemented")
+func (UnimplementedLogServer) CreateDeviceLog(context.Context, *DeviceLog) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDeviceLog not implemented")
 }
-func (UnimplementedLogServer) GetDeviceLogs(context.Context, *GetDeviceLogsReq) (*DeviceLog, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLogs not implemented")
+func (UnimplementedLogServer) ListDeviceLog(context.Context, *ListDeviceLogReq) (*ListDeviceLogResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDeviceLog not implemented")
 }
 func (UnimplementedLogServer) mustEmbedUnimplementedLogServer() {}
 
@@ -89,38 +89,38 @@ func RegisterLogServer(s grpc.ServiceRegistrar, srv LogServer) {
 	s.RegisterService(&Log_ServiceDesc, srv)
 }
 
-func _Log_AddDeviceLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Log_CreateDeviceLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceLog)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LogServer).AddDeviceLog(ctx, in)
+		return srv.(LogServer).CreateDeviceLog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Log_AddDeviceLog_FullMethodName,
+		FullMethod: Log_CreateDeviceLog_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogServer).AddDeviceLog(ctx, req.(*DeviceLog))
+		return srv.(LogServer).CreateDeviceLog(ctx, req.(*DeviceLog))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Log_GetDeviceLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDeviceLogsReq)
+func _Log_ListDeviceLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeviceLogReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LogServer).GetDeviceLogs(ctx, in)
+		return srv.(LogServer).ListDeviceLog(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Log_GetDeviceLogs_FullMethodName,
+		FullMethod: Log_ListDeviceLog_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogServer).GetDeviceLogs(ctx, req.(*GetDeviceLogsReq))
+		return srv.(LogServer).ListDeviceLog(ctx, req.(*ListDeviceLogReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -133,14 +133,14 @@ var Log_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*LogServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "AddDeviceLog",
-			Handler:    _Log_AddDeviceLog_Handler,
+			MethodName: "CreateDeviceLog",
+			Handler:    _Log_CreateDeviceLog_Handler,
 		},
 		{
-			MethodName: "GetDeviceLogs",
-			Handler:    _Log_GetDeviceLogs_Handler,
+			MethodName: "ListDeviceLog",
+			Handler:    _Log_ListDeviceLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "log/user.proto",
+	Metadata: "log/log.proto",
 }

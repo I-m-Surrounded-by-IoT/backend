@@ -3,11 +3,16 @@ package collector
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
+	logApi "github.com/I-m-Surrounded-by-IoT/backend/api/log"
 	"github.com/sirupsen/logrus"
 	"github.com/zijiren233/gencontainer/rwmap"
+	"github.com/zijiren233/stream"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ logrus.Formatter = (*kafkaDeviceLogKeyFormatter)(nil)
@@ -23,27 +28,40 @@ func (k *kafkaDeviceLogKeyFormatter) Format(entry *logrus.Entry) ([]byte, error)
 	if !ok {
 		return nil, fmt.Errorf("invalid device_id type")
 	}
-	return []byte(fmt.Sprintf("%v", deviceID)), nil
+	return stream.StringToBytes(strconv.FormatUint(deviceID, 10)), nil
 }
 
-type DeviceLog struct {
+var _ logrus.Formatter = (*kafkaDeviceLogValueFormatter)(nil)
+
+type kafkaDeviceLogValueFormatter struct{}
+
+func (k *kafkaDeviceLogValueFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	dl := logApi.DeviceLog{
+		Timestamp: entry.Time.UnixMilli(),
+		Message:   entry.Message,
+		Level:     uint32(entry.Level),
+	}
+	return proto.Marshal(&dl)
+}
+
+type DeviceStreamLog struct {
 	Time    time.Time
 	Level   uint32
 	Message string
 }
 
-type DeviceLogChan struct {
-	ch       chan *DeviceLog
-	minLevel uint32
+type DeviceStreamLogChan struct {
+	ch          chan *DeviceStreamLog
+	levelFilter string
 }
 
-type DeviceLogChans struct {
-	chans  map[uint64]*DeviceLogChan
+type DeviceStreamLogChans struct {
+	chans  map[uint64]*DeviceStreamLogChan
 	lock   sync.RWMutex
 	closed bool
 }
 
-func (c *DeviceLogChans) Watch(level uint32) (<-chan *DeviceLog, func(), error) {
+func (c *DeviceStreamLogChans) Watch(levelFilter string) (<-chan *DeviceStreamLog, func(), error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if c.closed {
@@ -53,9 +71,9 @@ func (c *DeviceLogChans) Watch(level uint32) (<-chan *DeviceLog, func(), error) 
 	if _, ok := c.chans[id]; ok {
 		return nil, nil, fmt.Errorf("device log chan already exists")
 	}
-	ch := &DeviceLogChan{
-		minLevel: level,
-		ch:       make(chan *DeviceLog),
+	ch := &DeviceStreamLogChan{
+		levelFilter: levelFilter,
+		ch:          make(chan *DeviceStreamLog),
 	}
 	c.chans[id] = ch
 	return ch.ch, func() {
@@ -68,11 +86,11 @@ func (c *DeviceLogChans) Watch(level uint32) (<-chan *DeviceLog, func(), error) 
 	}, nil
 }
 
-func (c *DeviceLogChans) WriteLog(log *DeviceLog) {
+func (c *DeviceStreamLogChans) WriteLog(log *DeviceStreamLog) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	for _, ch := range c.chans {
-		if log.Level > ch.minLevel {
+		if strings.Contains(ch.levelFilter, strconv.FormatUint(uint64(log.Level), 10)) {
 			continue
 		}
 		select {
@@ -82,7 +100,7 @@ func (c *DeviceLogChans) WriteLog(log *DeviceLog) {
 	}
 }
 
-func (c *DeviceLogChans) Close() {
+func (c *DeviceStreamLogChans) Close() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if c.closed {
@@ -95,51 +113,51 @@ func (c *DeviceLogChans) Close() {
 	}
 }
 
-func NewDeviceLogChans() *DeviceLogChans {
-	return &DeviceLogChans{
-		chans: make(map[uint64]*DeviceLogChan),
+func NewDeviceStreamLogChans() *DeviceStreamLogChans {
+	return &DeviceStreamLogChans{
+		chans: make(map[uint64]*DeviceStreamLogChan),
 	}
 }
 
-type DeviceLogChanRegistor struct {
-	m *rwmap.RWMap[uint64, *DeviceLogChans]
+type DeviceStreamLogRegistor struct {
+	m *rwmap.RWMap[uint64, *DeviceStreamLogChans]
 }
 
-func NewDeviceLogChanRegistor() *DeviceLogChanRegistor {
-	return &DeviceLogChanRegistor{
-		m: &rwmap.RWMap[uint64, *DeviceLogChans]{},
+func NewDeviceStreamLogRegistor() *DeviceStreamLogRegistor {
+	return &DeviceStreamLogRegistor{
+		m: &rwmap.RWMap[uint64, *DeviceStreamLogChans]{},
 	}
 }
 
-func (r *DeviceLogChanRegistor) RegisterDevice(id uint64) (*DeviceLogChans, error) {
-	dlc, loaded := r.m.LoadOrStore(id, NewDeviceLogChans())
+func (r *DeviceStreamLogRegistor) RegisterDevice(id uint64) (*DeviceStreamLogChans, error) {
+	dlc, loaded := r.m.LoadOrStore(id, NewDeviceStreamLogChans())
 	if loaded {
 		return nil, fmt.Errorf("device log chans already exists")
 	}
 	return dlc, nil
 }
 
-func (r *DeviceLogChanRegistor) UnregisterDevice(id uint64, dlc *DeviceLogChans) bool {
+func (r *DeviceStreamLogRegistor) UnregisterDevice(id uint64, dlc *DeviceStreamLogChans) bool {
 	return r.m.CompareAndDelete(id, dlc)
 }
 
-func (r *DeviceLogChanRegistor) GetDeviceLogChans(id uint64) (*DeviceLogChans, bool) {
+func (r *DeviceStreamLogRegistor) GetDeviceLogChans(id uint64) (*DeviceStreamLogChans, bool) {
 	return r.m.Load(id)
 }
 
-func (r *DeviceLogChanRegistor) Levels() []logrus.Level {
+func (r *DeviceStreamLogRegistor) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
-func marshalLog(entry *logrus.Entry) *DeviceLog {
-	return &DeviceLog{
+func marshalLog(entry *logrus.Entry) *DeviceStreamLog {
+	return &DeviceStreamLog{
 		Time:    entry.Time,
 		Level:   uint32(entry.Level),
 		Message: entry.Message,
 	}
 }
 
-func (r *DeviceLogChanRegistor) Fire(entry *logrus.Entry) error {
+func (r *DeviceStreamLogRegistor) Fire(entry *logrus.Entry) error {
 	deviceIDI, ok := entry.Data["device_id"]
 	if !ok {
 		return nil

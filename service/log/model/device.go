@@ -7,9 +7,10 @@ import (
 )
 
 type DeviceLog struct {
-	DeviceID  uint64    `gorm:"not null;index"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	Timestamp time.Time `gorm:"not null;index"`
-	Level     logrus.Level
-	Message   string
+	ID        uint64       `gorm:"primaryKey"`
+	CreatedAt time.Time    `gorm:"autoCreateTime"`
+	DeviceID  uint64       `gorm:"not null;index:idx_device_id_timestamp"`
+	Timestamp time.Time    `gorm:"not null;index:idx_device_id_timestamp"`
+	Level     logrus.Level `gorm:"not null;index"`
+	Message   string       `gorm:"not null;type:text"`
 }
