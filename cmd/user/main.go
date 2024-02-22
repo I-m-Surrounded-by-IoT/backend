@@ -7,6 +7,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
+	"github.com/I-m-Surrounded-by-IoT/backend/internal/bootstrap"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/caarlos0/env/v9"
 	"github.com/go-kratos/kratos/v2/config"
@@ -17,7 +18,6 @@ import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
 
 	_ "go.uber.org/automaxprocs"
@@ -94,6 +94,7 @@ func Load(path string) (*conf.UserServer, error) {
 }
 
 func PersistentPreRun(cmd *cobra.Command, args []string) {
+	_ = bootstrap.InitLog()
 	uc, err := Load(flagconf)
 	if err != nil {
 		logrus.Fatalf("failed to load config: %v", err)
@@ -107,15 +108,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	id = fmt.Sprintf("%s-%s", id, uc.Server.Addr)
 
-	logger := log.With(log.NewStdLogger(logrus.StandardLogger().Writer()),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", "user",
-		"service.version", flags.Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
+	logger := utils.TransLogrus(logrus.StandardLogger())
 
 	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Database, uc.Config, uc.Redis, logger)
 	if err != nil {

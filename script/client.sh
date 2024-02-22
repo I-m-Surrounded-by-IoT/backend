@@ -1,1 +1,1 @@
-go run . client --gateway 127.0.0.1:20000 $@
+go run . client --dev --gateway 127.0.0.1:20000 $@

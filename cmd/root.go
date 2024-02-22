@@ -18,14 +18,18 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "backend",
-	Short: "backend",
-	Long:  `https://github.com/I-m-Surrounded-by-IoT/backend`,
+	Use:               "backend",
+	Short:             "backend",
+	Long:              `https://github.com/I-m-Surrounded-by-IoT/backend`,
+	PersistentPreRunE: PersistentPreRunE,
+}
+
+func PersistentPreRunE(cmd *cobra.Command, args []string) error {
+	return bootstrap.InitLog()
 }
 
 func Execute() {
 	_ = bootstrap.LoadEnvFromFile()
-	_ = bootstrap.InitLog()
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

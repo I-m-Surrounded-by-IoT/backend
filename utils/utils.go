@@ -23,6 +23,7 @@ import (
 	"github.com/go-kratos/aegis/circuitbreaker"
 	"github.com/go-kratos/aegis/circuitbreaker/sre"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	kcircuitbreaker "github.com/go-kratos/kratos/v2/middleware/circuitbreaker"
@@ -474,4 +475,30 @@ func SortUUIDWithUUID(src uuid.UUID) string {
 	dst := make([]byte, 32)
 	hex.Encode(dst, src[:])
 	return stream.BytesToString(dst)
+}
+
+type Logger struct {
+	l *logrus.Logger
+}
+
+func (l *Logger) Log(level log.Level, keyvals ...interface{}) error {
+	var logrusLevel logrus.Level = logrus.InfoLevel
+	switch level {
+	case log.LevelDebug:
+		logrusLevel = logrus.DebugLevel
+	case log.LevelInfo:
+		logrusLevel = logrus.InfoLevel
+	case log.LevelWarn:
+		logrusLevel = logrus.WarnLevel
+	case log.LevelError:
+		logrusLevel = logrus.ErrorLevel
+	case log.LevelFatal:
+		logrusLevel = logrus.FatalLevel
+	}
+	l.l.Log(logrusLevel, keyvals...)
+	return nil
+}
+
+func TransLogrus(l *logrus.Logger) log.Logger {
+	return &Logger{l: l}
 }

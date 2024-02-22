@@ -15,7 +15,6 @@ import (
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
 
 	_ "go.uber.org/automaxprocs"
@@ -90,15 +89,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	id = fmt.Sprintf("%s-%s", id, bc.Server.Addr)
 
-	logger := log.With(log.NewStdLogger(logrus.StandardLogger().Writer()),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", "device",
-		"service.version", flags.Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
+	logger := utils.TransLogrus(logrus.StandardLogger())
 
 	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Config, bc.Redis, logger)
 	if err != nil {

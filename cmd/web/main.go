@@ -9,6 +9,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/bootstrap"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
 
 	_ "go.uber.org/automaxprocs"
@@ -92,15 +92,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	id = fmt.Sprintf("%s-%s", id, uc.Server.Addr)
 
-	logger := log.With(log.NewStdLogger(logrus.StandardLogger().Writer()),
-		"ts", log.DefaultTimestamp,
-		"caller", log.DefaultCaller,
-		"service.id", id,
-		"service.name", "web",
-		"service.version", flags.Version,
-		"trace.id", tracing.TraceID(),
-		"span.id", tracing.SpanID(),
-	)
+	logger := utils.TransLogrus(logrus.StandardLogger())
 
 	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Config, uc.Redis, logger)
 	if err != nil {
