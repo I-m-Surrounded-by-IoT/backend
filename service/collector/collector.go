@@ -158,6 +158,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("register device log chan failed: %w", err)
 	}
 	defer dlc.Close()
+	defer c.dlcr.UnregisterDevice(d.Id, dlc)
 
 	c.UpdateDeviceLastSeen(ctx, d.Id)
 
