@@ -44,6 +44,7 @@ func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, s *utils.TcpServer, 
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(
+			gs,
 			s,
 		),
 		kratos.Registrar(r),

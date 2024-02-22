@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 )
 
@@ -27,3 +28,5 @@ type GetDeviceDetailResp struct {
 	*device.DeviceInfo
 	LastSeen int64 `json:"last_seen"`
 }
+
+type GetDeviceStreamLogReq collector.GetDeviceStreamLogReq

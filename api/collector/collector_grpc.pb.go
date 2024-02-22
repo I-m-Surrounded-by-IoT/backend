@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Collector_ReportImmediately_FullMethodName = "/api.collector.Collector/ReportImmediately"
-	Collector_SetReportInterval_FullMethodName = "/api.collector.Collector/SetReportInterval"
+	Collector_ReportImmediately_FullMethodName  = "/api.collector.Collector/ReportImmediately"
+	Collector_SetReportInterval_FullMethodName  = "/api.collector.Collector/SetReportInterval"
+	Collector_GetDeviceStreamLog_FullMethodName = "/api.collector.Collector/GetDeviceStreamLog"
 )
 
 // CollectorClient is the client API for Collector service.
@@ -29,6 +30,7 @@ const (
 type CollectorClient interface {
 	ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...grpc.CallOption) (*ReportImmediatelyResp, error)
 	SetReportInterval(ctx context.Context, in *SetReportIntervalReq, opts ...grpc.CallOption) (*SetReportIntervalResp, error)
+	GetDeviceStreamLog(ctx context.Context, in *GetDeviceStreamLogReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamLogClient, error)
 }
 
 type collectorClient struct {
@@ -57,12 +59,45 @@ func (c *collectorClient) SetReportInterval(ctx context.Context, in *SetReportIn
 	return out, nil
 }
 
+func (c *collectorClient) GetDeviceStreamLog(ctx context.Context, in *GetDeviceStreamLogReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamLogClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Collector_ServiceDesc.Streams[0], Collector_GetDeviceStreamLog_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &collectorGetDeviceStreamLogClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Collector_GetDeviceStreamLogClient interface {
+	Recv() (*GetDeviceStreamLogResp, error)
+	grpc.ClientStream
+}
+
+type collectorGetDeviceStreamLogClient struct {
+	grpc.ClientStream
+}
+
+func (x *collectorGetDeviceStreamLogClient) Recv() (*GetDeviceStreamLogResp, error) {
+	m := new(GetDeviceStreamLogResp)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // CollectorServer is the server API for Collector service.
 // All implementations must embed UnimplementedCollectorServer
 // for forward compatibility
 type CollectorServer interface {
 	ReportImmediately(context.Context, *ReportImmediatelyReq) (*ReportImmediatelyResp, error)
 	SetReportInterval(context.Context, *SetReportIntervalReq) (*SetReportIntervalResp, error)
+	GetDeviceStreamLog(*GetDeviceStreamLogReq, Collector_GetDeviceStreamLogServer) error
 	mustEmbedUnimplementedCollectorServer()
 }
 
@@ -75,6 +110,9 @@ func (UnimplementedCollectorServer) ReportImmediately(context.Context, *ReportIm
 }
 func (UnimplementedCollectorServer) SetReportInterval(context.Context, *SetReportIntervalReq) (*SetReportIntervalResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetReportInterval not implemented")
+}
+func (UnimplementedCollectorServer) GetDeviceStreamLog(*GetDeviceStreamLogReq, Collector_GetDeviceStreamLogServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamLog not implemented")
 }
 func (UnimplementedCollectorServer) mustEmbedUnimplementedCollectorServer() {}
 
@@ -125,6 +163,27 @@ func _Collector_SetReportInterval_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Collector_GetDeviceStreamLog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeviceStreamLogReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CollectorServer).GetDeviceStreamLog(m, &collectorGetDeviceStreamLogServer{stream})
+}
+
+type Collector_GetDeviceStreamLogServer interface {
+	Send(*GetDeviceStreamLogResp) error
+	grpc.ServerStream
+}
+
+type collectorGetDeviceStreamLogServer struct {
+	grpc.ServerStream
+}
+
+func (x *collectorGetDeviceStreamLogServer) Send(m *GetDeviceStreamLogResp) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Collector_ServiceDesc is the grpc.ServiceDesc for Collector service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +200,12 @@ var Collector_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Collector_SetReportInterval_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetDeviceStreamLog",
+			Handler:       _Collector_GetDeviceStreamLog_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "collector/collector.proto",
 }

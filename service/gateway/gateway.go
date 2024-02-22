@@ -34,6 +34,14 @@ func (s *Servers) Get() []string {
 	return s.servers
 }
 
+func (s *Servers) GetRand() (string, error) {
+	servers := s.Get()
+	if len(servers) == 0 {
+		return "", fmt.Errorf("no collector available")
+	}
+	return utils.GetRand(servers), nil
+}
+
 type GatewayService struct {
 	collectorServers *Servers
 }
@@ -92,14 +100,13 @@ func (g *GatewayService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			return fmt.Errorf("unmarshal message from collector failed: %w", err)
 		}
 		log.Infof("receive message from collector: %s", msg.String())
-		s := g.collectorServers.Get()
-		if len(s) == 0 {
-			log.Errorf("no collector available")
+		s, err := g.collectorServers.GetRand()
+		if err != nil {
+			log.Errorf("get collector server failed: %v", err)
 			continue
 		}
-		addr := utils.GetRand(s)
 		resp := gateway.GetServerResp{
-			ServerAddr: strings.TrimPrefix(addr, "tcp://"),
+			ServerAddr: strings.TrimPrefix(s, "tcp://"),
 		}
 		b, err = proto.Marshal(&resp)
 		if err != nil {

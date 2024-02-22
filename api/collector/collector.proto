@@ -20,6 +20,14 @@ service Collector {
       body : "*"
     };
   }
+
+  rpc GetDeviceStreamLog(GetDeviceStreamLogReq)
+      returns (stream GetDeviceStreamLogResp) {
+    option (google.api.http) = {
+      post : "/collector/get_device_stream_log"
+      body : "*"
+    };
+  }
 }
 
 message ReportImmediatelyReq { uint64 id = 1; }
@@ -32,3 +40,14 @@ message SetReportIntervalReq {
 }
 
 message SetReportIntervalResp {}
+
+message GetDeviceStreamLogReq {
+  uint64 id = 1;        // @gotags: form:"id" binding:"required"
+  uint32 min_level = 2; // @gotags: form:"min_level"
+}
+
+message GetDeviceStreamLogResp {
+  uint32 level = 1;    // @gotags: json:"level"
+  string message = 2;  // @gotags: json:"message"
+  int64 timestamp = 3; // @gotags: json:"timestamp"
+}

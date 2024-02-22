@@ -58,4 +58,6 @@ func (ws *WebService) registerDevice(deviceApi *gin.RouterGroup) {
 	deviceApi.GET("/list", ws.ListDevice)
 
 	deviceApi.GET("/detail", ws.GetDeviceDetail)
+
+	deviceApi.GET("/log/stream", ws.GetDeviceStreamLog)
 }

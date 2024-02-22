@@ -56,6 +56,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.collection.Empty'
+    /collector/get_device_stream_log:
+        post:
+            tags:
+                - Collector
+            operationId: Collector_GetDeviceStreamLog
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collector.GetDeviceStreamLogReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collector.GetDeviceStreamLogResp'
     /collector/report_immediately:
         post:
             tags:
@@ -709,6 +727,24 @@ components:
                     type: string
                 geoPoint:
                     $ref: '#/components/schemas/api.collection.GeoPoint'
+        api.collector.GetDeviceStreamLogReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                minLevel:
+                    type: integer
+                    format: uint32
+        api.collector.GetDeviceStreamLogResp:
+            type: object
+            properties:
+                level:
+                    type: integer
+                    format: uint32
+                message:
+                    type: string
+                timestamp:
+                    type: string
         api.collector.ReportImmediatelyReq:
             type: object
             properties:

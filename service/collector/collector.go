@@ -16,7 +16,6 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	tcpconn "github.com/I-m-Surrounded-by-IoT/backend/utils/tcpConn"
 	"github.com/IBM/sarama"
-	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
@@ -26,15 +25,20 @@ import (
 type CollectorService struct {
 	deviceClient  device.DeviceClient
 	grpcEndpoint  string
+	reg           registry.Registrar
 	er            *registryClient.EtcdRegistry
 	kafkaClient   sarama.Client
 	kafkaProducer sarama.AsyncProducer
+	dlcr          *DeviceLogChanRegistor
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
 }
 
 func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
-	s := &CollectorService{}
+	s := &CollectorService{
+		reg:  reg,
+		dlcr: NewDeviceLogChanRegistor(),
+	}
 	switch reg := reg.(type) {
 	case *registryClient.EtcdRegistry:
 		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
@@ -82,6 +86,8 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Infof("add kafka hook to logrus")
 		log.AddHook(lkh)
 	}
+	log.AddHook(s.dlcr)
+
 	producer, err := sarama.NewAsyncProducerFromClient(s.kafkaClient)
 	if err != nil {
 		log.Fatalf("failed to create kafka producer: %v", err)
@@ -102,6 +108,19 @@ func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) 
 	if err != nil {
 		log.Errorf("update device last seen failed: %v", err)
 	}
+}
+
+func (c *CollectorService) RegisterDevice(ctx context.Context, d *device.DeviceInfo) (func() error, error) {
+	devicdService := &registry.ServiceInstance{
+		ID:   d.Mac,
+		Name: fmt.Sprintf("device-%v", d.Id),
+		Endpoints: []string{
+			c.grpcEndpoint,
+		},
+	}
+	return func() error {
+		return c.reg.Deregister(context.Background(), devicdService)
+	}, c.reg.Register(ctx, devicdService)
 }
 
 func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
@@ -133,36 +152,22 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	}
 
 	log := log.WithField("device_id", d.Id)
+	dlc, err := c.dlcr.RegisterDevice(d.Id)
+	if err != nil {
+		log.Errorf("register device log chan failed: %v", err)
+		return fmt.Errorf("register device log chan failed: %w", err)
+	}
+	defer dlc.Close()
 
 	c.UpdateDeviceLastSeen(ctx, d.Id)
 
-	devicdService := &registry.ServiceInstance{
-		ID:   d.Mac,
-		Name: fmt.Sprintf("device-%v", d.Id),
-		Metadata: map[string]string{
-			"endpoint": c.grpcEndpoint,
-		},
-	}
-
-	log.Infof("register device to registry: %v", devicdService)
-	var reg registry.Registrar
-	switch {
-	case c.er != nil:
-		reg = etcd.New(c.er.Client(), etcd.Context(ctx))
-	default:
-		log.Errorf("etcd registry is nil")
-		return fmt.Errorf("etcd registry is nil")
-	}
-
-	err = reg.Register(ctx, devicdService)
+	dereg, err := c.RegisterDevice(ctx, d)
 	if err != nil {
+		log.Errorf("register device failed: %v", err)
 		return fmt.Errorf("register device failed: %w", err)
 	}
-	log.Infof("register device to registry: %v", devicdService)
-
 	defer func() {
-		log.Infof("deregister device from registry: %v", devicdService)
-		err := reg.Deregister(context.Background(), devicdService)
+		err := dereg()
 		if err != nil {
 			log.Errorf("deregister device failed: %v", err)
 		}
@@ -248,6 +253,33 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		default:
 			log.Errorf("invalid message type: %v", msg.Type)
 			continue
+		}
+	}
+}
+
+func (c *CollectorService) GetDeviceStreamLog(req *collectorApi.GetDeviceStreamLogReq, resp collectorApi.Collector_GetDeviceStreamLogServer) error {
+	dlc, ok := c.dlcr.GetDeviceLogChans(req.Id)
+	if !ok {
+		return fmt.Errorf("device log chan not found")
+	}
+	ch, f, err := dlc.Watch(req.MinLevel)
+	if err != nil {
+		return err
+	}
+	defer f()
+	for {
+		select {
+		case log := <-ch:
+			err := resp.Send(&collectorApi.GetDeviceStreamLogResp{
+				Level:     log.Level,
+				Message:   log.Message,
+				Timestamp: log.Time.UnixMilli(),
+			})
+			if err != nil {
+				return err
+			}
+		case <-resp.Context().Done():
+			return nil
 		}
 	}
 }

@@ -21,6 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/ulule/limiter/v3 v3.11.2
+	github.com/zijiren233/gencontainer v0.0.0-20240214185550-64325761736f
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
 	github.com/zijiren233/logrus-kafka-hook v0.1.2
 	github.com/zijiren233/stream v0.5.2
@@ -99,6 +100,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

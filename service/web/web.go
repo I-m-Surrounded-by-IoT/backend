@@ -25,6 +25,7 @@ type WebService struct {
 	config       *conf.WebConfig
 	jwt          *jwtConfig
 	rdb          *redis.Client
+	etcd         *registryClient.EtcdRegistry
 	userClient   user.UserClient
 	deviceClient device.DeviceClient
 }
@@ -65,6 +66,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 			expire: jwtExpire,
 		},
 		rdb:          rdb,
+		etcd:         etcd,
 		userClient:   userClient,
 		deviceClient: deviceClient,
 	}
