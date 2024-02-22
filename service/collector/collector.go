@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -104,7 +105,7 @@ func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
 func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
 		Id:       id,
-		LastSeen: time.Now().UnixMicro(),
+		LastSeen: time.Now().UnixMilli(),
 	})
 	if err != nil {
 		log.Errorf("update device last seen failed: %v", err)
@@ -228,7 +229,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			for _, topic := range topics {
 				c.kafkaProducer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,
-					Key:   sarama.StringEncoder(fmt.Sprintf("%v", d.Id)),
+					Key:   sarama.StringEncoder(strconv.FormatUint(d.Id, 10)),
 					Value: sarama.ByteEncoder(bytes),
 				}
 			}
@@ -241,13 +242,13 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 			}
 			switch payload.Level {
 			case collector.LogLevel_LogLevelDebug:
-				log.Debugf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+				log.Debugf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
 			case collector.LogLevel_LogLevelInfo:
-				log.Infof("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+				log.Infof("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
 			case collector.LogLevel_LogLevelWarning:
-				log.Warnf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+				log.Warnf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
 			case collector.LogLevel_LogLevelError:
-				log.Errorf("device report: time: %v, message: %v", time.UnixMicro(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
+				log.Errorf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
 			default:
 				log.Errorf("device report invalid log level: %v, message: %v", payload.Level, payload.Message)
 			}

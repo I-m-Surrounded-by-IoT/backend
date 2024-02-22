@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	logApi "github.com/I-m-Surrounded-by-IoT/backend/api/log"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
@@ -23,13 +24,14 @@ type jwtConfig struct {
 }
 
 type WebService struct {
-	config       *conf.WebConfig
-	jwt          *jwtConfig
-	rdb          *redis.Client
-	etcd         *registryClient.EtcdRegistry
-	userClient   user.UserClient
-	deviceClient device.DeviceClient
-	logClient    logApi.LogClient
+	config           *conf.WebConfig
+	jwt              *jwtConfig
+	rdb              *redis.Client
+	etcd             *registryClient.EtcdRegistry
+	userClient       user.UserClient
+	deviceClient     device.DeviceClient
+	logClient        logApi.LogClient
+	collectionClient collection.CollectionClient
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -58,6 +60,14 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 	}
 	logClient := logApi.NewLogClient(discoveryLogConn)
 
+	discoveryCollectionConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///collection",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	collectionClient := collection.NewCollectionClient(discoveryCollectionConn)
+
 	jwtExpire, err := time.ParseDuration(c.Jwt.Expire)
 	if err != nil {
 		log.Fatalf("failed to parse jwt expire: %v", err)
@@ -75,11 +85,12 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 			secret: []byte(c.Jwt.Secret),
 			expire: jwtExpire,
 		},
-		rdb:          rdb,
-		etcd:         etcd,
-		userClient:   userClient,
-		deviceClient: deviceClient,
-		logClient:    logClient,
+		rdb:              rdb,
+		etcd:             etcd,
+		userClient:       userClient,
+		deviceClient:     deviceClient,
+		logClient:        logClient,
+		collectionClient: collectionClient,
 	}
 }
 

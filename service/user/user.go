@@ -54,8 +54,8 @@ func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig, rc *conf
 func user2Proto(u *model.User) *user.UserInfo {
 	return &user.UserInfo{
 		Id:        u.ID,
-		CreatedAt: u.CreatedAt.UnixMicro(),
-		UpdatedAt: u.UpdatedAt.UnixMicro(),
+		CreatedAt: u.CreatedAt.UnixMilli(),
+		UpdatedAt: u.UpdatedAt.UnixMilli(),
 		Username:  u.Username,
 		Role:      u.Role,
 		Status:    u.Status,

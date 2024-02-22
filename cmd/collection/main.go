@@ -40,6 +40,7 @@ func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *collection.Collect
 		kratos.Logger(logger),
 		kratos.Server(
 			s,
+			c,
 		),
 		kratos.Registrar(r),
 		kratos.Endpoint(es...),

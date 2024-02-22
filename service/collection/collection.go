@@ -2,11 +2,13 @@ package collection
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/dbdial"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -39,55 +41,76 @@ func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectionCon
 }
 
 func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *collection.CollectionRecord) (*collection.Empty, error) {
-	err := s.db.CreateCollection(&model.CollectionRecord{
-		DeviceID:  req.DeviceId,
-		Timestamp: time.UnixMicro(int64(req.Timestamp)),
-		GeoPoint: model.GeoPoint{
-			Lat: req.GeoPoint.Lat,
-			Lng: req.GeoPoint.Lng,
-		},
-		Temperature: req.Temperature,
-	})
+	err := s.db.CreateCollectionRecord(proto2Record(req))
 	if err != nil {
 		return nil, err
 	}
 	return &collection.Empty{}, nil
 }
 
+func proto2Record(record *collection.CollectionRecord) *model.CollectionRecord {
+	return &model.CollectionRecord{
+		DeviceID:    record.DeviceId,
+		CreatedAt:   time.UnixMilli(record.CreatedAt),
+		Timestamp:   time.UnixMilli(record.Timestamp),
+		GeoPoint:    model.GeoPoint{Lat: record.GeoPoint.Lat, Lng: record.GeoPoint.Lng},
+		Temperature: record.Temperature,
+	}
+}
+
+func record2Proto(record *model.CollectionRecord) *collection.CollectionRecord {
+	return &collection.CollectionRecord{
+		DeviceId:  record.DeviceID,
+		Timestamp: record.Timestamp.UnixMilli(),
+		GeoPoint: &collection.GeoPoint{
+			Lat: record.GeoPoint.Lat,
+			Lng: record.GeoPoint.Lng,
+		},
+		Temperature: record.Temperature,
+	}
+}
+
+func records2Proto(records []*model.CollectionRecord) []*collection.CollectionRecord {
+	resp := make([]*collection.CollectionRecord, len(records))
+	for i, r := range records {
+		resp[i] = record2Proto(r)
+	}
+	return resp
+}
+
 func (s *CollectionService) ListCollectionRecord(ctx context.Context, req *collection.ListCollectionRecordReq) (*collection.ListCollectionRecordResp, error) {
-	scopes := make([]func(*gorm.DB) *gorm.DB, 0)
+	opts := []func(*gorm.DB) *gorm.DB{}
 
-	if req.StartTimestamp != 0 {
+	if req.Before != 0 {
+		opts = append(opts, utils.WithTimestampBefore(req.Before))
+	}
+	if req.After != 0 {
+		opts = append(opts, utils.WithTimestampAfter(req.After))
+	}
+	if req.DeviceId != 0 {
+		opts = append(opts, utils.WithDeviceIDEq(req.DeviceId))
+	}
 
-		scopes = append(scopes, model.WithStartTime(time.UnixMicro(int64(req.StartTimestamp))))
-	}
-	if req.EndTimestamp != 0 {
-		scopes = append(scopes, model.WithEndTime(time.UnixMicro(int64(req.EndTimestamp))))
-	}
-	if req.Page == 0 {
-		req.Page = 1
-	}
-	if req.PageSize == 0 {
-		req.PageSize = 10
-	}
-	scopes = append(scopes, model.WithPageAndPageSize(int(req.Page), int(req.PageSize)))
-	c, err := s.db.ListCollectionInfo(req.DeviceId, scopes...)
+	count, err := s.db.CountCollectionRecord(opts...)
 	if err != nil {
 		return nil, err
 	}
-	resp := collection.ListCollectionRecordResp{
-		CollectionInfos: make([]*collection.ListCollectionRecordResp_CollectionRecord, len(c)),
+
+	opts = append(opts, model.WithPageAndPageSize(int(req.Page), int(req.Size)))
+	switch req.Order {
+	case collection.CollectionRecordOrder_CREATED_AT:
+		opts = append(opts, utils.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
+	default: // collection.CollectionRecordOrder_TIMESTAMP
+		opts = append(opts, utils.WithOrder(fmt.Sprintf("timestamp %s", req.Sort)))
 	}
-	for i, info := range c {
-		resp.CollectionInfos[i] = &collection.ListCollectionRecordResp_CollectionRecord{
-			CreatedAt: info.CreatedAt.UnixMicro(),
-			DeviceId:  info.DeviceID,
-			Timestamp: info.Timestamp.UnixMicro(),
-			GeoPoint: &collection.GeoPoint{
-				Lat: info.GeoPoint.Lat,
-				Lng: info.GeoPoint.Lng,
-			},
-		}
+
+	c, err := s.db.ListCollectionRecord(opts...)
+	if err != nil {
+		return nil, err
 	}
-	return &resp, nil
+
+	return &collection.ListCollectionRecordResp{
+		Records: records2Proto(c),
+		Total:   count,
+	}, nil
 }

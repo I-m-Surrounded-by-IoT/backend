@@ -6,32 +6,42 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /collection:
+    /collection/record:
         get:
             tags:
                 - Collection
             operationId: Collection_ListCollectionRecord
             parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: string
-                - name: pageSize
-                  in: query
-                  schema:
-                    type: string
                 - name: deviceId
                   in: query
                   schema:
                     type: string
-                - name: startTimestamp
+                - name: page
                   in: query
                   schema:
                     type: string
-                - name: endTimestamp
+                - name: size
                   in: query
                   schema:
                     type: string
+                - name: before
+                  in: query
+                  schema:
+                    type: string
+                - name: after
+                  in: query
+                  schema:
+                    type: string
+                - name: order
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: sort
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -116,6 +126,10 @@ paths:
                 - Device
             operationId: Device_ListDevice
             parameters:
+                - name: deviceId
+                  in: query
+                  schema:
+                    type: string
                 - name: page
                   in: query
                   schema:
@@ -142,10 +156,6 @@ paths:
                     type: array
                     items:
                         type: string
-                - name: id
-                  in: query
-                  schema:
-                    type: string
                 - name: mac
                   in: query
                   schema:
@@ -180,6 +190,10 @@ paths:
                 - Device
             operationId: Device_ListDeletedDeviceInfo
             parameters:
+                - name: deviceId
+                  in: query
+                  schema:
+                    type: string
                 - name: page
                   in: query
                   schema:
@@ -206,10 +220,6 @@ paths:
                     type: array
                     items:
                         type: string
-                - name: id
-                  in: query
-                  schema:
-                    type: string
                 - name: mac
                   in: query
                   schema:
@@ -425,6 +435,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: order
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
                 - name: sort
                   in: query
                   schema:
@@ -705,7 +720,11 @@ components:
         api.collection.CollectionRecord:
             type: object
             properties:
+                id:
+                    type: string
                 deviceId:
+                    type: string
+                createdAt:
                     type: string
                 timestamp:
                     type: string
@@ -729,21 +748,12 @@ components:
         api.collection.ListCollectionRecordResp:
             type: object
             properties:
-                collectionInfos:
+                records:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.collection.ListCollectionRecordResp_CollectionRecord'
-        api.collection.ListCollectionRecordResp_CollectionRecord:
-            type: object
-            properties:
-                createdAt:
+                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+                total:
                     type: string
-                deviceId:
-                    type: string
-                timestamp:
-                    type: string
-                geoPoint:
-                    $ref: '#/components/schemas/api.collection.GeoPoint'
         api.collector.GetDeviceStreamLogReq:
             type: object
             properties:
@@ -844,6 +854,8 @@ components:
         api.log.DeviceLog:
             type: object
             properties:
+                id:
+                    type: string
                 deviceId:
                     type: string
                 message:

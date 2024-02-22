@@ -9,7 +9,7 @@ import "google/api/annotations.proto";
 service Collection {
   rpc CreateCollectionRecord(CollectionRecord) returns (Empty) {
     option (google.api.http) = {
-      post : "/collection"
+      post : "/collection/record"
       body : "*"
     };
   }
@@ -17,7 +17,7 @@ service Collection {
   rpc ListCollectionRecord(ListCollectionRecordReq)
       returns (ListCollectionRecordResp) {
     option (google.api.http) = {
-      get : "/collection"
+      get : "/collection/record"
     };
   }
 }
@@ -28,28 +28,37 @@ message GeoPoint {
 }
 
 message CollectionRecord {
-  uint64 device_id = 1;
-  int64 timestamp = 2;
-  GeoPoint geo_point = 3;
-  float temperature = 4;
+  uint64 id = 1;
+  uint64 device_id = 2;
+  int64 created_at = 3;
+  int64 timestamp = 4;
+  GeoPoint geo_point = 5;
+  float temperature = 6;
 }
 
 message Empty {}
 
+enum CollectionRecordOrder {
+  TIMESTAMP = 0;
+  CREATED_AT = 1;
+}
+
+enum Sort {
+  DESC = 0;
+  ASC = 1;
+}
+
 message ListCollectionRecordReq {
-  uint64 page = 1;
-  uint64 page_size = 2;
-  uint64 device_id = 3;
-  int64 start_timestamp = 4;
-  int64 end_timestamp = 5;
+  uint64 device_id = 1;            // @gotags: form:"device_id"
+  uint64 page = 2;                 // @gotags: form:"page"
+  uint64 size = 3;                 // @gotags: form:"size"
+  int64 before = 4;                // @gotags: form:"before"
+  int64 after = 5;                 // @gotags: form:"after"
+  CollectionRecordOrder order = 6; // @gotags: form:"order"
+  Sort sort = 7;                   // @gotags: form:"sort"
 }
 
 message ListCollectionRecordResp {
-  message CollectionRecord {
-    int64 created_at = 1;
-    uint64 device_id = 2;
-    int64 timestamp = 3;
-    GeoPoint geo_point = 4;
-  }
-  repeated CollectionRecord collection_infos = 1;
+  repeated CollectionRecord records = 1;
+  int64 total = 2;
 }

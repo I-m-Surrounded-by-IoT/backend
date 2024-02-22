@@ -103,8 +103,8 @@ func (s *DeviceService) GetOrRegisterDevice(ctx context.Context, req *device.Get
 
 func (s *DeviceService) ListDeletedDeviceInfo(ctx context.Context, req *device.ListDeviceReq) (*device.ListDeviceResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
-	if req.Id != 0 {
-		opts = append(opts, model.WithIDEq(req.Id))
+	if req.DeviceId != 0 {
+		opts = append(opts, utils.WithIDEq(req.DeviceId))
 	}
 	if req.Mac != "" {
 		opts = append(opts, model.WithMacEq(req.Mac))
@@ -139,8 +139,8 @@ func (s *DeviceService) ListDeletedDeviceInfo(ctx context.Context, req *device.L
 
 func (s *DeviceService) ListDevice(ctx context.Context, req *device.ListDeviceReq) (*device.ListDeviceResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
-	if req.Id != 0 {
-		opts = append(opts, model.WithIDEq(req.Id))
+	if req.DeviceId != 0 {
+		opts = append(opts, utils.WithIDEq(req.DeviceId))
 	}
 	if req.Mac != "" {
 		opts = append(opts, model.WithMacEq(req.Mac))

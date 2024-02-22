@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	database "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
@@ -34,11 +34,10 @@ func (s *CollectionConsumer) Cleanup(sarama.ConsumerGroupSession) error {
 func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	log.Infof("start consume device report...")
 	msgCh := claim.Messages()
-	var record database.CollectionRecord
+	var record collection.CollectionRecord
 	for {
 		select {
 		case msg := <-msgCh:
-			log.Infof("receive device log message: key: %v, value: %v", string(msg.Key), string(msg.Value))
 			_, err := strconv.ParseUint(string(msg.Key), 10, 64)
 			if err != nil {
 				log.Errorf("failed to parse device id (%s): %v", msg.Key, err)
@@ -49,9 +48,9 @@ func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, c
 				log.Errorf("failed to unmarshal device report (%s): %v", msg.Value, err)
 				continue
 			}
-			err = s.db.CreateCollection(&model.CollectionRecord{
+			err = s.db.CreateCollectionRecord(&model.CollectionRecord{
 				DeviceID:  record.DeviceId,
-				Timestamp: time.UnixMicro(record.Timestamp),
+				Timestamp: time.UnixMilli(record.Timestamp),
 				GeoPoint: model.GeoPoint{
 					Lat: record.GeoPoint.Lat,
 					Lng: record.GeoPoint.Lng,

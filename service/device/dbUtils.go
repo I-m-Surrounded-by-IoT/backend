@@ -100,8 +100,8 @@ func device2Proto(d *model.Device) *device.DeviceInfo {
 	return &device.DeviceInfo{
 		Id:        d.ID,
 		Mac:       d.Mac,
-		CreatedAt: d.CreatedAt.UnixMicro(),
-		UpdatedAt: d.UpdatedAt.UnixMicro(),
+		CreatedAt: d.CreatedAt.UnixMilli(),
+		UpdatedAt: d.UpdatedAt.UnixMilli(),
 		Comment:   d.Comment,
 	}
 }

@@ -4,18 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func WithIDEq(id uint64) func(*gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-
-func WithIDRange(start, end uint64) func(*gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id >= ? AND id <= ?", start, end)
-	}
-}
-
 func WithMacEq(mac string) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("mac = ?", mac)

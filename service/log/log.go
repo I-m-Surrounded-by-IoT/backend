@@ -54,6 +54,7 @@ func (ls *LogService) CreateDeviceLog(ctx context.Context, req *logApi.DeviceLog
 
 func deviceLog2Proto(log *model.DeviceLog) *logApi.DeviceLog {
 	return &logApi.DeviceLog{
+		Id:        log.ID,
 		DeviceId:  log.DeviceID,
 		Timestamp: log.Timestamp.UnixMilli(),
 		Message:   log.Message,
@@ -71,24 +72,33 @@ func deviceLogs2Proto(logs []*model.DeviceLog) []*logApi.DeviceLog {
 
 func (ls *LogService) ListDeviceLog(ctx context.Context, req *logApi.ListDeviceLogReq) (*logApi.ListDeviceLogResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
+	if req.DeviceId != 0 {
+		opts = append(opts, utils.WithDeviceIDEq(req.DeviceId))
+	}
 	if req.LevelFilter != "" {
 		opts = append(opts, model.WithLevelFilter(req.LevelFilter))
 	}
 	if req.Before != 0 {
-		opts = append(opts, model.WithTimestampBefore(req.Before))
+		opts = append(opts, utils.WithTimestampBefore(req.Before))
 	}
 	if req.After != 0 {
-		opts = append(opts, model.WithTimestampAfter(req.After))
+		opts = append(opts, utils.WithTimestampAfter(req.After))
 	}
-	count, err := ls.db.CountDeviceLog(req.DeviceId, opts...)
+
+	count, err := ls.db.CountDeviceLog(opts...)
 	if err != nil {
 		return nil, err
 	}
-	opts = append(opts,
-		utils.WithPageAndPageSize(int(req.Page), int(req.Size)),
-		model.WithOrder(fmt.Sprintf("timestamp %s", req.Sort)),
-	)
-	logs, err := ls.db.ListDeviceLog(req.DeviceId, opts...)
+
+	opts = append(opts, utils.WithPageAndPageSize(int(req.Page), int(req.Size)))
+	switch req.Order {
+	case logApi.DeviceLogOrder_CREATED_AT:
+		opts = append(opts, utils.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))
+	default: // logApi.DeviceLogOrder_TIMESTAMP
+		opts = append(opts, utils.WithOrder(fmt.Sprintf("timestamp %s", req.Sort)))
+	}
+
+	logs, err := ls.db.ListDeviceLog(opts...)
 	if err != nil {
 		return nil, err
 	}

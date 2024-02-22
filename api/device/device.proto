@@ -134,13 +134,13 @@ enum Sort {
 }
 
 message ListDeviceReq {
+  uint64 device_id = 6;       // @gotags: form:"device_id"
   int32 page = 1;             // @gotags: form:"page"
   int32 size = 2;             // @gotags: form:"size"
   ListDeviceOrder order = 3;  // @gotags: form:"order"
   Sort sort = 4;              // @gotags: form:"sort"
   repeated string fields = 5; // @gotags: form:"fields"
-  uint64 id = 6;              // @gotags: form:"id"
-  string mac = 7;             // @gotags: form:"mac"
+  string mac = 8;             // @gotags: form:"mac"
 }
 
 message ListDeviceResp {

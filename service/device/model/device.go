@@ -7,7 +7,7 @@ import (
 )
 
 type Device struct {
-	ID        uint64         `gorm:"primarykey;"`
+	ID        uint64         `gorm:"primarykey"`
 	CreatedAt time.Time      `gorm:"autoCreateTime"`
 	UpdatedAt time.Time      `gorm:"autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`

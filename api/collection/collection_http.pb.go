@@ -29,8 +29,8 @@ type CollectionHTTPServer interface {
 
 func RegisterCollectionHTTPServer(s *http.Server, srv CollectionHTTPServer) {
 	r := s.Route("/")
-	r.POST("/collection", _Collection_CreateCollectionRecord0_HTTP_Handler(srv))
-	r.GET("/collection", _Collection_ListCollectionRecord0_HTTP_Handler(srv))
+	r.POST("/collection/record", _Collection_CreateCollectionRecord0_HTTP_Handler(srv))
+	r.GET("/collection/record", _Collection_ListCollectionRecord0_HTTP_Handler(srv))
 }
 
 func _Collection_CreateCollectionRecord0_HTTP_Handler(srv CollectionHTTPServer) func(ctx http.Context) error {
@@ -89,7 +89,7 @@ func NewCollectionHTTPClient(client *http.Client) CollectionHTTPClient {
 
 func (c *CollectionHTTPClientImpl) CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/collection"
+	pattern := "/collection/record"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCollectionCreateCollectionRecord))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -102,7 +102,7 @@ func (c *CollectionHTTPClientImpl) CreateCollectionRecord(ctx context.Context, i
 
 func (c *CollectionHTTPClientImpl) ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...http.CallOption) (*ListCollectionRecordResp, error) {
 	var out ListCollectionRecordResp
-	pattern := "/collection"
+	pattern := "/collection/record"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationCollectionListCollectionRecord))
 	opts = append(opts, http.PathTemplate(pattern))
