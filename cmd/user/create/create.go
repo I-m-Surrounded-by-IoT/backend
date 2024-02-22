@@ -34,7 +34,7 @@ func CreateUser(cmd *cobra.Command, args []string) {
 		log.Fatalf("invalid status: %s", status)
 	}
 	userinfo, err := userService.CreateUser(cmd.Context(), &userApi.CreateUserReq{
-		Name:     username,
+		Username: username,
 		Password: password,
 		Role:     userApi.Role(urole),
 		Status:   userApi.Status(ustatus),

@@ -56,7 +56,7 @@ func user2Proto(u *model.User) *user.UserInfo {
 		Id:        u.ID,
 		CreatedAt: u.CreatedAt.UnixMicro(),
 		UpdatedAt: u.UpdatedAt.UnixMicro(),
-		Name:      u.Username,
+		Username:  u.Username,
 		Role:      u.Role,
 		Status:    u.Status,
 	}
@@ -75,7 +75,7 @@ func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) 
 		Role:   req.Role,
 		Status: req.Status,
 	}
-	err := SetUserName(u, req.Name)
+	err := SetUsername(u, req.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +94,8 @@ func (us *UserService) GetUserInfo(ctx context.Context, req *user.GetUserInfoReq
 	return us.urcache.GetUserInfo(ctx, req.Id, req.Fields...)
 }
 
-func (us *UserService) GetUserInfoByName(ctx context.Context, req *user.GetUserInfoByNameReq) (*user.UserInfo, error) {
-	return us.urcache.GetUserInfoByName(ctx, req.Name, req.Fields...)
+func (us *UserService) GetUserInfoByUsername(ctx context.Context, req *user.GetUserInfoByUsernameReq) (*user.UserInfo, error) {
+	return us.urcache.GetUserInfoByUsername(ctx, req.Username, req.Fields...)
 }
 
 func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*user.ListUserResp, error) {
@@ -103,8 +103,8 @@ func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*us
 	if req.Id != "" {
 		opts = append(opts, model.WithIDEq(req.Id))
 	}
-	if req.Name != "" {
-		opts = append(opts, model.WithNameLike(req.Name))
+	if req.Username != "" {
+		opts = append(opts, model.WithUsernameLike(req.Username))
 	}
 	if req.Role != "" {
 		opts = append(opts, model.WithRoleEq(user.StringToRole(req.Role)))
@@ -143,7 +143,7 @@ func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*us
 }
 
 func (us *UserService) GetUserId(ctx context.Context, req *user.GetUserIdReq) (*user.GetUserIdResp, error) {
-	id, err := us.urcache.GetUserID(ctx, req.Name)
+	id, err := us.urcache.GetUserID(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -152,13 +152,13 @@ func (us *UserService) GetUserId(ctx context.Context, req *user.GetUserIdReq) (*
 	}, nil
 }
 
-func (us *UserService) SetUserName(ctx context.Context, req *user.SetUserNameReq) (*user.SetUserNameResp, error) {
-	s, err := us.urcache.SetUserName(ctx, req.Id, req.Name)
+func (us *UserService) SetUsername(ctx context.Context, req *user.SetUsernameReq) (*user.SetUsernameResp, error) {
+	s, err := us.urcache.SetUsername(ctx, req.Id, req.Username)
 	if err != nil {
 		return nil, err
 	}
-	return &user.SetUserNameResp{
-		Name: s,
+	return &user.SetUsernameResp{
+		OldUsername: s,
 	}, nil
 }
 

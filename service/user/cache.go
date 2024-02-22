@@ -261,7 +261,7 @@ func (uc *UserRcache) GetUserID(ctx context.Context, name string) (string, error
 		return "", fmt.Errorf("failed to get user info from cache: %w", err)
 	}
 
-	if userInfo.Name != name {
+	if userInfo.Username != name {
 		return "", fmt.Errorf("user name changed, try again")
 	}
 
@@ -272,7 +272,7 @@ func (uc *UserRcache) GetUserID(ctx context.Context, name string) (string, error
 	return info.ID, nil
 }
 
-func (uc *UserRcache) GetUserInfoByName(ctx context.Context, name string, fields ...string) (*user.UserInfo, error) {
+func (uc *UserRcache) GetUserInfoByUsername(ctx context.Context, name string, fields ...string) (*user.UserInfo, error) {
 	id, err := uc.GetUserID(ctx, name)
 	if err != nil {
 		return nil, err
@@ -280,7 +280,7 @@ func (uc *UserRcache) GetUserInfoByName(ctx context.Context, name string, fields
 	return uc.GetUserInfo(ctx, id, fields...)
 }
 
-func (uc *UserRcache) SetUserName(ctx context.Context, id, name string) (string, error) {
+func (uc *UserRcache) SetUsername(ctx context.Context, id, name string) (string, error) {
 	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", id))
 	err := dbLock.LockContext(ctx)
 	if err != nil {
@@ -293,7 +293,7 @@ func (uc *UserRcache) SetUserName(ctx context.Context, id, name string) (string,
 		}
 	}()
 
-	old, err := uc.db.SetUserName(id, name)
+	old, err := uc.db.SetUsername(id, name)
 	if err != nil {
 		return "", err
 	}

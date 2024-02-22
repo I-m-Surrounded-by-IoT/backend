@@ -473,7 +473,7 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: name
+                - name: username
                   in: query
                   schema:
                     type: string
@@ -509,66 +509,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
-    /user/name:
-        put:
-            tags:
-                - User
-            operationId: User_SetUserName
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.user.SetUserNameReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.user.SetUserNameResp'
-    /user/name/{name}:
-        get:
-            tags:
-                - User
-            operationId: User_GetUserInfoByName
-            parameters:
-                - name: name
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: fields
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.user.UserInfo'
-    /user/name/{name}/id:
-        get:
-            tags:
-                - User
-            operationId: User_GetUserId
-            parameters:
-                - name: name
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.user.GetUserIdResp'
     /user/password:
         put:
             tags:
@@ -641,6 +581,66 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
+    /user/username:
+        put:
+            tags:
+                - User
+            operationId: User_SetUsername
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.SetUsernameReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.SetUsernameResp'
+    /user/username/{username}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserInfoByUsername
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: fields
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.UserInfo'
+    /user/username/{username}/id:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserId
+            parameters:
+                - name: username
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.GetUserIdResp'
     /user/validate:
         post:
             tags:
@@ -838,7 +838,7 @@ components:
         api.user.CreateUserReq:
             type: object
             properties:
-                name:
+                username:
                     type: string
                 password:
                     type: string
@@ -872,18 +872,6 @@ components:
                 total:
                     type: integer
                     format: int32
-        api.user.SetUserNameReq:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-        api.user.SetUserNameResp:
-            type: object
-            properties:
-                name:
-                    type: string
         api.user.SetUserPasswordReq:
             type: object
             properties:
@@ -907,6 +895,18 @@ components:
                 status:
                     type: integer
                     format: enum
+        api.user.SetUsernameReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+        api.user.SetUsernameResp:
+            type: object
+            properties:
+                oldUsername:
+                    type: string
         api.user.UserInfo:
             type: object
             properties:
@@ -916,7 +916,7 @@ components:
                     type: string
                 updatedAt:
                     type: string
-                name:
+                username:
                     type: string
                 role:
                     type: integer

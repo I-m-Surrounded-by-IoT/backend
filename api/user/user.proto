@@ -20,15 +20,15 @@ service User {
     };
   }
 
-  rpc GetUserInfoByName(GetUserInfoByNameReq) returns (UserInfo) {
+  rpc GetUserInfoByUsername(GetUserInfoByUsernameReq) returns (UserInfo) {
     option (google.api.http) = {
-      get : "/user/name/{name}"
+      get : "/user/username/{username}"
     };
   }
 
   rpc GetUserId(GetUserIdReq) returns (GetUserIdResp) {
     option (google.api.http) = {
-      get : "/user/name/{name}/id"
+      get : "/user/username/{username}/id"
     };
   }
 
@@ -68,9 +68,9 @@ service User {
     };
   }
 
-  rpc SetUserName(SetUserNameReq) returns (SetUserNameResp) {
+  rpc SetUsername(SetUsernameReq) returns (SetUsernameResp) {
     option (google.api.http) = {
-      put : "/user/name"
+      put : "/user/username"
       body : "*"
     };
   }
@@ -95,7 +95,7 @@ enum Status {
 }
 
 message CreateUserReq {
-  string name = 1;
+  string username = 1;
   string password = 2;
   Role role = 3;
   Status status = 4;
@@ -106,8 +106,8 @@ message GetUserInfoReq {
   repeated string fields = 2;
 }
 
-message GetUserInfoByNameReq {
-  string name = 1;
+message GetUserInfoByUsernameReq {
+  string username = 1;
   repeated string fields = 2;
 }
 
@@ -115,12 +115,12 @@ message UserInfo {
   string id = 1;        // @gotags: redis:"id"
   int64 created_at = 2; // @gotags: redis:"created_at"
   int64 updated_at = 3; // @gotags: redis:"-" json:"-"`
-  string name = 4;      // @gotags: redis:"name"
+  string username = 4;  // @gotags: redis:"username"
   Role role = 5;        // @gotags: redis:"role,omitempty" json:"role"
   Status status = 6;    // @gotags: redis:"status,omitempty" json:"status"
 }
 
-message GetUserIdReq { string name = 1; }
+message GetUserIdReq { string username = 1; }
 
 message GetUserIdResp { string id = 1; }
 
@@ -141,21 +141,21 @@ message SetUserPasswordReq {
 }
 
 message SetUserRoleReq {
-  string id = 1;
-  Role role = 2;
+  string id = 1; // @gotags: json:"id" binding:"required"
+  Role role = 2; // @gotags: json:"role" binding:"required"
 }
 
 message SetUserStatusReq {
-  string id = 1;
-  Status status = 2;
+  string id = 1;     // @gotags: json:"id" binding:"required"
+  Status status = 2; // @gotags: json:"status" binding:"required"
 }
 
-message SetUserNameReq {
-  string id = 1;
-  string name = 2;
+message SetUsernameReq {
+  string id = 1;       // @gotags: json:"id" binding:"required"
+  string username = 2; // @gotags: json:"username" binding:"required"
 }
 
-message SetUserNameResp { string name = 1; }
+message SetUsernameResp { string old_username = 1; }
 
 enum ListUserOrder {
   NAME = 0;
@@ -177,7 +177,7 @@ message ListUserReq {
   Sort sort = 4;              // @gotags: form:"sort"
   repeated string fields = 5; // @gotags: form:"fields"
   string id = 6;              // @gotags: form:"id"
-  string name = 7;            // @gotags: form:"name"
+  string username = 7;        // @gotags: form:"username"
   string role = 8;            // @gotags: form:"role"
   string status = 9;          // @gotags: form:"status"
 }

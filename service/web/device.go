@@ -14,6 +14,8 @@ import (
 )
 
 func (ws *WebService) ListDevice(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
 	req := device.ListDeviceReq{}
 
 	err := ctx.ShouldBindQuery(&req)
@@ -55,6 +57,8 @@ func (ws *WebService) GenDeviceDetail(ctx context.Context, id uint64) (*model.Ge
 }
 
 func (ws *WebService) GetDeviceDetail(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
 	req := model.GetDeviceDetailReq{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
@@ -74,6 +78,8 @@ func (ws *WebService) GetDeviceDetail(ctx *gin.Context) {
 }
 
 func (ws *WebService) GetDeviceStreamLog(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
 	req := model.GetDeviceStreamLogReq{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {

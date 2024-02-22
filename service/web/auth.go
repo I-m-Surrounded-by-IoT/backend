@@ -106,7 +106,7 @@ func (h *WebService) AuthUserMiddleware(ctx *gin.Context) {
 		le.Data = make(log.Fields, 3)
 	}
 	le.Data["uid"] = userInfo.Id
-	le.Data["unm"] = userInfo.Name
+	le.Data["unm"] = userInfo.Username
 	le.Data["uro"] = userInfo.Role.String()
 }
 

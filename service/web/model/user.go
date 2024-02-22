@@ -2,11 +2,11 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 )
 
 var (
+	ErrEmptyPassword          = errors.New("empty password")
 	ErrPasswordTooLong        = errors.New("password too long")
 	ErrPasswordHasInvalidChar = errors.New("password has invalid char")
 
@@ -22,19 +22,13 @@ var (
 	alnumPrintHanReg = regexp.MustCompile(`^[[:print:][:alnum:]\p{Han}]+$`)
 )
 
-type FormatEmptyPasswordError string
-
-func (f FormatEmptyPasswordError) Error() string {
-	return fmt.Sprintf("%s password empty", string(f))
-}
-
 type SetUserPasswordReq struct {
 	Password string `json:"password"`
 }
 
 func (s *SetUserPasswordReq) Validate() error {
 	if s.Password == "" {
-		return FormatEmptyPasswordError("user")
+		return ErrEmptyPassword
 	} else if len(s.Password) > 32 {
 		return ErrPasswordTooLong
 	} else if !alnumPrintReg.MatchString(s.Password) {
@@ -50,7 +44,7 @@ type LoginUserReq struct {
 
 func (l *LoginUserReq) Validate() error {
 	if l.Username == "" {
-		return errors.New("username is empty")
+		return ErrEmptyUsername
 	} else if len(l.Username) > 32 {
 		return ErrUsernameTooLong
 	} else if !alnumPrintHanReg.MatchString(l.Username) {
@@ -58,7 +52,7 @@ func (l *LoginUserReq) Validate() error {
 	}
 
 	if l.Password == "" {
-		return FormatEmptyPasswordError("user")
+		return ErrEmptyPassword
 	} else if len(l.Password) > 32 {
 		return ErrPasswordTooLong
 	} else if !alnumPrintReg.MatchString(l.Password) {
@@ -73,7 +67,7 @@ type SetUsernameReq struct {
 
 func (s *SetUsernameReq) Validate() error {
 	if s.Username == "" {
-		return errors.New("username is empty")
+		return ErrEmptyUsername
 	} else if len(s.Username) > 32 {
 		return ErrUsernameTooLong
 	} else if !alnumPrintHanReg.MatchString(s.Username) {

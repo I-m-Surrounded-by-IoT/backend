@@ -61,7 +61,7 @@ func CheckUserPassword(u *model.User, password string) bool {
 	return CheckPassword(password, u.HashedPassword)
 }
 
-func SetUserName(u *model.User, name string) error {
+func SetUsername(u *model.User, name string) error {
 	if len(name) < 6 {
 		return ErrUsernameTooShort
 	}
@@ -178,23 +178,28 @@ func (u *dbUtils) GetUserPasswordVersion(ctx context.Context, id string) (uint32
 }
 
 func (u *dbUtils) SetUserPassword(id string, password string) error {
-	b, err := GenUserPassword(password)
+	user := model.User{}
+	err := SetUserPassword(&user, password)
 	if err != nil {
 		return err
 	}
-	return u.Model(&model.User{}).Where("id = ?", id).Update("hashed_password", b).Error
+	return u.Model(&model.User{}).Where("id = ?", id).Update("hashed_password", user.HashedPassword).Error
 }
 
-func (u *dbUtils) SetUserName(id, username string) (string, error) {
+func (u *dbUtils) SetUsername(id, username string) (string, error) {
 	user := model.User{}
-	err := u.Model(&user).
+	err := SetUsername(&user, username)
+	if err != nil {
+		return "", err
+	}
+	err = u.Model(&user).
 		Clauses(clause.Returning{
 			Columns: []clause.Column{
 				{Name: "username"},
 			},
 		}).
 		Where("id = ?", id).
-		Update("username", username).Error
+		Update("username", user.Username).Error
 	if err != nil {
 		return "", err
 	}

@@ -11,7 +11,7 @@ func WithIDEq(id string) func(*gorm.DB) *gorm.DB {
 	}
 }
 
-func WithNameLike(name string) func(*gorm.DB) *gorm.DB {
+func WithUsernameLike(name string) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("username ILIKE ?", name)
 	}

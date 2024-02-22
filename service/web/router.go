@@ -36,6 +36,10 @@ func (ws *WebService) registerUser(api, needAuthUserApi *gin.RouterGroup) {
 	api.POST("/login", ws.Login)
 
 	needAuthUserApi.GET("/me", ws.Me)
+
+	needAuthUserApi.POST("/username", ws.SetUsername)
+
+	needAuthUserApi.POST("/password", ws.SetUserPassword)
 }
 
 func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {
@@ -45,6 +49,14 @@ func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {
 		userApi.POST("/create", ws.CreateUser)
 
 		userApi.GET("/list", ws.ListUser)
+
+		userApi.POST("/status", ws.SetUserStatus)
+
+		userApi.POST("/role", ws.SetUserRole)
+
+		userApi.POST("/username", ws.AdminSetUsername)
+
+		userApi.POST("/password", ws.AdminSetUserPassword)
 	}
 
 	{
