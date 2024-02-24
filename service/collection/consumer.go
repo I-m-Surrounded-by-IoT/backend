@@ -53,7 +53,7 @@ func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, c
 				Timestamp: time.UnixMilli(record.Timestamp),
 				GeoPoint: model.GeoPoint{
 					Lat: record.GeoPoint.Lat,
-					Lng: record.GeoPoint.Lng,
+					Lon: record.GeoPoint.Lon,
 				},
 				Temperature: record.Temperature,
 			})

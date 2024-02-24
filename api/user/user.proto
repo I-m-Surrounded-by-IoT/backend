@@ -80,6 +80,13 @@ service User {
       get : "/user"
     };
   }
+
+  rpc UpdateUserLastSeen(UpdateUserLastSeenReq) returns (Empty) {
+    option (google.api.http) = {
+      put : "/user/last-seen"
+      body : "*"
+    };
+  }
 }
 
 message Empty {}
@@ -188,3 +195,15 @@ message ListUserResp {
   repeated UserInfo users = 1;
   int32 total = 4;
 }
+
+message UserLastSeen {
+  int64 last_seen_at = 1;  // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
+  string last_seen_ip = 2; // @gotags: redis:"lastSeenIp" json:"lastSeenIP"
+}
+
+message UpdateUserLastSeenReq {
+  uint64 id = 1;
+  UserLastSeen last_seen = 2;
+}
+
+message GetUserLastSeenReq { uint64 id = 1; }

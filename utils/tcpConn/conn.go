@@ -75,11 +75,11 @@ func (c *Conn) SayHello() error {
 	if string(s) != SayHello {
 		return errors.New("invalid hello")
 	}
-	return c.Send([]byte(SayHello), time.Now().Add(time.Second*5))
+	return c.Send(stream.StringToBytes(SayHello), time.Now().Add(time.Second*5))
 }
 
 func (c *Conn) ClientSayHello() error {
-	err := c.Send([]byte(SayHello), time.Now().Add(time.Second*5))
+	err := c.Send(stream.StringToBytes(SayHello), time.Now().Add(time.Second*5))
 	if err != nil {
 		return err
 	}
@@ -128,5 +128,5 @@ func (c *Conn) NextMessage(deadline ...time.Time) ([]byte, error) {
 	} else {
 		t = int(i)
 	}
-	return c.reader.ReadBytes(int(t))
+	return c.reader.ReadBytes(t)
 }

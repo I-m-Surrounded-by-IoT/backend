@@ -126,7 +126,7 @@ paths:
                 - Device
             operationId: Device_ListDevice
             parameters:
-                - name: deviceId
+                - name: id
                   in: query
                   schema:
                     type: string
@@ -190,7 +190,7 @@ paths:
                 - Device
             operationId: Device_ListDeletedDeviceInfo
             parameters:
-                - name: deviceId
+                - name: id
                   in: query
                   schema:
                     type: string
@@ -339,6 +339,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.Empty'
+    /device/{id}/last_location:
+        get:
+            tags:
+                - Device
+            operationId: Device_GetDeviceLastLocation
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.DeviceLastLocation'
     /device/{id}/last_seen:
         get:
             tags:
@@ -373,6 +391,30 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.device.UnDeleteDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.Empty'
+    /device/{id}/update_last_location:
+        post:
+            tags:
+                - Device
+            operationId: Device_UpdateDeviceLastLocation
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.UpdateDeviceLastLocationReq'
                 required: true
             responses:
                 "200":
@@ -541,6 +583,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /user/last-seen:
+        put:
+            tags:
+                - User
+            operationId: User_UpdateUserLastSeen
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.UpdateUserLastSeenReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
     /user/password:
         put:
             tags:
@@ -742,7 +802,7 @@ components:
                 lat:
                     type: number
                     format: double
-                lng:
+                lon:
                     type: number
                     format: double
         api.collection.ListCollectionRecordResp:
@@ -807,6 +867,17 @@ components:
                     type: string
                 comment:
                     type: string
+        api.device.DeviceLastLocation:
+            type: object
+            properties:
+                lastLocationAt:
+                    type: string
+                lastLocationLat:
+                    type: number
+                    format: double
+                lastLocationLon:
+                    type: number
+                    format: double
         api.device.DeviceLastSeen:
             type: object
             properties:
@@ -846,6 +917,13 @@ components:
             properties:
                 id:
                     type: string
+        api.device.UpdateDeviceLastLocationReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                lastLocation:
+                    $ref: '#/components/schemas/api.device.DeviceLastLocation'
         api.device.UpdateDeviceLastSeenReq:
             type: object
             properties:
@@ -951,6 +1029,13 @@ components:
             properties:
                 oldUsername:
                     type: string
+        api.user.UpdateUserLastSeenReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                lastSeen:
+                    $ref: '#/components/schemas/api.user.UserLastSeen'
         api.user.UserInfo:
             type: object
             properties:
@@ -968,6 +1053,13 @@ components:
                 status:
                     type: integer
                     format: enum
+        api.user.UserLastSeen:
+            type: object
+            properties:
+                lastSeenAt:
+                    type: string
+                lastSeenIp:
+                    type: string
         api.user.ValidateUserPasswordReq:
             type: object
             properties:

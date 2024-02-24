@@ -115,6 +115,20 @@ func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, 
 	}
 }
 
+func (c *CollectorService) UpdateDeviceLastLocation(ctx context.Context, id uint64, geo *collector.GeoPoint) {
+	_, err := c.deviceClient.UpdateDeviceLastLocation(ctx, &device.UpdateDeviceLastLocationReq{
+		Id: id,
+		LastLocation: &device.DeviceLastLocation{
+			LastLocationAt:  time.Now().UnixMilli(),
+			LastLocationLat: geo.Latitude,
+			LastLocationLon: geo.Longitude,
+		},
+	})
+	if err != nil {
+		log.Errorf("update device last seen failed: %v", err)
+	}
+}
+
 func (c *CollectorService) RegisterDevice(ctx context.Context, d *device.DeviceInfo) (func() error, error) {
 	devicdService := &registry.ServiceInstance{
 		ID:   d.Mac,
@@ -129,21 +143,26 @@ func (c *CollectorService) RegisterDevice(ctx context.Context, d *device.DeviceI
 }
 
 func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
-	log.Infof("receive connection from collector: %v", conn.RemoteAddr())
+	log := log.WithFields(log.Fields{
+		"device_ip": conn.RemoteAddr().String(),
+	})
+	log.Info("receive device connection")
 	Conn := tcpconn.NewConn(conn)
 	defer Conn.Close()
+
 	err := Conn.SayHello()
 	if err != nil {
 		return fmt.Errorf("say hello to collector failed: %w", err)
 	}
+
 	b, err := Conn.NextMessage()
 	if err != nil {
-		return fmt.Errorf("receive message from collector failed: %w", err)
+		return fmt.Errorf("receive message failed: %w", err)
 	}
 	msg := collector.Message{}
 	err = proto.Unmarshal(b, &msg)
 	if err != nil {
-		return fmt.Errorf("unmarshal message from collector failed: %w", err)
+		return fmt.Errorf("unmarshal message failed: %w", err)
 	}
 	if msg.Type != collector.MessageType_ReportMac {
 		return fmt.Errorf("invalid first message type: %v", msg.Type)
@@ -156,7 +175,8 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("find or create device failed: %w", err)
 	}
 
-	log := log.WithField("device_id", d.Id)
+	log = log.WithField("device_id", d.Id)
+
 	dlc, err := c.dlcr.RegisterDevice(d.Id)
 	if err != nil {
 		log.Errorf("register device log chan failed: %v", err)
@@ -173,6 +193,7 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 		return fmt.Errorf("register device failed: %w", err)
 	}
 	defer func() {
+		c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
 		err := dereg()
 		if err != nil {
 			log.Errorf("deregister device failed: %v", err)
@@ -193,17 +214,19 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 	for {
 		b, err := Conn.NextMessage()
 		if err != nil {
-			return fmt.Errorf("receive message from collector failed: %w", err)
+			log.Errorf("receive message failed: %v", err)
+			return fmt.Errorf("receive message failed: %w", err)
 		}
 		c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
 		msg = collector.Message{}
 		err = proto.Unmarshal(b, &msg)
 		if err != nil {
-			return fmt.Errorf("unmarshal message from collector failed: %w", err)
+			log.Errorf("unmarshal message failed: %v", err)
+			return fmt.Errorf("unmarshal message failed: %w", err)
 		}
 		switch msg.Type {
 		case collector.MessageType_Heartbeat:
-			log.Infof("receive heartbeat message from collector: %v", msg.Payload)
+			log.Infof("receive heartbeat message")
 			continue
 		case collector.MessageType_Report:
 			payload := msg.GetReportPayload()
@@ -211,19 +234,22 @@ func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
 				log.Errorf("invalid report payload: %v", msg.Payload)
 				continue
 			}
-			log.Infof("receive report message from collector: %v", payload)
+
+			c.UpdateDeviceLastLocation(ctx, d.Id, payload.GeoPoint)
+
+			log.Infof("receive report message: %v", payload)
 			info := &collection.CollectionRecord{
 				DeviceId:  d.Id,
 				Timestamp: payload.Timestamp,
 				GeoPoint: &collection.GeoPoint{
-					Lng: payload.GeoPoint.Longitude,
+					Lon: payload.GeoPoint.Longitude,
 					Lat: payload.GeoPoint.Latitude,
 				},
 				Temperature: payload.Temperature,
 			}
 			bytes, err := proto.Marshal(info)
 			if err != nil {
-				log.Errorf("failed to marshal collection info: %v", err)
+				log.Errorf("failed to marshal info: %v", err)
 				continue
 			}
 

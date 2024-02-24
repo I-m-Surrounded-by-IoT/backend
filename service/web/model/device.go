@@ -26,4 +26,5 @@ type GetDeviceDetailReq struct {
 type GetDeviceDetailResp struct {
 	*device.DeviceInfo
 	*device.DeviceLastSeen
+	*device.DeviceLastLocation
 }

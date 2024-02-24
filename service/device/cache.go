@@ -210,12 +210,40 @@ func (dc *DeviceRcache) GetDeviceInfoByMac(ctx context.Context, mac string, fiel
 }
 
 func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
-	return dc.rcache.HMSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastSeen).Err()
+	return dc.rcache.HSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastSeen).Err()
 }
 
 func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*device.DeviceLastSeen, error) {
 	lastSeen := &device.DeviceLastSeen{}
-	resp := dc.rcache.HMGet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), "last_seen_at", "last_seen_ip")
+	resp := dc.rcache.HMGet(ctx,
+		fmt.Sprintf("deviceinfo:extra:%d", id),
+		"lastSeenAt",
+		"lastSeenIp",
+	)
+	if resp.Err() != nil {
+		if resp.Err() == redis.Nil {
+			return lastSeen, nil
+		}
+		return nil, resp.Err()
+	}
+	err := resp.Scan(lastSeen)
+	if err != nil {
+		return nil, err
+	}
+	return lastSeen, nil
+}
+
+func (dc *DeviceRcache) UpdateDeviceLastLocation(ctx context.Context, id uint64, lastlocal *device.DeviceLastLocation) error {
+	return dc.rcache.HSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastlocal).Err()
+}
+
+func (dc *DeviceRcache) GetDeviceLastLocation(ctx context.Context, id uint64) (*device.DeviceLastLocation, error) {
+	lastSeen := &device.DeviceLastLocation{}
+	resp := dc.rcache.HMGet(ctx,
+		fmt.Sprintf("deviceinfo:extra:%d", id),
+		"lastLocationLat",
+		"lastLocationLon",
+	)
 	if resp.Err() != nil {
 		if resp.Err() == redis.Nil {
 			return lastSeen, nil

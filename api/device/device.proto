@@ -77,6 +77,20 @@ service Device {
       get : "/device/mac/{mac}/id"
     };
   }
+
+  rpc UpdateDeviceLastLocation(UpdateDeviceLastLocationReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/device/{id}/update_last_location"
+      body : "*"
+    };
+  }
+
+  rpc GetDeviceLastLocation(GetDeviceLastLocationReq)
+      returns (DeviceLastLocation) {
+    option (google.api.http) = {
+      get : "/device/{id}/last_location"
+    };
+  }
 }
 
 message Empty {}
@@ -108,6 +122,22 @@ message UpdateDeviceLastSeenReq {
 
 message GetDeviceLastSeenReq { uint64 id = 1; }
 
+message DeviceLastLocation {
+  int64 last_location_at =
+      1; // @gotags: redis:"lastLocationAt" json:"lastLocationAt"
+  double last_location_lat =
+      2; // @gotags: redis:"lastLocationLat" json:"lastLocationLat"
+  double last_location_lon =
+      3; // @gotags: redis:"lastLocationLon" json:"lastLocationLon"
+}
+
+message UpdateDeviceLastLocationReq {
+  uint64 id = 1;
+  DeviceLastLocation last_location = 2;
+}
+
+message GetDeviceLastLocationReq { uint64 id = 1; }
+
 message GetDeviceInfoByMacReq {
   string mac = 1;
   repeated string fields = 2;
@@ -137,7 +167,7 @@ enum Sort {
 }
 
 message ListDeviceReq {
-  uint64 device_id = 6;       // @gotags: form:"deviceId" json:"deviceId"
+  uint64 id = 6;              // @gotags: form:"id" json:"id"
   int32 page = 1;             // @gotags: form:"page"
   int32 size = 2;             // @gotags: form:"size"
   ListDeviceOrder order = 3;  // @gotags: form:"order"

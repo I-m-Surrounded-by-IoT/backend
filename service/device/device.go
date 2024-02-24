@@ -103,8 +103,8 @@ func (s *DeviceService) GetOrRegisterDevice(ctx context.Context, req *device.Get
 
 func (s *DeviceService) ListDeletedDeviceInfo(ctx context.Context, req *device.ListDeviceReq) (*device.ListDeviceResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
-	if req.DeviceId != 0 {
-		opts = append(opts, utils.WithIDEq(req.DeviceId))
+	if req.Id != 0 {
+		opts = append(opts, utils.WithIDEq(req.Id))
 	}
 	if req.Mac != "" {
 		opts = append(opts, model.WithMacEq(req.Mac))
@@ -139,8 +139,8 @@ func (s *DeviceService) ListDeletedDeviceInfo(ctx context.Context, req *device.L
 
 func (s *DeviceService) ListDevice(ctx context.Context, req *device.ListDeviceReq) (*device.ListDeviceResp, error) {
 	opts := []func(*gorm.DB) *gorm.DB{}
-	if req.DeviceId != 0 {
-		opts = append(opts, utils.WithIDEq(req.DeviceId))
+	if req.Id != 0 {
+		opts = append(opts, utils.WithIDEq(req.Id))
 	}
 	if req.Mac != "" {
 		opts = append(opts, model.WithMacEq(req.Mac))
@@ -179,4 +179,12 @@ func (s *DeviceService) UpdateDeviceLastSeen(ctx context.Context, req *device.Up
 
 func (s *DeviceService) GetDeviceLastSeen(ctx context.Context, req *device.GetDeviceLastSeenReq) (*device.DeviceLastSeen, error) {
 	return s.drcache.GetDeviceLastSeen(ctx, req.Id)
+}
+
+func (s *DeviceService) UpdateDeviceLastLocation(ctx context.Context, req *device.UpdateDeviceLastLocationReq) (*device.Empty, error) {
+	return &device.Empty{}, s.drcache.UpdateDeviceLastLocation(ctx, req.Id, req.LastLocation)
+}
+
+func (s *DeviceService) GetDeviceLastLocation(ctx context.Context, req *device.GetDeviceLastLocationReq) (*device.DeviceLastLocation, error) {
+	return s.drcache.GetDeviceLastLocation(ctx, req.Id)
 }

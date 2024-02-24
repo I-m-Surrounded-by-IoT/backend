@@ -29,6 +29,7 @@ const OperationUserSetUserPassword = "/api.user.User/SetUserPassword"
 const OperationUserSetUserRole = "/api.user.User/SetUserRole"
 const OperationUserSetUserStatus = "/api.user.User/SetUserStatus"
 const OperationUserSetUsername = "/api.user.User/SetUsername"
+const OperationUserUpdateUserLastSeen = "/api.user.User/UpdateUserLastSeen"
 const OperationUserValidateUserPassword = "/api.user.User/ValidateUserPassword"
 
 type UserHTTPServer interface {
@@ -42,6 +43,7 @@ type UserHTTPServer interface {
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
 	SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error)
 	SetUsername(context.Context, *SetUsernameReq) (*SetUsernameResp, error)
+	UpdateUserLastSeen(context.Context, *UpdateUserLastSeenReq) (*Empty, error)
 	ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error)
 }
 
@@ -58,6 +60,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.PUT("/user/status", _User_SetUserStatus0_HTTP_Handler(srv))
 	r.PUT("/user/username", _User_SetUsername0_HTTP_Handler(srv))
 	r.GET("/user", _User_ListUser0_HTTP_Handler(srv))
+	r.PUT("/user/last-seen", _User_UpdateUserLastSeen0_HTTP_Handler(srv))
 }
 
 func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -299,6 +302,28 @@ func _User_ListUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) err
 	}
 }
 
+func _User_UpdateUserLastSeen0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateUserLastSeenReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserUpdateUserLastSeen)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateUserLastSeen(ctx, req.(*UpdateUserLastSeenReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
 	CreateUser(ctx context.Context, req *CreateUserReq, opts ...http.CallOption) (rsp *UserInfo, err error)
 	GetUserId(ctx context.Context, req *GetUserIdReq, opts ...http.CallOption) (rsp *GetUserIdResp, err error)
@@ -310,6 +335,7 @@ type UserHTTPClient interface {
 	SetUserRole(ctx context.Context, req *SetUserRoleReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserStatus(ctx context.Context, req *SetUserStatusReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUsername(ctx context.Context, req *SetUsernameReq, opts ...http.CallOption) (rsp *SetUsernameResp, err error)
+	UpdateUserLastSeen(ctx context.Context, req *UpdateUserLastSeenReq, opts ...http.CallOption) (rsp *Empty, err error)
 	ValidateUserPassword(ctx context.Context, req *ValidateUserPasswordReq, opts ...http.CallOption) (rsp *ValidateUserPasswordResp, err error)
 }
 
@@ -443,6 +469,19 @@ func (c *UserHTTPClientImpl) SetUsername(ctx context.Context, in *SetUsernameReq
 	pattern := "/user/username"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserSetUsername))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) UpdateUserLastSeen(ctx context.Context, in *UpdateUserLastSeenReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user/last-seen"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserUpdateUserLastSeen))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

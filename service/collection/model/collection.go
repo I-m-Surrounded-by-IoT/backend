@@ -21,11 +21,11 @@ type CollectionRecord struct {
 
 type GeoPoint struct {
 	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Lon float64 `json:"lon"`
 }
 
 func (p *GeoPoint) String() string {
-	return fmt.Sprintf("SRID=4326;POINT(%v %v)", p.Lng, p.Lat)
+	return fmt.Sprintf("SRID=4326;POINT(%v %v)", p.Lon, p.Lat)
 }
 
 func (p GeoPoint) Value() (driver.Value, error) {

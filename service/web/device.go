@@ -53,6 +53,14 @@ func (ws *WebService) GenDeviceDetail(ctx context.Context, id uint64) (*model.Ge
 	}
 	resp.DeviceLastSeen = lastSeen
 
+	lastLocation, err := ws.deviceClient.GetDeviceLastLocation(ctx, &device.GetDeviceLastLocationReq{
+		Id: id,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get device last location error: %v", err)
+	}
+	resp.DeviceLastLocation = lastLocation
+
 	return resp, nil
 }
 
