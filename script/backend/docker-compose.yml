@@ -123,7 +123,6 @@ services:
     container_name: collector
     restart: unless-stopped
     ports:
-      - "10000:8000"
       - "11000:9000"
     environment:
       - PUID=0
@@ -131,7 +130,6 @@ services:
       - UMASK=022
       - TZ=Asia/Shanghai
       - ETCD_ENDPOINT=${ETCD_ENDPOINT}
-      - TCP_CUSTOM_ENDPOINT=tcp://${CUSTON_EXTERNAL_IP}:10000
       - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:11000
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_USER=${KAFKA_USER}
