@@ -12,7 +12,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.7.2
 	github.com/go-redsync/redsync/v4 v4.12.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/joho/godotenv v1.5.1
@@ -28,6 +28,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.12
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.19.0
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/net v0.21.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240213162025-012b6fc9bca9
 	google.golang.org/grpc v1.61.1
@@ -95,7 +96,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
