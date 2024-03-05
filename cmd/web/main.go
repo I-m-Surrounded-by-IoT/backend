@@ -89,6 +89,11 @@ func Server(cmd *cobra.Command, args []string) {
 	if err := env.Parse(&uc); err != nil {
 		logrus.Fatalf("error parsing config: %v", err)
 	}
+	if err := env.ParseWithOptions(&uc, env.Options{
+		Prefix: "WEB_",
+	}); err != nil {
+		logrus.Fatalf("error parsing config: %v", err)
+	}
 
 	id = fmt.Sprintf("%s-%s", id, uc.Server.Addr)
 

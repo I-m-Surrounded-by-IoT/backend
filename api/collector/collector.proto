@@ -5,9 +5,10 @@ package api.collector;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;collector";
 
 import "google/api/annotations.proto";
+import "collection/collection.proto";
 
 service Collector {
-  rpc ReportImmediately(ReportImmediatelyReq) returns (ReportImmediatelyResp) {
+  rpc ReportImmediately(ReportImmediatelyReq) returns (Empty) {
     option (google.api.http) = {
       post : "/collector/report_immediately"
       body : "*"
@@ -21,10 +22,18 @@ service Collector {
     };
   }
 
-  rpc GetDeviceStreamLog(GetDeviceStreamLogReq)
-      returns (stream GetDeviceStreamLogResp) {
+  rpc GetDeviceStreamReport(GetDeviceStreamReportReq)
+      returns (stream collection.CollectionData) {
     option (google.api.http) = {
-      post : "/collector/get_device_stream_log"
+      post : "/collector/get_device_stream_report"
+      body : "*"
+    };
+  }
+
+  rpc GetDeviceStreamEvent(GetDeviceStreamEventReq)
+      returns (stream GetDeviceStreamEventResp) {
+    option (google.api.http) = {
+      post : "/collector/get_device_stream_event"
       body : "*"
     };
   }
@@ -32,7 +41,7 @@ service Collector {
 
 message ReportImmediatelyReq { uint64 id = 1; }
 
-message ReportImmediatelyResp {}
+message Empty {}
 
 message SetReportIntervalReq {
   uint64 id = 1;
@@ -41,13 +50,16 @@ message SetReportIntervalReq {
 
 message SetReportIntervalResp {}
 
-message GetDeviceStreamLogReq {
-  uint64 id = 1;           // @gotags: form:"id" binding:"required"
-  string level_filter = 2; // @gotags: form:"levelFilter" json:"levelFilter"
+message GetDeviceStreamReportReq {
+  uint64 id = 1; // @gotags: form:"id" binding:"required"
 }
 
-message GetDeviceStreamLogResp {
-  uint32 level = 1;    // @gotags: json:"level"
-  string message = 2;  // @gotags: json:"message"
-  int64 timestamp = 3; // @gotags: json:"timestamp"
+message GetDeviceStreamEventReq {
+  uint64 id = 1;           // @gotags: form:"id" binding:"required"
+  string event_filter = 2; // @gotags: form:"eventFilter" json:"eventFilter"
+}
+
+message GetDeviceStreamEventResp {
+  string topic = 1;   // @gotags: json:"topic"
+  string message = 2; // @gotags: json:"message"
 }

@@ -2,19 +2,19 @@ package client
 
 import (
 	"math/rand"
-	"net"
 	"time"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/proto/collector"
-	"github.com/I-m-Surrounded-by-IoT/backend/proto/gateway"
-	tcpconn "github.com/I-m-Surrounded-by-IoT/backend/utils/tcpConn"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	proto "google.golang.org/protobuf/proto"
 )
 
 var (
-	gatewayAddr string
+	addr     string
+	username string
+	password string
 )
 
 var ClientCmd = &cobra.Command{
@@ -25,137 +25,50 @@ var ClientCmd = &cobra.Command{
 }
 
 func ClientRun(cmd *cobra.Command, args []string) {
-	c, err := net.Dial("tcp", gatewayAddr)
-	if err != nil {
-		log.Fatalf("error dialing: %v", err)
+	if addr == "" {
+		log.Fatal("mtqq address is required, please use -a to specify it.")
 	}
-	conn := tcpconn.NewConn(c)
-	defer conn.Close()
-	err = conn.ClientSayHello()
-	if err != nil {
-		log.Fatalf("error saying hello: %v", err)
+	if username == "" {
+		log.Fatal("mtqq username is required, please use -u to specify it.")
 	}
-	msg := gateway.GetServerReq{}
-	b, err := proto.Marshal(&msg)
-	if err != nil {
-		log.Fatalf("error marshaling: %v", err)
+	if password == "" {
+		log.Fatal("mtqq password is required, please use -p to specify it.")
 	}
-	err = conn.Send(b)
-	if err != nil {
-		log.Fatalf("error sending: %v", err)
+	opt := mqtt.NewClientOptions().
+		AddBroker(addr).
+		SetUsername(username).
+		SetPassword(password).
+		SetAutoReconnect(true)
+	cli := mqtt.NewClient(opt)
+	if token := cli.Connect(); token.Wait() && token.Error() != nil {
+		log.Fatalf("failed to connect mqtt server: %v", token.Error())
 	}
-	b, err = conn.NextMessage()
-	if err != nil {
-		log.Fatalf("error receiving: %v", err)
-	}
-	resp := gateway.GetServerResp{}
-	err = proto.Unmarshal(b, &resp)
-	if err != nil {
-		log.Fatalf("error unmarshaling: %v", err)
-	}
-	log.Infof("receive message: %v", resp.ServerAddr)
-	conn.Close()
-	c2, err2 := net.Dial("tcp", resp.ServerAddr)
-	if err2 != nil {
-		log.Fatalf("error dialing: %v", err2)
-	}
-	conn2 := tcpconn.NewConn(c2)
-	defer conn2.Close()
-	handlerCollector(conn2)
-}
-
-func handlerCollector(conn *tcpconn.Conn) {
-	err := conn.ClientSayHello()
-	if err != nil {
-		log.Fatalf("error saying hello: %v", err)
-	}
-	log.Infof("client say hello success")
-	msg := collector.Message{
-		Type: collector.MessageType_ReportMac,
-		Payload: &collector.Message_Mac{
-			Mac: "00:00:00:00:00:00",
-		},
-	}
-	b, err := proto.Marshal(&msg)
-	if err != nil {
-		log.Fatalf("error marshaling: %v", err)
-	}
-	err = conn.Send(b)
-	if err != nil {
-		log.Fatalf("error sending: %v", err)
-	}
-	log.Infof("report mac success")
-	go func() {
-		t := time.NewTicker(time.Second * 5)
-		defer t.Stop()
-		send := collector.Message{
-			Type: collector.MessageType_ReportLog,
+	log.Info("connected to mqtt server")
+	timer := time.NewTicker(time.Second * 5)
+	defer timer.Stop()
+	for range timer.C {
+		data := &collection.CollectionData{
+			Timestamp: time.Now().UnixMilli(),
+			GeoPoint: &collection.GeoPoint{
+				Lat: rand.Float64() * 100,
+				Lon: rand.Float64() * 100,
+			},
+			Temperature: rand.Float32() * 40,
 		}
-		for range t.C {
-			send.Payload = &collector.Message_LogPayload{
-				LogPayload: &collector.LogPayload{
-					Timestamp: time.Now().UnixMilli(),
-					Level:     collector.LogLevel_LogLevelInfo,
-					Message:   "this log is actively sent by the device",
-				},
-			}
-			b, err = proto.Marshal(&send)
-			if err != nil {
-				log.Fatalf("error marshaling: %v", err)
-			}
-			err = conn.Send(b)
-			if err != nil {
-				log.Fatalf("error sending: %v", err)
-			}
-		}
-	}()
-	reportTicker := time.NewTicker(time.Second * 5)
-	defer reportTicker.Stop()
-	go func() {
-		send := collector.Message{
-			Type: collector.MessageType_Report,
-		}
-		for range reportTicker.C {
-			send.Payload = &collector.Message_ReportPayload{
-				ReportPayload: &collector.ReportPayload{
-					Timestamp: time.Now().UnixMilli(),
-					GeoPoint: &collector.GeoPoint{
-						Latitude:  rand.Float64() * 180,
-						Longitude: rand.Float64() * 180,
-					},
-					Temperature: rand.Float32() * 40,
-				},
-			}
-			b, err = proto.Marshal(&send)
-			if err != nil {
-				log.Fatalf("error marshaling: %v", err)
-			}
-			err = conn.Send(b)
-			if err != nil {
-				log.Fatalf("error sending: %v", err)
-			}
-			reportTicker.Reset(time.Second * 5)
-		}
-	}()
-	for {
-		b, err := conn.NextMessage()
+		log.Infof("publish data: %+v", data)
+		bytes, err := jsoniter.Marshal(data)
 		if err != nil {
-			log.Fatalf("error receiving: %v", err)
+			log.Errorf("failed to marshal data: %v", err)
+			continue
 		}
-		msg = collector.Message{}
-		err = proto.Unmarshal(b, &msg)
-		if err != nil {
-			log.Fatalf("error unmarshaling: %v", err)
-		}
-		switch msg.Type {
-		case collector.MessageType_ReportImmediately:
-			reportTicker.Reset(time.Second)
-		default:
-			log.Errorf("invalid message type: %v", msg.Type)
+		if token := cli.Publish("device/1/report", 2, false, bytes); !token.WaitTimeout(time.Second * 5) {
+			log.Errorf("failed to publish data: %v", err)
 		}
 	}
 }
 
 func init() {
-	ClientCmd.PersistentFlags().StringVar(&gatewayAddr, "gateway", "", "gateway address")
+	ClientCmd.PersistentFlags().StringVarP(&addr, "addr", "a", "", "mqtt address")
+	ClientCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "mqtt username")
+	ClientCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "mqtt password")
 }

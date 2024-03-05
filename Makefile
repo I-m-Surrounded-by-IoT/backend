@@ -46,23 +46,6 @@ api:
 	       $(API_PROTO_FILES)
 	protoc-go-inject-tag -input=./api/*/*.pb.go
 
-.PHONY: proto
-# generate proto
-proto:
-	protoc --go_out=paths=source_relative:. \
-    	--nanopb_out=. \
-		proto/collector/collector.proto
-	rm -rf proto/collector/c/*
-	mv proto/collector/*.c proto/collector/c/
-	mv proto/collector/*.h proto/collector/c/
-	protoc --go_out=paths=source_relative:. \
-		--nanopb_out=. \
-		proto/gateway/gateway.proto
-	rm -rf proto/gateway/c/*
-	mv proto/gateway/*.c proto/gateway/c/
-	mv proto/gateway/*.h proto/gateway/c/
-
-
 .PHONY: build
 # build
 build:

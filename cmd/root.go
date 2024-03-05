@@ -9,7 +9,6 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
-	"github.com/I-m-Surrounded-by-IoT/backend/cmd/gateway"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/log"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/web"
@@ -37,7 +36,6 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.AddCommand(gateway.GatewayCmd)
 	RootCmd.AddCommand(collector.CollectorCmd)
 	RootCmd.AddCommand(collection.DatabaseCmd)
 	RootCmd.AddCommand(device.DeviceCmd)

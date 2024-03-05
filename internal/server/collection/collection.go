@@ -28,7 +28,7 @@ func NewCollectionConsumerServer(
 func (l *CollectionConsumerServer) Start(ctx context.Context) error {
 	log.Infof("start log consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
-	err := l.consumerGroup.Consume(l.ctx, []string{"log-device"}, l.handler)
+	err := l.consumerGroup.Consume(l.ctx, []string{"device-collection-report"}, l.handler)
 	if err != nil {
 		log.Errorf("failed to consume: %v", err)
 	}

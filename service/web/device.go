@@ -8,7 +8,6 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
-	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -53,13 +52,13 @@ func (ws *WebService) GenDeviceDetail(ctx context.Context, id uint64) (*model.Ge
 	}
 	resp.DeviceLastSeen = lastSeen
 
-	lastLocation, err := ws.deviceClient.GetDeviceLastLocation(ctx, &device.GetDeviceLastLocationReq{
+	lastReport, err := ws.deviceClient.GetDeviceLastReport(ctx, &device.GetDeviceLastReportReq{
 		Id: id,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get device last location error: %v", err)
 	}
-	resp.DeviceLastLocation = lastLocation
+	resp.DeviceLastReport = lastReport
 
 	return resp, nil
 }
@@ -85,30 +84,17 @@ func (ws *WebService) GetDeviceDetail(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, model.NewApiDataResp(info))
 }
 
-func (ws *WebService) GetDeviceStreamLog(ctx *gin.Context) {
+func (ws *WebService) GetDeviceStreamReport(ctx *gin.Context) {
 	log := ctx.MustGet("log").(*log.Entry)
 
-	req := collector.GetDeviceStreamLogReq{}
+	req := collector.GetDeviceStreamReportReq{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
 		log.Errorf("bind query error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
-	si, err := ws.etcd.GetService(ctx, fmt.Sprintf("device-%v", req.Id))
-	if err != nil || len(si) == 0 {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorStringResp("device is not online"))
-		return
-	}
-
-	discoveryDeviceConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
-		Endpoint: fmt.Sprintf("discovery:///device-%d", req.Id),
-	}, ws.etcd)
-	if err != nil {
-		log.Fatalf("failed to create grpc conn: %v", err)
-	}
-	cli := collector.NewCollectorClient(discoveryDeviceConn)
-	c, err := cli.GetDeviceStreamLog(ctx, &req)
+	c, err := ws.collectorClient.GetDeviceStreamReport(ctx, &req)
 	if err != nil {
 		log.Errorf("get device stream log error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))

@@ -3,7 +3,6 @@ package collector
 import (
 	"context"
 	"fmt"
-	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -13,33 +12,44 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
-	"github.com/I-m-Surrounded-by-IoT/backend/proto/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
-	tcpconn "github.com/I-m-Surrounded-by-IoT/backend/utils/tcpConn"
 	"github.com/IBM/sarama"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-kratos/kratos/v2/registry"
+	json "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
+	"github.com/zijiren233/stream"
 	"google.golang.org/protobuf/proto"
 )
 
 type CollectorService struct {
 	deviceClient  device.DeviceClient
-	grpcEndpoint  string
 	reg           registry.Registrar
 	er            *registryClient.EtcdRegistry
 	kafkaClient   sarama.Client
 	kafkaProducer sarama.AsyncProducer
-	dlcr          *DeviceStreamLogRegistor
+	mqttClient    mqtt.Client
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
 }
 
 func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
 	s := &CollectorService{
-		reg:  reg,
-		dlcr: NewDeviceStreamLogRegistor(),
+		reg: reg,
 	}
+
+	opt := mqtt.NewClientOptions().
+		AddBroker(c.Mqtt.Addr).
+		SetUsername(c.Mqtt.Username).
+		SetPassword(c.Mqtt.Password).
+		SetAutoReconnect(true).
+		SetOrderMatters(false)
+	s.mqttClient = mqtt.NewClient(opt)
+	if token := s.mqttClient.Connect(); token.WaitTimeout(time.Second*5) && token.Error() != nil {
+		log.Fatalf("failed to connect mqtt server: %v", token.Error())
+	}
+
 	switch reg := reg.(type) {
 	case *registryClient.EtcdRegistry:
 		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
@@ -88,230 +98,165 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Infof("add kafka hook to logrus")
 		log.AddHook(lkh)
 	}
-	log.AddHook(s.dlcr)
 
 	producer, err := sarama.NewAsyncProducerFromClient(s.kafkaClient)
 	if err != nil {
 		log.Fatalf("failed to create kafka producer: %v", err)
 	}
 	s.kafkaProducer = producer
+
+	s.mqttClient.Subscribe("$share/collector/device/+/report", 2, func(c mqtt.Client, m mqtt.Message) {
+		splited := strings.Split(m.Topic(), "/")
+		if len(splited) != 3 {
+			log.Errorf("invalid topic: %v", m.Topic())
+			return
+		}
+		id, err := strconv.ParseUint(splited[1], 10, 64)
+		if err != nil {
+			log.Errorf("failed to parse device id, topic: %v, error: %v", m.Topic(), err)
+			return
+		}
+
+		log := log.WithField("device_id", id)
+
+		if err := s.UpdateDeviceLastSeen(context.Background(), id); err != nil {
+			log.Errorf("failed to update device last seen: %v", err)
+		}
+
+		data := &collection.CollectionData{}
+		if err := json.Unmarshal(m.Payload(), data); err != nil {
+			log.Errorf("failed to unmarshal message: %v", err)
+			return
+		}
+
+		log.Infof("receive report message: %+v", data)
+
+		if err := s.UpdateDeviceLastReport(context.Background(), id, time.Now(), data); err != nil {
+			log.Errorf("failed to update device last report: %v", err)
+		}
+
+		bytes, err := proto.Marshal(data)
+		if err != nil {
+			log.Errorf("failed to marshal info: %v", err)
+			return
+		}
+
+		// TODO: 添加数据后处理服务
+		topics := []string{"device-collection-report"}
+		for _, topic := range topics {
+			s.kafkaProducer.Input() <- &sarama.ProducerMessage{
+				Topic: topic,
+				Key:   sarama.StringEncoder(strconv.FormatUint(id, 10)),
+				Value: sarama.ByteEncoder(bytes),
+			}
+		}
+	}).WaitTimeout(5 * time.Second)
+
 	return s
 }
 
-func (c *CollectorService) SetGrpcEndpoint(endpoint string) {
-	c.grpcEndpoint = endpoint
-}
-
-func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, ip string) {
+func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) error {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
 		Id: id,
 		LastSeen: &device.DeviceLastSeen{
 			LastSeenAt: time.Now().UnixMilli(),
-			LastSeenIp: ip,
 		},
 	})
-	if err != nil {
-		log.Errorf("update device last seen failed: %v", err)
-	}
+	return err
 }
 
-func (c *CollectorService) UpdateDeviceLastLocation(ctx context.Context, id uint64, geo *collector.GeoPoint) {
-	_, err := c.deviceClient.UpdateDeviceLastLocation(ctx, &device.UpdateDeviceLastLocationReq{
+func (c *CollectorService) UpdateDeviceLastReport(ctx context.Context, id uint64, t time.Time, data *collection.CollectionData) error {
+	_, err := c.deviceClient.UpdateDeviceLastReport(ctx, &device.UpdateDeviceLastReportReq{
 		Id: id,
-		LastLocation: &device.DeviceLastLocation{
-			LastLocationAt:  time.Now().UnixMilli(),
-			LastLocationLat: geo.Latitude,
-			LastLocationLon: geo.Longitude,
+		LastReport: &device.DeviceLastReport{
+			LastReportAt: t.UnixMilli(),
+			Timestamp:    data.Timestamp,
+			Lat:          data.GeoPoint.Lat,
+			Lon:          data.GeoPoint.Lon,
+			Temperature:  data.Temperature,
 		},
 	})
-	if err != nil {
-		log.Errorf("update device last seen failed: %v", err)
-	}
+	return err
 }
 
-func (c *CollectorService) RegisterDevice(ctx context.Context, d *device.DeviceInfo) (func() error, error) {
-	devicdService := &registry.ServiceInstance{
-		ID:   d.Mac,
-		Name: fmt.Sprintf("device-%v", d.Id),
-		Endpoints: []string{
-			c.grpcEndpoint,
-		},
-	}
-	return func() error {
-		return c.reg.Deregister(context.Background(), devicdService)
-	}, c.reg.Register(ctx, devicdService)
-}
-
-func (c *CollectorService) ServeTcp(ctx context.Context, conn net.Conn) error {
-	log := log.WithFields(log.Fields{
-		"device_ip": conn.RemoteAddr().String(),
-	})
-	log.Info("receive device connection")
-	Conn := tcpconn.NewConn(conn)
-	defer Conn.Close()
-
-	err := Conn.SayHello()
-	if err != nil {
-		return fmt.Errorf("say hello to collector failed: %w", err)
-	}
-
-	b, err := Conn.NextMessage()
-	if err != nil {
-		return fmt.Errorf("receive message failed: %w", err)
-	}
-	msg := collector.Message{}
-	err = proto.Unmarshal(b, &msg)
-	if err != nil {
-		return fmt.Errorf("unmarshal message failed: %w", err)
-	}
-	if msg.Type != collector.MessageType_ReportMac {
-		return fmt.Errorf("invalid first message type: %v", msg.Type)
-	}
-
-	d, err := c.deviceClient.GetDeviceInfoByMac(ctx, &device.GetDeviceInfoByMacReq{
-		Mac: msg.GetMac(),
-	})
-	if err != nil {
-		return fmt.Errorf("find or create device failed: %w", err)
-	}
-
-	log = log.WithField("device_id", d.Id)
-
-	dlc, err := c.dlcr.RegisterDevice(d.Id)
-	if err != nil {
-		log.Errorf("register device log chan failed: %v", err)
-		return fmt.Errorf("register device log chan failed: %w", err)
-	}
-	defer dlc.Close()
-	defer c.dlcr.UnregisterDevice(d.Id, dlc)
-
-	c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
-
-	dereg, err := c.RegisterDevice(ctx, d)
-	if err != nil {
-		log.Errorf("register device failed: %v", err)
-		return fmt.Errorf("register device failed: %w", err)
-	}
-	defer func() {
-		c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
-		err := dereg()
-		if err != nil {
-			log.Errorf("deregister device failed: %v", err)
-		}
-	}()
-
-	msg.Type = collector.MessageType_ReportImmediately
-	msg.Payload = &collector.Message_Empty{}
-	b, err = proto.Marshal(&msg)
-	if err != nil {
-		return fmt.Errorf("marshal message to collector failed: %w", err)
-	}
-	err = Conn.Send(b)
-	if err != nil {
-		return fmt.Errorf("send message to collector failed: %w", err)
-	}
-
-	for {
-		b, err := Conn.NextMessage()
-		if err != nil {
-			log.Errorf("receive message failed: %v", err)
-			return fmt.Errorf("receive message failed: %w", err)
-		}
-		c.UpdateDeviceLastSeen(ctx, d.Id, conn.RemoteAddr().String())
-		msg = collector.Message{}
-		err = proto.Unmarshal(b, &msg)
-		if err != nil {
-			log.Errorf("unmarshal message failed: %v", err)
-			return fmt.Errorf("unmarshal message failed: %w", err)
-		}
-		switch msg.Type {
-		case collector.MessageType_Heartbeat:
-			log.Infof("receive heartbeat message")
-			continue
-		case collector.MessageType_Report:
-			payload := msg.GetReportPayload()
-			if payload == nil {
-				log.Errorf("invalid report payload: %v", msg.Payload)
-				continue
-			}
-
-			c.UpdateDeviceLastLocation(ctx, d.Id, payload.GeoPoint)
-
-			log.Infof("receive report message: %v", payload)
-			info := &collection.CollectionRecord{
-				DeviceId:  d.Id,
-				Timestamp: payload.Timestamp,
-				GeoPoint: &collection.GeoPoint{
-					Lon: payload.GeoPoint.Longitude,
-					Lat: payload.GeoPoint.Latitude,
-				},
-				Temperature: payload.Temperature,
-			}
-			bytes, err := proto.Marshal(info)
-			if err != nil {
-				log.Errorf("failed to marshal info: %v", err)
-				continue
-			}
-
-			// TODO: 添加数据后处理服务
-			topics := []string{"device-collection-report"}
-			for _, topic := range topics {
-				c.kafkaProducer.Input() <- &sarama.ProducerMessage{
-					Topic: topic,
-					Key:   sarama.StringEncoder(strconv.FormatUint(d.Id, 10)),
-					Value: sarama.ByteEncoder(bytes),
-				}
-			}
-
-		case collector.MessageType_ReportLog:
-			payload := msg.GetLogPayload()
-			if payload == nil {
-				log.Errorf("invalid report log payload: %v", msg.Payload)
-				continue
-			}
-			switch payload.Level {
-			case collector.LogLevel_LogLevelDebug:
-				log.Debugf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
-			case collector.LogLevel_LogLevelInfo:
-				log.Infof("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
-			case collector.LogLevel_LogLevelWarning:
-				log.Warnf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
-			case collector.LogLevel_LogLevelError:
-				log.Errorf("device report: time: %v, message: %v", time.UnixMilli(int64(payload.Timestamp)).Format(time.DateTime), payload.Message)
-			default:
-				log.Errorf("device report invalid log level: %v, message: %v", payload.Level, payload.Message)
-			}
-
-		default:
-			log.Errorf("invalid message type: %v", msg.Type)
-			continue
-		}
-	}
-}
-
-func (c *CollectorService) GetDeviceStreamLog(req *collectorApi.GetDeviceStreamLogReq, resp collectorApi.Collector_GetDeviceStreamLogServer) error {
-	dlc, ok := c.dlcr.GetDeviceLogChans(req.Id)
-	if !ok {
-		return fmt.Errorf("device log chan not found")
-	}
-	ch, f, err := dlc.Watch(req.LevelFilter)
-	if err != nil {
-		return err
-	}
-	defer f()
-	for {
+func (c *CollectorService) GetDeviceStreamReport(req *collectorApi.GetDeviceStreamReportReq, resp collectorApi.Collector_GetDeviceStreamReportServer) error {
+	cxt, cancel := context.WithCancel(resp.Context())
+	defer cancel()
+	topic := fmt.Sprintf("device/%d/report", req.Id)
+	sub := c.mqttClient.Subscribe(topic, 2, func(client mqtt.Client, message mqtt.Message) {
 		select {
-		case log := <-ch:
-			err := resp.Send(&collectorApi.GetDeviceStreamLogResp{
-				Level:     log.Level,
-				Message:   log.Message,
-				Timestamp: log.Time.UnixMilli(),
+		case <-cxt.Done():
+			return
+		default:
+			data := &collection.CollectionData{}
+			if err := json.Unmarshal(message.Payload(), data); err != nil {
+				log.Errorf("failed to unmarshal message: %v", err)
+				cancel()
+				return
+			}
+			err := resp.Send(data)
+			if err != nil {
+				cancel()
+			}
+		}
+	})
+	select {
+	case <-sub.Done():
+		return sub.Error()
+	case <-cxt.Done():
+		if token := c.mqttClient.Unsubscribe(topic); !token.WaitTimeout(time.Second * 5) {
+			log.Errorf("failed to unsubscribe topic: %v", token.Error())
+		}
+		return cxt.Err()
+	}
+}
+
+func (c *CollectorService) GetDeviceStreamEvent(req *collectorApi.GetDeviceStreamEventReq, resp collectorApi.Collector_GetDeviceStreamEventServer) error {
+	cxt, cancel := context.WithCancel(resp.Context())
+	defer cancel()
+	// req.EventFilter
+	// c.mqttClient.SubscribeMultiple()
+	topic := fmt.Sprintf("device/%d/#", req.Id)
+	sub := c.mqttClient.Subscribe(topic, 2, func(client mqtt.Client, message mqtt.Message) {
+		select {
+		case <-cxt.Done():
+			return
+		default:
+			err := resp.Send(&collectorApi.GetDeviceStreamEventResp{
+				Message: stream.BytesToString(message.Payload()),
 			})
 			if err != nil {
-				return err
+				cancel()
 			}
-		case <-resp.Context().Done():
-			return nil
 		}
+	})
+	select {
+	case <-sub.Done():
+		return sub.Error()
+	case <-cxt.Done():
+		if token := c.mqttClient.Unsubscribe(topic); !token.WaitTimeout(time.Second * 5) {
+			log.Errorf("failed to unsubscribe topic: %v", token.Error())
+		}
+		return nil
 	}
 }
+
+// func (c *CollectorService) ReportImmediately(ctx context.Context, req *collectorApi.ReportImmediatelyReq) (*collectorApi.Empty, error) {
+// 	conn, ok := c.getOnlineDeviceConn(req.Id)
+// 	if !ok {
+// 		return nil, fmt.Errorf("device not online")
+// 	}
+// 	msg := collector.Message{
+// 		Type:    collector.MessageType_ReportImmediately,
+// 		Payload: &collector.Message_Empty{},
+// 	}
+// 	b, err := proto.Marshal(&msg)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	err = conn.Send(b)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &collectorApi.Empty{}, nil
+// }

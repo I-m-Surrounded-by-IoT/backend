@@ -23,14 +23,14 @@ const OperationDeviceDeleteDevice = "/api.device.Device/DeleteDevice"
 const OperationDeviceGetDeviceID = "/api.device.Device/GetDeviceID"
 const OperationDeviceGetDeviceInfo = "/api.device.Device/GetDeviceInfo"
 const OperationDeviceGetDeviceInfoByMac = "/api.device.Device/GetDeviceInfoByMac"
-const OperationDeviceGetDeviceLastLocation = "/api.device.Device/GetDeviceLastLocation"
+const OperationDeviceGetDeviceLastReport = "/api.device.Device/GetDeviceLastReport"
 const OperationDeviceGetDeviceLastSeen = "/api.device.Device/GetDeviceLastSeen"
 const OperationDeviceGetOrRegisterDevice = "/api.device.Device/GetOrRegisterDevice"
 const OperationDeviceListDeletedDeviceInfo = "/api.device.Device/ListDeletedDeviceInfo"
 const OperationDeviceListDevice = "/api.device.Device/ListDevice"
 const OperationDeviceRegisterDevice = "/api.device.Device/RegisterDevice"
 const OperationDeviceUnDeleteDevice = "/api.device.Device/UnDeleteDevice"
-const OperationDeviceUpdateDeviceLastLocation = "/api.device.Device/UpdateDeviceLastLocation"
+const OperationDeviceUpdateDeviceLastReport = "/api.device.Device/UpdateDeviceLastReport"
 const OperationDeviceUpdateDeviceLastSeen = "/api.device.Device/UpdateDeviceLastSeen"
 
 type DeviceHTTPServer interface {
@@ -38,14 +38,14 @@ type DeviceHTTPServer interface {
 	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
 	GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error)
 	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
-	GetDeviceLastLocation(context.Context, *GetDeviceLastLocationReq) (*DeviceLastLocation, error)
+	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
 	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error)
 	GetOrRegisterDevice(context.Context, *GetOrRegisterDeviceReq) (*DeviceInfo, error)
 	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	RegisterDevice(context.Context, *RegisterDeviceReq) (*DeviceInfo, error)
 	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
-	UpdateDeviceLastLocation(context.Context, *UpdateDeviceLastLocationReq) (*Empty, error)
+	UpdateDeviceLastReport(context.Context, *UpdateDeviceLastReportReq) (*Empty, error)
 	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
 }
 
@@ -62,8 +62,8 @@ func RegisterDeviceHTTPServer(s *http.Server, srv DeviceHTTPServer) {
 	r.POST("/device/{id}/update_last_seen", _Device_UpdateDeviceLastSeen0_HTTP_Handler(srv))
 	r.GET("/device/{id}/last_seen", _Device_GetDeviceLastSeen0_HTTP_Handler(srv))
 	r.GET("/device/mac/{mac}/id", _Device_GetDeviceID0_HTTP_Handler(srv))
-	r.POST("/device/{id}/update_last_location", _Device_UpdateDeviceLastLocation0_HTTP_Handler(srv))
-	r.GET("/device/{id}/last_location", _Device_GetDeviceLastLocation0_HTTP_Handler(srv))
+	r.POST("/device/{id}/update_last_report", _Device_UpdateDeviceLastReport0_HTTP_Handler(srv))
+	r.GET("/device/{id}/last_report", _Device_GetDeviceLastReport0_HTTP_Handler(srv))
 }
 
 func _Device_GetDeviceInfo0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
@@ -311,9 +311,9 @@ func _Device_GetDeviceID0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Conte
 	}
 }
 
-func _Device_UpdateDeviceLastLocation0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+func _Device_UpdateDeviceLastReport0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in UpdateDeviceLastLocationReq
+		var in UpdateDeviceLastReportReq
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
@@ -323,9 +323,9 @@ func _Device_UpdateDeviceLastLocation0_HTTP_Handler(srv DeviceHTTPServer) func(c
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationDeviceUpdateDeviceLastLocation)
+		http.SetOperation(ctx, OperationDeviceUpdateDeviceLastReport)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateDeviceLastLocation(ctx, req.(*UpdateDeviceLastLocationReq))
+			return srv.UpdateDeviceLastReport(ctx, req.(*UpdateDeviceLastReportReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -336,24 +336,24 @@ func _Device_UpdateDeviceLastLocation0_HTTP_Handler(srv DeviceHTTPServer) func(c
 	}
 }
 
-func _Device_GetDeviceLastLocation0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+func _Device_GetDeviceLastReport0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetDeviceLastLocationReq
+		var in GetDeviceLastReportReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationDeviceGetDeviceLastLocation)
+		http.SetOperation(ctx, OperationDeviceGetDeviceLastReport)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDeviceLastLocation(ctx, req.(*GetDeviceLastLocationReq))
+			return srv.GetDeviceLastReport(ctx, req.(*GetDeviceLastReportReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceLastLocation)
+		reply := out.(*DeviceLastReport)
 		return ctx.Result(200, reply)
 	}
 }
@@ -363,14 +363,14 @@ type DeviceHTTPClient interface {
 	GetDeviceID(ctx context.Context, req *GetDeviceIDReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	GetDeviceInfo(ctx context.Context, req *GetDeviceInfoReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	GetDeviceInfoByMac(ctx context.Context, req *GetDeviceInfoByMacReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
-	GetDeviceLastLocation(ctx context.Context, req *GetDeviceLastLocationReq, opts ...http.CallOption) (rsp *DeviceLastLocation, err error)
+	GetDeviceLastReport(ctx context.Context, req *GetDeviceLastReportReq, opts ...http.CallOption) (rsp *DeviceLastReport, err error)
 	GetDeviceLastSeen(ctx context.Context, req *GetDeviceLastSeenReq, opts ...http.CallOption) (rsp *DeviceLastSeen, err error)
 	GetOrRegisterDevice(ctx context.Context, req *GetOrRegisterDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	ListDeletedDeviceInfo(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
 	ListDevice(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
 	RegisterDevice(ctx context.Context, req *RegisterDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	UnDeleteDevice(ctx context.Context, req *UnDeleteDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
-	UpdateDeviceLastLocation(ctx context.Context, req *UpdateDeviceLastLocationReq, opts ...http.CallOption) (rsp *Empty, err error)
+	UpdateDeviceLastReport(ctx context.Context, req *UpdateDeviceLastReportReq, opts ...http.CallOption) (rsp *Empty, err error)
 	UpdateDeviceLastSeen(ctx context.Context, req *UpdateDeviceLastSeenReq, opts ...http.CallOption) (rsp *Empty, err error)
 }
 
@@ -434,11 +434,11 @@ func (c *DeviceHTTPClientImpl) GetDeviceInfoByMac(ctx context.Context, in *GetDe
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetDeviceLastLocation(ctx context.Context, in *GetDeviceLastLocationReq, opts ...http.CallOption) (*DeviceLastLocation, error) {
-	var out DeviceLastLocation
-	pattern := "/device/{id}/last_location"
+func (c *DeviceHTTPClientImpl) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...http.CallOption) (*DeviceLastReport, error) {
+	var out DeviceLastReport
+	pattern := "/device/{id}/last_report"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationDeviceGetDeviceLastLocation))
+	opts = append(opts, http.Operation(OperationDeviceGetDeviceLastReport))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -525,11 +525,11 @@ func (c *DeviceHTTPClientImpl) UnDeleteDevice(ctx context.Context, in *UnDeleteD
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) UpdateDeviceLastLocation(ctx context.Context, in *UpdateDeviceLastLocationReq, opts ...http.CallOption) (*Empty, error) {
+func (c *DeviceHTTPClientImpl) UpdateDeviceLastReport(ctx context.Context, in *UpdateDeviceLastReportReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/device/{id}/update_last_location"
+	pattern := "/device/{id}/update_last_report"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDeviceUpdateDeviceLastLocation))
+	opts = append(opts, http.Operation(OperationDeviceUpdateDeviceLastReport))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

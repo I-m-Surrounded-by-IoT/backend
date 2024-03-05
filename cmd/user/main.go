@@ -85,10 +85,10 @@ func Load(path string) (*conf.UserServer, error) {
 	if err := env.Parse(uc); err != nil {
 		return nil, err
 	}
-	if err := env.ParseWithOptions(uc.Database, env.Options{
+	if err := env.ParseWithOptions(uc, env.Options{
 		Prefix: "USER_",
 	}); err != nil {
-		logrus.Fatalf("error parsing database config: %v", err)
+		logrus.Fatalf("error parsing config: %v", err)
 	}
 	return uc, nil
 }

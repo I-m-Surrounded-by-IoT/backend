@@ -8,6 +8,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
+	"github.com/zijiren233/stream"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -34,28 +35,28 @@ func (s *CollectionConsumer) Cleanup(sarama.ConsumerGroupSession) error {
 func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	log.Infof("start consume device report...")
 	msgCh := claim.Messages()
-	var record collection.CollectionRecord
 	for {
 		select {
 		case msg := <-msgCh:
-			_, err := strconv.ParseUint(string(msg.Key), 10, 64)
+			id, err := strconv.ParseUint(stream.BytesToString(msg.Key), 10, 64)
 			if err != nil {
-				log.Errorf("failed to parse device id (%s): %v", msg.Key, err)
+				log.Errorf("failed to parse device id (%s): %v", stream.BytesToString(msg.Key), err)
 				continue
 			}
-			err = proto.Unmarshal(msg.Value, &record)
+			data := &collection.CollectionData{}
+			err = proto.Unmarshal(msg.Value, data)
 			if err != nil {
 				log.Errorf("failed to unmarshal device report (%s): %v", msg.Value, err)
 				continue
 			}
 			err = s.db.CreateCollectionRecord(&model.CollectionRecord{
-				DeviceID:  record.DeviceId,
-				Timestamp: time.UnixMilli(record.Timestamp),
+				DeviceID:  id,
+				Timestamp: time.UnixMilli(data.Timestamp),
 				GeoPoint: model.GeoPoint{
-					Lat: record.GeoPoint.Lat,
-					Lon: record.GeoPoint.Lon,
+					Lat: data.GeoPoint.Lat,
+					Lon: data.GeoPoint.Lon,
 				},
-				Temperature: record.Temperature,
+				Temperature: data.Temperature,
 			})
 			if err != nil {
 				log.Errorf("failed to create collection record: %v", err)

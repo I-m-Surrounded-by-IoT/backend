@@ -181,10 +181,10 @@ func (s *DeviceService) GetDeviceLastSeen(ctx context.Context, req *device.GetDe
 	return s.drcache.GetDeviceLastSeen(ctx, req.Id)
 }
 
-func (s *DeviceService) UpdateDeviceLastLocation(ctx context.Context, req *device.UpdateDeviceLastLocationReq) (*device.Empty, error) {
-	return &device.Empty{}, s.drcache.UpdateDeviceLastLocation(ctx, req.Id, req.LastLocation)
+func (s *DeviceService) UpdateDeviceLastReport(ctx context.Context, req *device.UpdateDeviceLastReportReq) (*device.Empty, error) {
+	return &device.Empty{}, s.drcache.UpdateDeviceLastReport(ctx, req.Id, req.LastReport)
 }
 
-func (s *DeviceService) GetDeviceLastLocation(ctx context.Context, req *device.GetDeviceLastLocationReq) (*device.DeviceLastLocation, error) {
-	return s.drcache.GetDeviceLastLocation(ctx, req.Id)
+func (s *DeviceService) GetDeviceLastReport(ctx context.Context, req *device.GetDeviceLastReportReq) (*device.DeviceLastReport, error) {
+	return s.drcache.GetDeviceLastReport(ctx, req.Id)
 }

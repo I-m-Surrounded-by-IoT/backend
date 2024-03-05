@@ -78,17 +78,16 @@ service Device {
     };
   }
 
-  rpc UpdateDeviceLastLocation(UpdateDeviceLastLocationReq) returns (Empty) {
+  rpc UpdateDeviceLastReport(UpdateDeviceLastReportReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/device/{id}/update_last_location"
+      post : "/device/{id}/update_last_report"
       body : "*"
     };
   }
 
-  rpc GetDeviceLastLocation(GetDeviceLastLocationReq)
-      returns (DeviceLastLocation) {
+  rpc GetDeviceLastReport(GetDeviceLastReportReq) returns (DeviceLastReport) {
     option (google.api.http) = {
-      get : "/device/{id}/last_location"
+      get : "/device/{id}/last_report"
     };
   }
 }
@@ -111,8 +110,7 @@ message GetDeviceInfoReq {
 }
 
 message DeviceLastSeen {
-  int64 last_seen_at = 1;  // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
-  string last_seen_ip = 2; // @gotags: redis:"lastSeenIp" json:"lastSeenIP"
+  int64 last_seen_at = 1; // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
 }
 
 message UpdateDeviceLastSeenReq {
@@ -122,21 +120,22 @@ message UpdateDeviceLastSeenReq {
 
 message GetDeviceLastSeenReq { uint64 id = 1; }
 
-message DeviceLastLocation {
-  int64 last_location_at =
-      1; // @gotags: redis:"lastLocationAt" json:"lastLocationAt"
-  double last_location_lat =
-      2; // @gotags: redis:"lastLocationLat" json:"lastLocationLat"
-  double last_location_lon =
-      3; // @gotags: redis:"lastLocationLon" json:"lastLocationLon"
+message DeviceLastReport {
+  int64 last_report_at = 1; // @gotags: redis:"lastReportAt" json:"lastReportAt"
+  int64 timestamp =
+      2; // @gotags: redis:"lastReportTimestamp" json:"lastReportTimestamp"
+  double lat = 3; // @gotags: redis:"lastReportLat" json:"lastReportLat"
+  double lon = 4; // @gotags: redis:"lastReportLon" json:"lastReportLon"
+  float temperature =
+      5; // @gotags: redis:"lastReportTemperature" json:"lastReportTemperature"
 }
 
-message UpdateDeviceLastLocationReq {
+message UpdateDeviceLastReportReq {
   uint64 id = 1;
-  DeviceLastLocation last_location = 2;
+  DeviceLastReport last_report = 2;
 }
 
-message GetDeviceLastLocationReq { uint64 id = 1; }
+message GetDeviceLastReportReq { uint64 id = 1; }
 
 message GetDeviceInfoByMacReq {
   string mac = 1;

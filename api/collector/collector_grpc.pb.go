@@ -8,6 +8,7 @@ package collector
 
 import (
 	context "context"
+	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,18 +20,20 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Collector_ReportImmediately_FullMethodName  = "/api.collector.Collector/ReportImmediately"
-	Collector_SetReportInterval_FullMethodName  = "/api.collector.Collector/SetReportInterval"
-	Collector_GetDeviceStreamLog_FullMethodName = "/api.collector.Collector/GetDeviceStreamLog"
+	Collector_ReportImmediately_FullMethodName     = "/api.collector.Collector/ReportImmediately"
+	Collector_SetReportInterval_FullMethodName     = "/api.collector.Collector/SetReportInterval"
+	Collector_GetDeviceStreamReport_FullMethodName = "/api.collector.Collector/GetDeviceStreamReport"
+	Collector_GetDeviceStreamEvent_FullMethodName  = "/api.collector.Collector/GetDeviceStreamEvent"
 )
 
 // CollectorClient is the client API for Collector service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectorClient interface {
-	ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...grpc.CallOption) (*ReportImmediatelyResp, error)
+	ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...grpc.CallOption) (*Empty, error)
 	SetReportInterval(ctx context.Context, in *SetReportIntervalReq, opts ...grpc.CallOption) (*SetReportIntervalResp, error)
-	GetDeviceStreamLog(ctx context.Context, in *GetDeviceStreamLogReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamLogClient, error)
+	GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamReportClient, error)
+	GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamEventClient, error)
 }
 
 type collectorClient struct {
@@ -41,8 +44,8 @@ func NewCollectorClient(cc grpc.ClientConnInterface) CollectorClient {
 	return &collectorClient{cc}
 }
 
-func (c *collectorClient) ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...grpc.CallOption) (*ReportImmediatelyResp, error) {
-	out := new(ReportImmediatelyResp)
+func (c *collectorClient) ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, Collector_ReportImmediately_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -59,12 +62,12 @@ func (c *collectorClient) SetReportInterval(ctx context.Context, in *SetReportIn
 	return out, nil
 }
 
-func (c *collectorClient) GetDeviceStreamLog(ctx context.Context, in *GetDeviceStreamLogReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamLogClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Collector_ServiceDesc.Streams[0], Collector_GetDeviceStreamLog_FullMethodName, opts...)
+func (c *collectorClient) GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamReportClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Collector_ServiceDesc.Streams[0], Collector_GetDeviceStreamReport_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &collectorGetDeviceStreamLogClient{stream}
+	x := &collectorGetDeviceStreamReportClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -74,17 +77,49 @@ func (c *collectorClient) GetDeviceStreamLog(ctx context.Context, in *GetDeviceS
 	return x, nil
 }
 
-type Collector_GetDeviceStreamLogClient interface {
-	Recv() (*GetDeviceStreamLogResp, error)
+type Collector_GetDeviceStreamReportClient interface {
+	Recv() (*collection.CollectionData, error)
 	grpc.ClientStream
 }
 
-type collectorGetDeviceStreamLogClient struct {
+type collectorGetDeviceStreamReportClient struct {
 	grpc.ClientStream
 }
 
-func (x *collectorGetDeviceStreamLogClient) Recv() (*GetDeviceStreamLogResp, error) {
-	m := new(GetDeviceStreamLogResp)
+func (x *collectorGetDeviceStreamReportClient) Recv() (*collection.CollectionData, error) {
+	m := new(collection.CollectionData)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *collectorClient) GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collector_GetDeviceStreamEventClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Collector_ServiceDesc.Streams[1], Collector_GetDeviceStreamEvent_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &collectorGetDeviceStreamEventClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Collector_GetDeviceStreamEventClient interface {
+	Recv() (*GetDeviceStreamEventResp, error)
+	grpc.ClientStream
+}
+
+type collectorGetDeviceStreamEventClient struct {
+	grpc.ClientStream
+}
+
+func (x *collectorGetDeviceStreamEventClient) Recv() (*GetDeviceStreamEventResp, error) {
+	m := new(GetDeviceStreamEventResp)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -95,9 +130,10 @@ func (x *collectorGetDeviceStreamLogClient) Recv() (*GetDeviceStreamLogResp, err
 // All implementations must embed UnimplementedCollectorServer
 // for forward compatibility
 type CollectorServer interface {
-	ReportImmediately(context.Context, *ReportImmediatelyReq) (*ReportImmediatelyResp, error)
+	ReportImmediately(context.Context, *ReportImmediatelyReq) (*Empty, error)
 	SetReportInterval(context.Context, *SetReportIntervalReq) (*SetReportIntervalResp, error)
-	GetDeviceStreamLog(*GetDeviceStreamLogReq, Collector_GetDeviceStreamLogServer) error
+	GetDeviceStreamReport(*GetDeviceStreamReportReq, Collector_GetDeviceStreamReportServer) error
+	GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collector_GetDeviceStreamEventServer) error
 	mustEmbedUnimplementedCollectorServer()
 }
 
@@ -105,14 +141,17 @@ type CollectorServer interface {
 type UnimplementedCollectorServer struct {
 }
 
-func (UnimplementedCollectorServer) ReportImmediately(context.Context, *ReportImmediatelyReq) (*ReportImmediatelyResp, error) {
+func (UnimplementedCollectorServer) ReportImmediately(context.Context, *ReportImmediatelyReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportImmediately not implemented")
 }
 func (UnimplementedCollectorServer) SetReportInterval(context.Context, *SetReportIntervalReq) (*SetReportIntervalResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetReportInterval not implemented")
 }
-func (UnimplementedCollectorServer) GetDeviceStreamLog(*GetDeviceStreamLogReq, Collector_GetDeviceStreamLogServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamLog not implemented")
+func (UnimplementedCollectorServer) GetDeviceStreamReport(*GetDeviceStreamReportReq, Collector_GetDeviceStreamReportServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamReport not implemented")
+}
+func (UnimplementedCollectorServer) GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collector_GetDeviceStreamEventServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamEvent not implemented")
 }
 func (UnimplementedCollectorServer) mustEmbedUnimplementedCollectorServer() {}
 
@@ -163,24 +202,45 @@ func _Collector_SetReportInterval_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Collector_GetDeviceStreamLog_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetDeviceStreamLogReq)
+func _Collector_GetDeviceStreamReport_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeviceStreamReportReq)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(CollectorServer).GetDeviceStreamLog(m, &collectorGetDeviceStreamLogServer{stream})
+	return srv.(CollectorServer).GetDeviceStreamReport(m, &collectorGetDeviceStreamReportServer{stream})
 }
 
-type Collector_GetDeviceStreamLogServer interface {
-	Send(*GetDeviceStreamLogResp) error
+type Collector_GetDeviceStreamReportServer interface {
+	Send(*collection.CollectionData) error
 	grpc.ServerStream
 }
 
-type collectorGetDeviceStreamLogServer struct {
+type collectorGetDeviceStreamReportServer struct {
 	grpc.ServerStream
 }
 
-func (x *collectorGetDeviceStreamLogServer) Send(m *GetDeviceStreamLogResp) error {
+func (x *collectorGetDeviceStreamReportServer) Send(m *collection.CollectionData) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Collector_GetDeviceStreamEvent_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeviceStreamEventReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CollectorServer).GetDeviceStreamEvent(m, &collectorGetDeviceStreamEventServer{stream})
+}
+
+type Collector_GetDeviceStreamEventServer interface {
+	Send(*GetDeviceStreamEventResp) error
+	grpc.ServerStream
+}
+
+type collectorGetDeviceStreamEventServer struct {
+	grpc.ServerStream
+}
+
+func (x *collectorGetDeviceStreamEventServer) Send(m *GetDeviceStreamEventResp) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -202,8 +262,13 @@ var Collector_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetDeviceStreamLog",
-			Handler:       _Collector_GetDeviceStreamLog_Handler,
+			StreamName:    "GetDeviceStreamReport",
+			Handler:       _Collector_GetDeviceStreamReport_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetDeviceStreamEvent",
+			Handler:       _Collector_GetDeviceStreamEvent_Handler,
 			ServerStreams: true,
 		},
 	},

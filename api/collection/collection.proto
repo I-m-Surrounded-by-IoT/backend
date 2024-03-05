@@ -23,17 +23,21 @@ service Collection {
 }
 
 message GeoPoint {
-  double lat = 1;
-  double lon = 2;
+  double lat = 1; // @gotags: json:"lat"
+  double lon = 2; // @gotags: json:"lon"
+}
+
+message CollectionData {
+  int64 timestamp = 1;    // @gotags: json:"timestamp"
+  GeoPoint geo_point = 2; // @gotags: json:"geoPoint"
+  float temperature = 3;  // @gotags: json:"temperature"
 }
 
 message CollectionRecord {
   uint64 id = 1;
   uint64 device_id = 2; // @gotags: json:"deviceId"
   int64 created_at = 3; // @gotags: json:"createdAt"
-  int64 timestamp = 4;
-  GeoPoint geo_point = 5; // @gotags: json:"geoPoint"
-  float temperature = 6;
+  CollectionData data = 4;
 }
 
 message Empty {}

@@ -66,16 +66,16 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.collection.Empty'
-    /collector/get_device_stream_log:
+    /collector/get_device_stream_event:
         post:
             tags:
                 - Collector
-            operationId: Collector_GetDeviceStreamLog
+            operationId: Collector_GetDeviceStreamEvent
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.collector.GetDeviceStreamLogReq'
+                            $ref: '#/components/schemas/api.collector.GetDeviceStreamEventReq'
                 required: true
             responses:
                 "200":
@@ -83,7 +83,25 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collector.GetDeviceStreamLogResp'
+                                $ref: '#/components/schemas/api.collector.GetDeviceStreamEventResp'
+    /collector/get_device_stream_report:
+        post:
+            tags:
+                - Collector
+            operationId: Collector_GetDeviceStreamReport
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collector.GetDeviceStreamReportReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.CollectionData'
     /collector/report_immediately:
         post:
             tags:
@@ -101,7 +119,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collector.ReportImmediatelyResp'
+                                $ref: '#/components/schemas/api.collector.Empty'
     /collector/set_report_interval:
         post:
             tags:
@@ -339,11 +357,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.Empty'
-    /device/{id}/last_location:
+    /device/{id}/last_report:
         get:
             tags:
                 - Device
-            operationId: Device_GetDeviceLastLocation
+            operationId: Device_GetDeviceLastReport
             parameters:
                 - name: id
                   in: path
@@ -356,7 +374,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceLastLocation'
+                                $ref: '#/components/schemas/api.device.DeviceLastReport'
     /device/{id}/last_seen:
         get:
             tags:
@@ -399,11 +417,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.Empty'
-    /device/{id}/update_last_location:
+    /device/{id}/update_last_report:
         post:
             tags:
                 - Device
-            operationId: Device_UpdateDeviceLastLocation
+            operationId: Device_UpdateDeviceLastReport
             parameters:
                 - name: id
                   in: path
@@ -414,7 +432,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.device.UpdateDeviceLastLocationReq'
+                            $ref: '#/components/schemas/api.device.UpdateDeviceLastReportReq'
                 required: true
             responses:
                 "200":
@@ -777,6 +795,16 @@ paths:
                                 $ref: '#/components/schemas/api.user.UserInfo'
 components:
     schemas:
+        api.collection.CollectionData:
+            type: object
+            properties:
+                timestamp:
+                    type: string
+                geoPoint:
+                    $ref: '#/components/schemas/api.collection.GeoPoint'
+                temperature:
+                    type: number
+                    format: float
         api.collection.CollectionRecord:
             type: object
             properties:
@@ -786,13 +814,8 @@ components:
                     type: string
                 createdAt:
                     type: string
-                timestamp:
-                    type: string
-                geoPoint:
-                    $ref: '#/components/schemas/api.collection.GeoPoint'
-                temperature:
-                    type: number
-                    format: float
+                data:
+                    $ref: '#/components/schemas/api.collection.CollectionData'
         api.collection.Empty:
             type: object
             properties: {}
@@ -814,31 +837,33 @@ components:
                         $ref: '#/components/schemas/api.collection.CollectionRecord'
                 total:
                     type: string
-        api.collector.GetDeviceStreamLogReq:
+        api.collector.Empty:
+            type: object
+            properties: {}
+        api.collector.GetDeviceStreamEventReq:
             type: object
             properties:
                 id:
                     type: string
-                levelFilter:
+                eventFilter:
                     type: string
-        api.collector.GetDeviceStreamLogResp:
+        api.collector.GetDeviceStreamEventResp:
             type: object
             properties:
-                level:
-                    type: integer
-                    format: uint32
+                topic:
+                    type: string
                 message:
                     type: string
-                timestamp:
+        api.collector.GetDeviceStreamReportReq:
+            type: object
+            properties:
+                id:
                     type: string
         api.collector.ReportImmediatelyReq:
             type: object
             properties:
                 id:
                     type: string
-        api.collector.ReportImmediatelyResp:
-            type: object
-            properties: {}
         api.collector.SetReportIntervalReq:
             type: object
             properties:
@@ -867,23 +892,26 @@ components:
                     type: string
                 comment:
                     type: string
-        api.device.DeviceLastLocation:
+        api.device.DeviceLastReport:
             type: object
             properties:
-                lastLocationAt:
+                lastReportAt:
                     type: string
-                lastLocationLat:
+                timestamp:
+                    type: string
+                lat:
                     type: number
                     format: double
-                lastLocationLon:
+                lon:
                     type: number
                     format: double
+                temperature:
+                    type: number
+                    format: float
         api.device.DeviceLastSeen:
             type: object
             properties:
                 lastSeenAt:
-                    type: string
-                lastSeenIp:
                     type: string
         api.device.Empty:
             type: object
@@ -917,13 +945,13 @@ components:
             properties:
                 id:
                     type: string
-        api.device.UpdateDeviceLastLocationReq:
+        api.device.UpdateDeviceLastReportReq:
             type: object
             properties:
                 id:
                     type: string
-                lastLocation:
-                    $ref: '#/components/schemas/api.device.DeviceLastLocation'
+                lastReport:
+                    $ref: '#/components/schemas/api.device.DeviceLastReport'
         api.device.UpdateDeviceLastSeenReq:
             type: object
             properties:

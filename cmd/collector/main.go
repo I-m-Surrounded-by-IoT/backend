@@ -26,16 +26,11 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, s *utils.TcpServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
 	es, err := gs.Endpoints()
 	if err != nil {
 		panic(err)
 	}
-	e, err := s.Endpoint()
-	if err != nil {
-		panic(err)
-	}
-	es = append(es, e)
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name("collector"),
@@ -44,7 +39,6 @@ func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, s *utils.TcpServer, 
 		kratos.Logger(logger),
 		kratos.Server(
 			gs,
-			s,
 		),
 		kratos.Registrar(r),
 		kratos.Endpoint(es...),
@@ -59,11 +53,12 @@ var CollectorCmd = &cobra.Command{
 
 func Server(cmd *cobra.Command, args []string) {
 	bc := conf.CollectorServer{
-		TcpServer:  conf.DefaultTcpServer(),
 		GrpcServer: conf.DefaultGrpcServer(),
 		Registry:   conf.DefaultRegistry(),
-		Config:     &conf.CollectorConfig{},
-		Kafka:      conf.DefaultKafka(),
+		Config: &conf.CollectorConfig{
+			Mqtt: &conf.MTQQConfig{},
+		},
+		Kafka: conf.DefaultKafka(),
 	}
 
 	if flagconf != "" {
@@ -85,12 +80,17 @@ func Server(cmd *cobra.Command, args []string) {
 	if err := env.Parse(&bc); err != nil {
 		panic(err)
 	}
+	if err := env.ParseWithOptions(&bc, env.Options{
+		Prefix: "COLLECTOR_",
+	}); err != nil {
+		logrus.Fatalf("error parsing config: %v", err)
+	}
 
 	id = fmt.Sprintf("%s-%s", id, bc.GrpcServer.Addr)
 
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
-	app, cleanup, err := wireApp(bc.GrpcServer, bc.TcpServer, bc.Registry, bc.Config, bc.Kafka, logger)
+	app, cleanup, err := wireApp(bc.GrpcServer, bc.Registry, bc.Config, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}

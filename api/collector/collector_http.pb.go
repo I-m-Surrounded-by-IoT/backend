@@ -23,7 +23,7 @@ const OperationCollectorReportImmediately = "/api.collector.Collector/ReportImme
 const OperationCollectorSetReportInterval = "/api.collector.Collector/SetReportInterval"
 
 type CollectorHTTPServer interface {
-	ReportImmediately(context.Context, *ReportImmediatelyReq) (*ReportImmediatelyResp, error)
+	ReportImmediately(context.Context, *ReportImmediatelyReq) (*Empty, error)
 	SetReportInterval(context.Context, *SetReportIntervalReq) (*SetReportIntervalResp, error)
 }
 
@@ -50,7 +50,7 @@ func _Collector_ReportImmediately0_HTTP_Handler(srv CollectorHTTPServer) func(ct
 		if err != nil {
 			return err
 		}
-		reply := out.(*ReportImmediatelyResp)
+		reply := out.(*Empty)
 		return ctx.Result(200, reply)
 	}
 }
@@ -78,7 +78,7 @@ func _Collector_SetReportInterval0_HTTP_Handler(srv CollectorHTTPServer) func(ct
 }
 
 type CollectorHTTPClient interface {
-	ReportImmediately(ctx context.Context, req *ReportImmediatelyReq, opts ...http.CallOption) (rsp *ReportImmediatelyResp, err error)
+	ReportImmediately(ctx context.Context, req *ReportImmediatelyReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetReportInterval(ctx context.Context, req *SetReportIntervalReq, opts ...http.CallOption) (rsp *SetReportIntervalResp, err error)
 }
 
@@ -90,8 +90,8 @@ func NewCollectorHTTPClient(client *http.Client) CollectorHTTPClient {
 	return &CollectorHTTPClientImpl{client}
 }
 
-func (c *CollectorHTTPClientImpl) ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...http.CallOption) (*ReportImmediatelyResp, error) {
-	var out ReportImmediatelyResp
+func (c *CollectorHTTPClientImpl) ReportImmediately(ctx context.Context, in *ReportImmediatelyReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
 	pattern := "/collector/report_immediately"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationCollectorReportImmediately))

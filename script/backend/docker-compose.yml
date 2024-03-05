@@ -1,20 +1,5 @@
 version: "3.3"
 services:
-  gateway:
-    image: "zijiren/backend:latest"
-    container_name: getaway
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - PUID=0
-      - PGID=0
-      - UMASK=022
-      - TZ=Asia/Shanghai
-      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
-      - TCP_CUSTOM_ENDPOINT=tcp://${CUSTON_EXTERNAL_IP}:8000
-    command: gateway
-
   web:
     image: "zijiren/backend:latest"
     container_name: web

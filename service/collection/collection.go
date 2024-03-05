@@ -52,21 +52,23 @@ func proto2Record(record *collection.CollectionRecord) *model.CollectionRecord {
 	return &model.CollectionRecord{
 		DeviceID:    record.DeviceId,
 		CreatedAt:   time.UnixMilli(record.CreatedAt),
-		Timestamp:   time.UnixMilli(record.Timestamp),
-		GeoPoint:    model.GeoPoint{Lat: record.GeoPoint.Lat, Lon: record.GeoPoint.Lon},
-		Temperature: record.Temperature,
+		Timestamp:   time.UnixMilli(record.Data.Timestamp),
+		GeoPoint:    model.GeoPoint{Lat: record.Data.GeoPoint.Lat, Lon: record.Data.GeoPoint.Lon},
+		Temperature: record.Data.Temperature,
 	}
 }
 
 func record2Proto(record *model.CollectionRecord) *collection.CollectionRecord {
 	return &collection.CollectionRecord{
-		DeviceId:  record.DeviceID,
-		Timestamp: record.Timestamp.UnixMilli(),
-		GeoPoint: &collection.GeoPoint{
-			Lat: record.GeoPoint.Lat,
-			Lon: record.GeoPoint.Lon,
+		DeviceId: record.DeviceID,
+		Data: &collection.CollectionData{
+			Timestamp: record.Timestamp.UnixMilli(),
+			GeoPoint: &collection.GeoPoint{
+				Lat: record.GeoPoint.Lat,
+				Lon: record.GeoPoint.Lon,
+			},
+			Temperature: record.Temperature,
 		},
-		Temperature: record.Temperature,
 	}
 }
 

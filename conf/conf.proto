@@ -51,12 +51,6 @@ message TcpServer {
   google.protobuf.Duration timeout = 4; // @gotags: env:"TCP_SERVER_TIMEOUT"
 }
 
-message CollectorConfig {
-  bool database_tls = 1; // @gotags: env:"COLLECTOR_DATABASE_TLS"
-  string database_jwt_secret =
-      2; // @gotags: env:"COLLECTOR_DATABASE_JWT_SECRET"
-}
-
 message KafkaConfig {
   string brokers = 1;  // @gotags: env:"KAFKA_BROKERS"
   string user = 2;     // @gotags: env:"KAFKA_USER"
@@ -70,12 +64,19 @@ message RedisConfig {
   int32 db = 4;        // @gotags: env:"REDIS_DB"
 }
 
+message MTQQConfig {
+  string addr = 1;     // @gotags: env:"MQTT_ADDR"
+  string username = 2; // @gotags: env:"MQTT_USERNAME"
+  string password = 3; // @gotags: env:"MQTT_PASSWORD"
+}
+
+message CollectorConfig { MTQQConfig mqtt = 1; }
+
 message CollectorServer {
-  TcpServer tcp_server = 1;
-  GrpcServerConfig grpc_server = 2;
-  Registry registry = 3;
-  CollectorConfig config = 4;
-  KafkaConfig kafka = 5;
+  GrpcServerConfig grpc_server = 1;
+  Registry registry = 2;
+  CollectorConfig config = 3;
+  KafkaConfig kafka = 4;
 }
 
 message CollectionConfig {}
@@ -86,14 +87,6 @@ message CollectionServer {
   DatabaseServerConfig database = 3;
   CollectionConfig config = 4;
   KafkaConfig kafka = 5;
-}
-
-message GatewayConfig {}
-
-message GatewayServer {
-  TcpServer server = 1;
-  Registry registry = 2;
-  GatewayConfig config = 3;
 }
 
 message DatabaseServerConfig {

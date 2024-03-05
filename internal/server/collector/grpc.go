@@ -14,10 +14,5 @@ func NewCollectorGrpcServer(
 	ggs := utils.NewGrpcGatewayServer(config)
 	collectorApi.RegisterCollectorServer(ggs.GrpcRegistrar(), collector)
 	collectorApi.RegisterCollectorHTTPServer(ggs.HttpRegistrar(), collector)
-	endpoint, err := ggs.Endpoint()
-	if err != nil {
-		panic(err)
-	}
-	collector.SetGrpcEndpoint(endpoint.String())
 	return ggs
 }

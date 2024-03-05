@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	logApi "github.com/I-m-Surrounded-by-IoT/backend/api/log"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
@@ -32,6 +33,7 @@ type WebService struct {
 	deviceClient     device.DeviceClient
 	logClient        logApi.LogClient
 	collectionClient collection.CollectionClient
+	collectorClient  collector.CollectorClient
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -72,6 +74,15 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 	}
 	collectionClient := collection.NewCollectionClient(discoveryCollectionConn)
 
+	discoveryCollectorConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///collector",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	collectorClient := collector.NewCollectorClient(discoveryCollectorConn)
+
 	jwtExpire, err := time.ParseDuration(c.Jwt.Expire)
 	if err != nil {
 		log.Fatalf("failed to parse jwt expire: %v", err)
@@ -95,6 +106,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		deviceClient:     deviceClient,
 		logClient:        logClient,
 		collectionClient: collectionClient,
+		collectorClient:  collectorClient,
 	}
 }
 
