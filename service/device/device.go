@@ -77,11 +77,19 @@ func (s *DeviceService) GetDeviceInfo(ctx context.Context, req *device.GetDevice
 }
 
 func (s *DeviceService) GetDeviceInfoByMac(ctx context.Context, req *device.GetDeviceInfoByMacReq) (*device.DeviceInfo, error) {
-	return s.drcache.GetDeviceInfoByMac(ctx, req.Mac, req.Fields...)
+	mac, err := utils.ValidateMac(req.Mac)
+	if err != nil {
+		return nil, err
+	}
+	return s.drcache.GetDeviceInfoByMac(ctx, mac, req.Fields...)
 }
 
 func (s *DeviceService) GetDeviceID(ctx context.Context, req *device.GetDeviceIDReq) (*device.DeviceInfo, error) {
-	id, err := s.drcache.GetDeviceID(ctx, req.Mac)
+	mac, err := utils.ValidateMac(req.Mac)
+	if err != nil {
+		return nil, err
+	}
+	id, err := s.drcache.GetDeviceID(ctx, mac)
 	if err != nil {
 		return nil, err
 	}
@@ -91,21 +99,31 @@ func (s *DeviceService) GetDeviceID(ctx context.Context, req *device.GetDeviceID
 }
 
 func (s *DeviceService) RegisterDevice(ctx context.Context, req *device.RegisterDeviceReq) (*device.DeviceInfo, error) {
-	if req.Mac == "" {
-		return nil, fmt.Errorf("mac is required")
+	var err error
+	req.Mac, err = utils.ValidateMac(req.Mac)
+	if err != nil {
+		return nil, err
 	}
 	if req.Password == "" {
 		return nil, fmt.Errorf("password is required")
 	}
+	if len(req.Password) < 6 {
+		return nil, fmt.Errorf("password is too short")
+	}
+
 	d := &model.Device{
 		Mac: req.Mac,
 	}
-	err := s.db.Transaction(func(tx *dbUtils) error {
+	err = s.db.Transaction(func(tx *dbUtils) error {
 		err := tx.CreateDevice(ctx, d)
 		if err != nil {
 			return err
 		}
-		return s.emqxCli.CreateUsername(ctx, emqx.PasswordBased_BuildInDatabase, strconv.FormatUint(d.ID, 10), req.Password)
+		return s.emqxCli.CreateUsername(ctx,
+			emqx.PasswordBased_BuildInDatabase,
+			fmt.Sprintf("device-%d", d.ID),
+			req.Password,
+		)
 	})
 	if err != nil {
 		return nil, err

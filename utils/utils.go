@@ -533,3 +533,19 @@ func NewKafkaClient(k *conf.KafkaConfig) (sarama.Client, error) {
 	)
 	return client, err
 }
+
+func ValidateMac(mac string) (string, error) {
+	if mac == "" {
+		return "", fmt.Errorf("mac is empty")
+	}
+	if len(mac) == 17 {
+		if mac[2] != ':' || mac[5] != ':' || mac[8] != ':' || mac[11] != ':' || mac[14] != ':' {
+			return "", fmt.Errorf("mac is invalid")
+		}
+		return mac, nil
+	} else if len(mac) == 12 {
+		return fmt.Sprintf("%s:%s:%s:%s:%s:%s", mac[:2], mac[2:4], mac[4:6], mac[6:8], mac[8:10], mac[10:]), nil
+	} else {
+		return "", fmt.Errorf("mac is invalid")
+	}
+}
