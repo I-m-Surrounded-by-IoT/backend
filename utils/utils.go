@@ -20,6 +20,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/host"
+	"github.com/IBM/sarama"
 	"github.com/go-kratos/aegis/circuitbreaker"
 	"github.com/go-kratos/aegis/circuitbreaker/sre"
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
@@ -34,6 +35,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/zijiren233/go-colorable"
+	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"github.com/zijiren233/stream"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"golang.org/x/net/http2"
@@ -501,4 +503,33 @@ func (l *Logger) Log(level log.Level, keyvals ...interface{}) error {
 
 func TransLogrus(l *logrus.Logger) log.Logger {
 	return &Logger{l: l}
+}
+
+func ForceNewKafkaClient(k *conf.KafkaConfig) sarama.Client {
+	client, err := NewKafkaClient(k)
+	if err != nil {
+		log.Fatalf("failed to create kafka client: %v", err)
+	}
+	return client
+}
+
+func NewKafkaClient(k *conf.KafkaConfig) (sarama.Client, error) {
+	if k == nil || k.Brokers == "" {
+		return nil, errors.New("kafka config is empty")
+	}
+	opts := []logkafka.KafkaOptionFunc{
+		logkafka.WithKafkaSASLHandshake(true),
+		logkafka.WithKafkaSASLUser(k.User),
+		logkafka.WithKafkaSASLPassword(k.Password),
+	}
+	if k.User != "" || k.Password != "" {
+		opts = append(opts,
+			logkafka.WithKafkaSASLEnable(true),
+		)
+	}
+	client, err := logkafka.NewKafkaClient(
+		strings.Split(k.Brokers, ","),
+		opts...,
+	)
+	return client, err
 }

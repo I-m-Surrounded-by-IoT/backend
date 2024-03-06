@@ -23,12 +23,17 @@ service Log {
 
 message Empty {}
 
-message DeviceLog {
-  uint64 id = 1;
-  uint64 device_id = 2; // @gotags: json:"deviceId"
+message DeviceLogData {
+  uint64 device_id = 1; // @gotags: json:"deviceId"
+  string topic = 2;
   string message = 3;
   uint32 level = 4;
   int64 timestamp = 5;
+}
+
+message DeviceLog {
+  uint64 id = 1;
+  DeviceLogData data = 3;
 }
 
 enum DeviceLogOrder {

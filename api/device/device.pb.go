@@ -728,8 +728,8 @@ type RegisterDeviceReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Mac      string `protobuf:"bytes,1,opt,name=mac,proto3" json:"mac,omitempty"`
-	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Mac      string `protobuf:"bytes,1,opt,name=mac,proto3" json:"mac" binding:"required"`           // @gotags: json:"mac" binding:"required"`
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password" binding:"required"` // @gotags: json:"password" binding:"required"`
 }
 
 func (x *RegisterDeviceReq) Reset() {

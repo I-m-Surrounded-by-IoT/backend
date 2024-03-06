@@ -5,7 +5,6 @@ package api.collector;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;collector";
 
 import "google/api/annotations.proto";
-import "collection/collection.proto";
 
 service Collector {
   rpc ReportImmediately(ReportImmediatelyReq) returns (Empty) {
@@ -21,22 +20,6 @@ service Collector {
       body : "*"
     };
   }
-
-  rpc GetDeviceStreamReport(GetDeviceStreamReportReq)
-      returns (stream collection.CollectionData) {
-    option (google.api.http) = {
-      post : "/collector/get_device_stream_report"
-      body : "*"
-    };
-  }
-
-  rpc GetDeviceStreamEvent(GetDeviceStreamEventReq)
-      returns (stream GetDeviceStreamEventResp) {
-    option (google.api.http) = {
-      post : "/collector/get_device_stream_event"
-      body : "*"
-    };
-  }
 }
 
 message ReportImmediatelyReq { uint64 id = 1; }
@@ -49,17 +32,3 @@ message SetReportIntervalReq {
 }
 
 message SetReportIntervalResp {}
-
-message GetDeviceStreamReportReq {
-  uint64 id = 1; // @gotags: form:"id" binding:"required"
-}
-
-message GetDeviceStreamEventReq {
-  uint64 id = 1;           // @gotags: form:"id" binding:"required"
-  string event_filter = 2; // @gotags: form:"eventFilter" json:"eventFilter"
-}
-
-message GetDeviceStreamEventResp {
-  string topic = 1;   // @gotags: json:"topic"
-  string message = 2; // @gotags: json:"message"
-}

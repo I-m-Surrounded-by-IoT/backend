@@ -11,6 +11,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	collection2 "github.com/I-m-Surrounded-by-IoT/backend/internal/server/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -22,11 +23,11 @@ import (
 // Injectors from wire.go:
 
 func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, databaseServerConfig *conf.DatabaseServerConfig, kafkaConfig *conf.KafkaConfig, collectionConfig *conf.CollectionConfig, logger log.Logger) (*kratos.App, func(), error) {
-	collectionService := collection.NewCollectionDatabase(databaseServerConfig, collectionConfig)
+	client := utils.ForceNewKafkaClient(kafkaConfig)
+	collectionService := collection.NewCollectionDatabase(databaseServerConfig, collectionConfig, client)
 	grpcGatewayServer := collection2.NewCollectionDatabase(grpcServerConfig, collectionService)
-	consumerGroup := collection2.NewLogConsumer(kafkaConfig)
 	collectionConsumer := collection.NewCollectionConsumer(collectionService)
-	collectionConsumerServer := collection2.NewCollectionConsumerServer(consumerGroup, collectionConsumer)
+	collectionConsumerServer := collection2.NewCollectionConsumerServer(client, collectionConsumer)
 	registrar := registry.NewRegistry(confRegistry)
 	app := newApp(logger, grpcGatewayServer, collectionConsumerServer, registrar)
 	return app, func() {

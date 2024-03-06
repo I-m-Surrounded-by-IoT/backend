@@ -4,12 +4,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/service"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
 	"github.com/zijiren233/stream"
-	"google.golang.org/protobuf/proto"
 )
 
 var _ sarama.ConsumerGroupHandler = (*CollectionConsumer)(nil)
@@ -43,8 +42,7 @@ func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, c
 				log.Errorf("failed to parse device id (%s): %v", stream.BytesToString(msg.Key), err)
 				continue
 			}
-			data := &collection.CollectionData{}
-			err = proto.Unmarshal(msg.Value, data)
+			data, err := service.KafkaTopicDeviceReportUnmarshal(msg.Value)
 			if err != nil {
 				log.Errorf("failed to unmarshal device report (%s): %v", msg.Value, err)
 				continue

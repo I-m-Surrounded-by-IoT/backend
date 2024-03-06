@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
@@ -289,4 +290,41 @@ func (ws *WebService) AdminSetUserPassword(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (ws *WebService) GetDeviceStreamEvent(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
+	req := collection.GetDeviceStreamEventReq{}
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		log.Errorf("bind query error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+	c, err := ws.collectionClient.GetDeviceStreamEvent(ctx, &req)
+	if err != nil {
+		log.Errorf("get device stream log error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+	defer func() { _ = c.CloseSend() }()
+	for {
+		select {
+		case <-ctx.Request.Context().Done():
+			return
+		case <-c.Context().Done():
+			ctx.SSEvent("close", nil)
+			return
+		default:
+			resp, err := c.Recv()
+			if err != nil {
+				log.Errorf("get device stream event error: %v", err)
+				ctx.SSEvent("error", err)
+				return
+			}
+			log.Infof("get device stream event: %+v", resp)
+			ctx.SSEvent("event", resp)
+		}
+	}
 }

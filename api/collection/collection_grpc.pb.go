@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Collection_CreateCollectionRecord_FullMethodName = "/api.collection.Collection/CreateCollectionRecord"
 	Collection_ListCollectionRecord_FullMethodName   = "/api.collection.Collection/ListCollectionRecord"
+	Collection_GetDeviceStreamReport_FullMethodName  = "/api.collection.Collection/GetDeviceStreamReport"
+	Collection_GetDeviceStreamEvent_FullMethodName   = "/api.collection.Collection/GetDeviceStreamEvent"
 )
 
 // CollectionClient is the client API for Collection service.
@@ -29,6 +31,8 @@ const (
 type CollectionClient interface {
 	CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...grpc.CallOption) (*Empty, error)
 	ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...grpc.CallOption) (*ListCollectionRecordResp, error)
+	GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamReportClient, error)
+	GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamEventClient, error)
 }
 
 type collectionClient struct {
@@ -57,12 +61,78 @@ func (c *collectionClient) ListCollectionRecord(ctx context.Context, in *ListCol
 	return out, nil
 }
 
+func (c *collectionClient) GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamReportClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Collection_ServiceDesc.Streams[0], Collection_GetDeviceStreamReport_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &collectionGetDeviceStreamReportClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Collection_GetDeviceStreamReportClient interface {
+	Recv() (*CollectionData, error)
+	grpc.ClientStream
+}
+
+type collectionGetDeviceStreamReportClient struct {
+	grpc.ClientStream
+}
+
+func (x *collectionGetDeviceStreamReportClient) Recv() (*CollectionData, error) {
+	m := new(CollectionData)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *collectionClient) GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamEventClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Collection_ServiceDesc.Streams[1], Collection_GetDeviceStreamEvent_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &collectionGetDeviceStreamEventClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Collection_GetDeviceStreamEventClient interface {
+	Recv() (*GetDeviceStreamEventResp, error)
+	grpc.ClientStream
+}
+
+type collectionGetDeviceStreamEventClient struct {
+	grpc.ClientStream
+}
+
+func (x *collectionGetDeviceStreamEventClient) Recv() (*GetDeviceStreamEventResp, error) {
+	m := new(GetDeviceStreamEventResp)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // CollectionServer is the server API for Collection service.
 // All implementations must embed UnimplementedCollectionServer
 // for forward compatibility
 type CollectionServer interface {
 	CreateCollectionRecord(context.Context, *CollectionRecord) (*Empty, error)
 	ListCollectionRecord(context.Context, *ListCollectionRecordReq) (*ListCollectionRecordResp, error)
+	GetDeviceStreamReport(*GetDeviceStreamReportReq, Collection_GetDeviceStreamReportServer) error
+	GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error
 	mustEmbedUnimplementedCollectionServer()
 }
 
@@ -75,6 +145,12 @@ func (UnimplementedCollectionServer) CreateCollectionRecord(context.Context, *Co
 }
 func (UnimplementedCollectionServer) ListCollectionRecord(context.Context, *ListCollectionRecordReq) (*ListCollectionRecordResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCollectionRecord not implemented")
+}
+func (UnimplementedCollectionServer) GetDeviceStreamReport(*GetDeviceStreamReportReq, Collection_GetDeviceStreamReportServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamReport not implemented")
+}
+func (UnimplementedCollectionServer) GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamEvent not implemented")
 }
 func (UnimplementedCollectionServer) mustEmbedUnimplementedCollectionServer() {}
 
@@ -125,6 +201,48 @@ func _Collection_ListCollectionRecord_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Collection_GetDeviceStreamReport_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeviceStreamReportReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CollectionServer).GetDeviceStreamReport(m, &collectionGetDeviceStreamReportServer{stream})
+}
+
+type Collection_GetDeviceStreamReportServer interface {
+	Send(*CollectionData) error
+	grpc.ServerStream
+}
+
+type collectionGetDeviceStreamReportServer struct {
+	grpc.ServerStream
+}
+
+func (x *collectionGetDeviceStreamReportServer) Send(m *CollectionData) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Collection_GetDeviceStreamEvent_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeviceStreamEventReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CollectionServer).GetDeviceStreamEvent(m, &collectionGetDeviceStreamEventServer{stream})
+}
+
+type Collection_GetDeviceStreamEventServer interface {
+	Send(*GetDeviceStreamEventResp) error
+	grpc.ServerStream
+}
+
+type collectionGetDeviceStreamEventServer struct {
+	grpc.ServerStream
+}
+
+func (x *collectionGetDeviceStreamEventServer) Send(m *GetDeviceStreamEventResp) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Collection_ServiceDesc is the grpc.ServiceDesc for Collection service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +259,17 @@ var Collection_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Collection_ListCollectionRecord_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetDeviceStreamReport",
+			Handler:       _Collection_GetDeviceStreamReport_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetDeviceStreamEvent",
+			Handler:       _Collection_GetDeviceStreamEvent_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "collection/collection.proto",
 }

@@ -20,6 +20,22 @@ service Collection {
       get : "/collection/record"
     };
   }
+
+  rpc GetDeviceStreamReport(GetDeviceStreamReportReq)
+      returns (stream collection.CollectionData) {
+    option (google.api.http) = {
+      post : "/collection/get_device_stream_report"
+      body : "*"
+    };
+  }
+
+  rpc GetDeviceStreamEvent(GetDeviceStreamEventReq)
+      returns (stream GetDeviceStreamEventResp) {
+    option (google.api.http) = {
+      post : "/collection/get_device_stream_event"
+      body : "*"
+    };
+  }
 }
 
 message GeoPoint {
@@ -65,4 +81,19 @@ message ListCollectionRecordReq {
 message ListCollectionRecordResp {
   repeated CollectionRecord records = 1;
   int64 total = 2;
+}
+
+message GetDeviceStreamReportReq {
+  uint64 id = 1; // @gotags: form:"id"
+}
+
+message GetDeviceStreamEventReq {
+  uint64 id = 1;           // @gotags: form:"id"
+  string event_filter = 2; // @gotags: form:"eventFilter" json:"eventFilter"
+}
+
+message GetDeviceStreamEventResp {
+  string topic = 1;    // @gotags: json:"topic"
+  string message = 2;  // @gotags: json:"message"
+  int64 timestamp = 3; // @gotags: json:"timestamp"
 }

@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/service"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/log"
 	"github.com/IBM/sarama"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ func NewDeviceLogServer(
 func (l *DeviceLogServer) Start(ctx context.Context) error {
 	logrus.Infof("start log consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
-	err := l.consumerGroup.Consume(l.ctx, []string{"log-device"}, l.deviceLog)
+	err := l.consumerGroup.Consume(l.ctx, []string{service.KafkaTopicDeviceLog}, l.deviceLog)
 	if err != nil {
 		logrus.Errorf("failed to consume: %v", err)
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
 	"github.com/gin-gonic/gin"
@@ -87,14 +87,14 @@ func (ws *WebService) GetDeviceDetail(ctx *gin.Context) {
 func (ws *WebService) GetDeviceStreamReport(ctx *gin.Context) {
 	log := ctx.MustGet("log").(*log.Entry)
 
-	req := collector.GetDeviceStreamReportReq{}
+	req := collection.GetDeviceStreamReportReq{}
 	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
 		log.Errorf("bind query error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
-	c, err := ws.collectorClient.GetDeviceStreamReport(ctx, &req)
+	c, err := ws.collectionClient.GetDeviceStreamReport(ctx, &req)
 	if err != nil {
 		log.Errorf("get device stream log error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
@@ -111,11 +111,11 @@ func (ws *WebService) GetDeviceStreamReport(ctx *gin.Context) {
 		default:
 			resp, err := c.Recv()
 			if err != nil {
-				log.Errorf("get device stream log error: %v", err)
-				ctx.SSEvent("error", model.NewApiErrorResp(err))
+				log.Errorf("get device stream repoty error: %v", err)
+				ctx.SSEvent("error", err)
 				return
 			}
-			ctx.SSEvent("log", resp)
+			ctx.SSEvent("report", resp)
 		}
 	}
 }

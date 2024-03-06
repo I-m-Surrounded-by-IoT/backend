@@ -3,6 +3,7 @@ package collection
 import (
 	"context"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/service"
 	collection "github.com/I-m-Surrounded-by-IoT/backend/service/collection"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
@@ -16,9 +17,16 @@ type CollectionConsumerServer struct {
 }
 
 func NewCollectionConsumerServer(
-	consumerGroup sarama.ConsumerGroup,
+	kc sarama.Client,
 	c *collection.CollectionConsumer,
 ) *CollectionConsumerServer {
+	consumerGroup, err := sarama.NewConsumerGroupFromClient(
+		"collection",
+		kc,
+	)
+	if err != nil {
+		log.Fatalf("failed to create kafka consumer group: %v", err)
+	}
 	return &CollectionConsumerServer{
 		consumerGroup: consumerGroup,
 		handler:       c,
@@ -28,7 +36,7 @@ func NewCollectionConsumerServer(
 func (l *CollectionConsumerServer) Start(ctx context.Context) error {
 	log.Infof("start log consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
-	err := l.consumerGroup.Consume(l.ctx, []string{"device-collection-report"}, l.handler)
+	err := l.consumerGroup.Consume(l.ctx, []string{service.KafkaTopicDeviceReport}, l.handler)
 	if err != nil {
 		log.Errorf("failed to consume: %v", err)
 	}

@@ -77,13 +77,13 @@ func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {
 		deviceApi.POST("/register", ws.RegisterDevice)
 
 		deviceApi.POST("/password", ws.SetDevicePassword)
+
+		deviceApi.GET("/event/stream", ws.GetDeviceStreamEvent)
 	}
 }
 
 func (ws *WebService) registerDevice(deviceApi *gin.RouterGroup) {
 	deviceApi.GET("/list", ws.ListDevice)
-
-	deviceApi.GET("/list/stream", ws.GetDeviceStreamReport)
 
 	deviceApi.GET("/detail", ws.GetDeviceDetail)
 
@@ -98,4 +98,6 @@ func (ws *WebService) registerLog(logApi *gin.RouterGroup) {
 
 func (ws *WebService) registerCollection(collectionApi *gin.RouterGroup) {
 	collectionApi.GET("/list", ws.ListCollectionRecord)
+
+	collectionApi.GET("/list/stream", ws.GetDeviceStreamReport)
 }

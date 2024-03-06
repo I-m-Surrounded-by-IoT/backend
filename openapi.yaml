@@ -6,6 +6,42 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /collection/get_device_stream_event:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetDeviceStreamEvent
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetDeviceStreamEventReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.GetDeviceStreamEventResp'
+    /collection/get_device_stream_report:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetDeviceStreamReport
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetDeviceStreamReportReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.CollectionData'
     /collection/record:
         get:
             tags:
@@ -66,42 +102,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.collection.Empty'
-    /collector/get_device_stream_event:
-        post:
-            tags:
-                - Collector
-            operationId: Collector_GetDeviceStreamEvent
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.collector.GetDeviceStreamEventReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.collector.GetDeviceStreamEventResp'
-    /collector/get_device_stream_report:
-        post:
-            tags:
-                - Collector
-            operationId: Collector_GetDeviceStreamReport
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.collector.GetDeviceStreamReportReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.collection.CollectionData'
     /collector/report_immediately:
         post:
             tags:
@@ -834,6 +834,27 @@ components:
                 lon:
                     type: number
                     format: double
+        api.collection.GetDeviceStreamEventReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                eventFilter:
+                    type: string
+        api.collection.GetDeviceStreamEventResp:
+            type: object
+            properties:
+                topic:
+                    type: string
+                message:
+                    type: string
+                timestamp:
+                    type: string
+        api.collection.GetDeviceStreamReportReq:
+            type: object
+            properties:
+                id:
+                    type: string
         api.collection.ListCollectionRecordResp:
             type: object
             properties:
@@ -846,25 +867,6 @@ components:
         api.collector.Empty:
             type: object
             properties: {}
-        api.collector.GetDeviceStreamEventReq:
-            type: object
-            properties:
-                id:
-                    type: string
-                eventFilter:
-                    type: string
-        api.collector.GetDeviceStreamEventResp:
-            type: object
-            properties:
-                topic:
-                    type: string
-                message:
-                    type: string
-        api.collector.GetDeviceStreamReportReq:
-            type: object
-            properties:
-                id:
-                    type: string
         api.collector.ReportImmediatelyReq:
             type: object
             properties:
@@ -970,7 +972,14 @@ components:
             properties:
                 id:
                     type: string
+                data:
+                    $ref: '#/components/schemas/api.log.DeviceLogData'
+        api.log.DeviceLogData:
+            type: object
+            properties:
                 deviceId:
+                    type: string
+                topic:
                     type: string
                 message:
                     type: string

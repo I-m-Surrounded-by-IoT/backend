@@ -41,10 +41,11 @@ func NewLogService(dc *conf.DatabaseServerConfig, lc *conf.LogConfig) *LogServic
 
 func (ls *LogService) CreateDeviceLog(ctx context.Context, req *logApi.DeviceLog) (*logApi.Empty, error) {
 	err := ls.db.CreateDeviceLog(&model.DeviceLog{
-		DeviceID:  req.DeviceId,
-		Timestamp: time.UnixMilli(req.Timestamp),
-		Message:   req.Message,
-		Level:     log.Level(req.Level),
+		DeviceID:  req.Data.DeviceId,
+		Topic:     req.Data.Topic,
+		Timestamp: time.UnixMilli(req.Data.Timestamp),
+		Message:   req.Data.Message,
+		Level:     log.Level(req.Data.Level),
 	})
 	if err != nil {
 		return nil, err
@@ -54,11 +55,13 @@ func (ls *LogService) CreateDeviceLog(ctx context.Context, req *logApi.DeviceLog
 
 func deviceLog2Proto(log *model.DeviceLog) *logApi.DeviceLog {
 	return &logApi.DeviceLog{
-		Id:        log.ID,
-		DeviceId:  log.DeviceID,
-		Timestamp: log.Timestamp.UnixMilli(),
-		Message:   log.Message,
-		Level:     uint32(log.Level),
+		Id: log.ID,
+		Data: &logApi.DeviceLogData{
+			DeviceId:  log.DeviceID,
+			Timestamp: log.Timestamp.UnixMilli(),
+			Message:   log.Message,
+			Level:     uint32(log.Level),
+		},
 	}
 }
 
