@@ -1,32 +1,39 @@
-package log
+package mail
 
 import (
 	"context"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
-	"github.com/I-m-Surrounded-by-IoT/backend/service/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/mail"
 	"github.com/IBM/sarama"
 	"github.com/sirupsen/logrus"
 )
 
-type DeviceLogServer struct {
+type MailMQServer struct {
 	group   sarama.ConsumerGroup
 	ctx     context.Context
 	cancel  context.CancelFunc
 	handler sarama.ConsumerGroupHandler
 }
 
-func NewDeviceLogServer(
-	group sarama.ConsumerGroup,
-	c *log.DeviceLogConsumer,
-) *DeviceLogServer {
-	return &DeviceLogServer{
+func NewMailMQServerServer(
+	cli sarama.Client,
+	c *mail.MailConsumer,
+) *MailMQServer {
+	group, err := sarama.NewConsumerGroupFromClient(
+		service.KafkaTopicMail,
+		cli,
+	)
+	if err != nil {
+		logrus.Fatalf("failed to create kafka consumer group: %v", err)
+	}
+	return &MailMQServer{
 		group:   group,
 		handler: c,
 	}
 }
 
-func (l *DeviceLogServer) Start(ctx context.Context) error {
+func (l *MailMQServer) Start(ctx context.Context) error {
 	logrus.Infof("start device log consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
 	err := l.group.Consume(l.ctx, []string{service.KafkaTopicDeviceLog}, l.handler)
@@ -36,7 +43,7 @@ func (l *DeviceLogServer) Start(ctx context.Context) error {
 	return err
 }
 
-func (l *DeviceLogServer) Stop(ctx context.Context) error {
+func (l *MailMQServer) Stop(ctx context.Context) error {
 	l.cancel()
 	return l.group.Close()
 }

@@ -1349,6 +1349,203 @@ func (x *DeviceServer) GetRedis() *RedisConfig {
 	return nil
 }
 
+type SmtpConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Host     string `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty" env:"SMTP_HOST"`         // @gotags: env:"SMTP_HOST"
+	Port     uint32 `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty" env:"SMTP_PORT"`        // @gotags: env:"SMTP_PORT"
+	Protocol string `protobuf:"bytes,3,opt,name=protocol,proto3" json:"protocol,omitempty" env:"SMTP_PROTOCOL"` // @gotags: env:"SMTP_PROTOCOL"
+	Username string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty" env:"SMTP_USERNAME"` // @gotags: env:"SMTP_USERNAME"
+	Password string `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty" env:"SMTP_PASSWORD"` // @gotags: env:"SMTP_PASSWORD"
+	From     string `protobuf:"bytes,6,opt,name=from,proto3" json:"from,omitempty" env:"SMTP_FROM"`         // @gotags: env:"SMTP_FROM"
+}
+
+func (x *SmtpConfig) Reset() {
+	*x = SmtpConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SmtpConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SmtpConfig) ProtoMessage() {}
+
+func (x *SmtpConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SmtpConfig.ProtoReflect.Descriptor instead.
+func (*SmtpConfig) Descriptor() ([]byte, []int) {
+	return file_conf_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *SmtpConfig) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *SmtpConfig) GetPort() uint32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *SmtpConfig) GetProtocol() string {
+	if x != nil {
+		return x.Protocol
+	}
+	return ""
+}
+
+func (x *SmtpConfig) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *SmtpConfig) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *SmtpConfig) GetFrom() string {
+	if x != nil {
+		return x.From
+	}
+	return ""
+}
+
+type MailConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Smtp *SmtpConfig `protobuf:"bytes,1,opt,name=smtp,proto3" json:"smtp,omitempty"`
+}
+
+func (x *MailConfig) Reset() {
+	*x = MailConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MailConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MailConfig) ProtoMessage() {}
+
+func (x *MailConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MailConfig.ProtoReflect.Descriptor instead.
+func (*MailConfig) Descriptor() ([]byte, []int) {
+	return file_conf_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *MailConfig) GetSmtp() *SmtpConfig {
+	if x != nil {
+		return x.Smtp
+	}
+	return nil
+}
+
+type MailServer struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Server   *GrpcServerConfig `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
+	Registry *Registry         `protobuf:"bytes,2,opt,name=registry,proto3" json:"registry,omitempty"`
+	Config   *MailConfig       `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
+}
+
+func (x *MailServer) Reset() {
+	*x = MailServer{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_conf_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MailServer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MailServer) ProtoMessage() {}
+
+func (x *MailServer) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MailServer.ProtoReflect.Descriptor instead.
+func (*MailServer) Descriptor() ([]byte, []int) {
+	return file_conf_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *MailServer) GetServer() *GrpcServerConfig {
+	if x != nil {
+		return x.Server
+	}
+	return nil
+}
+
+func (x *MailServer) GetRegistry() *Registry {
+	if x != nil {
+		return x.Registry
+	}
+	return nil
+}
+
+func (x *MailServer) GetConfig() *MailConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
 type Registry_Etcd struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1363,7 +1560,7 @@ type Registry_Etcd struct {
 func (x *Registry_Etcd) Reset() {
 	*x = Registry_Etcd{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_proto_msgTypes[21]
+		mi := &file_conf_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1376,7 +1573,7 @@ func (x *Registry_Etcd) String() string {
 func (*Registry_Etcd) ProtoMessage() {}
 
 func (x *Registry_Etcd) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_proto_msgTypes[21]
+	mi := &file_conf_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1433,7 +1630,7 @@ type WebServerConfig_TLS struct {
 func (x *WebServerConfig_TLS) Reset() {
 	*x = WebServerConfig_TLS{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_proto_msgTypes[22]
+		mi := &file_conf_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1446,7 +1643,7 @@ func (x *WebServerConfig_TLS) String() string {
 func (*WebServerConfig_TLS) ProtoMessage() {}
 
 func (x *WebServerConfig_TLS) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_proto_msgTypes[22]
+	mi := &file_conf_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1496,7 +1693,7 @@ type GrpcServerConfig_TLS struct {
 func (x *GrpcServerConfig_TLS) Reset() {
 	*x = GrpcServerConfig_TLS{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_proto_msgTypes[23]
+		mi := &file_conf_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1509,7 +1706,7 @@ func (x *GrpcServerConfig_TLS) String() string {
 func (*GrpcServerConfig_TLS) ProtoMessage() {}
 
 func (x *GrpcServerConfig_TLS) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_proto_msgTypes[23]
+	mi := &file_conf_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1559,7 +1756,7 @@ type TcpServer_TLS struct {
 func (x *TcpServer_TLS) Reset() {
 	*x = TcpServer_TLS{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_proto_msgTypes[24]
+		mi := &file_conf_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1572,7 +1769,7 @@ func (x *TcpServer_TLS) String() string {
 func (*TcpServer_TLS) ProtoMessage() {}
 
 func (x *TcpServer_TLS) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_proto_msgTypes[24]
+	mi := &file_conf_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1621,7 +1818,7 @@ type WebConfig_JWT struct {
 func (x *WebConfig_JWT) Reset() {
 	*x = WebConfig_JWT{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_conf_proto_msgTypes[25]
+		mi := &file_conf_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1634,7 +1831,7 @@ func (x *WebConfig_JWT) String() string {
 func (*WebConfig_JWT) ProtoMessage() {}
 
 func (x *WebConfig_JWT) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_proto_msgTypes[25]
+	mi := &file_conf_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +2080,31 @@ var file_conf_proto_rawDesc = []byte{
 	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x2d, 0x0a, 0x05, 0x72, 0x65, 0x64, 0x69, 0x73, 0x18, 0x05,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x6b, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70,
 	0x69, 0x2e, 0x52, 0x65, 0x64, 0x69, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x05, 0x72,
-	0x65, 0x64, 0x69, 0x73, 0x42, 0x1c, 0x5a, 0x1a, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
+	0x65, 0x64, 0x69, 0x73, 0x22, 0x9c, 0x01, 0x0a, 0x0a, 0x53, 0x6d, 0x74, 0x70, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x66,
+	0x72, 0x6f, 0x6d, 0x22, 0x38, 0x0a, 0x0a, 0x4d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x12, 0x2a, 0x0a, 0x04, 0x73, 0x6d, 0x74, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x16, 0x2e, 0x6b, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x53, 0x6d, 0x74,
+	0x70, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x04, 0x73, 0x6d, 0x74, 0x70, 0x22, 0xa4, 0x01,
+	0x0a, 0x0a, 0x4d, 0x61, 0x69, 0x6c, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x12, 0x34, 0x0a, 0x06,
+	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6b,
+	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x47, 0x72, 0x70, 0x63, 0x53, 0x65,
+	0x72, 0x76, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x73, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x12, 0x30, 0x0a, 0x08, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x6b, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x79, 0x52, 0x08, 0x72, 0x65, 0x67, 0x69,
+	0x73, 0x74, 0x72, 0x79, 0x12, 0x2e, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x6b, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x61, 0x70,
+	0x69, 0x2e, 0x4d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x42, 0x1c, 0x5a, 0x1a, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
 	0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x63, 0x6f, 0x6e, 0x66, 0x3b, 0x63, 0x6f,
 	0x6e, 0x66, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
@@ -1900,7 +2121,7 @@ func file_conf_proto_rawDescGZIP() []byte {
 	return file_conf_proto_rawDescData
 }
 
-var file_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_conf_proto_goTypes = []interface{}{
 	(*Registry)(nil),             // 0: kratos.api.Registry
 	(*WebServerConfig)(nil),      // 1: kratos.api.WebServerConfig
@@ -1923,20 +2144,23 @@ var file_conf_proto_goTypes = []interface{}{
 	(*EmqxConfig)(nil),           // 18: kratos.api.EmqxConfig
 	(*DeviceConfig)(nil),         // 19: kratos.api.DeviceConfig
 	(*DeviceServer)(nil),         // 20: kratos.api.DeviceServer
-	(*Registry_Etcd)(nil),        // 21: kratos.api.Registry.Etcd
-	(*WebServerConfig_TLS)(nil),  // 22: kratos.api.WebServerConfig.TLS
-	(*GrpcServerConfig_TLS)(nil), // 23: kratos.api.GrpcServerConfig.TLS
-	(*TcpServer_TLS)(nil),        // 24: kratos.api.TcpServer.TLS
-	(*WebConfig_JWT)(nil),        // 25: kratos.api.WebConfig.JWT
-	(*durationpb.Duration)(nil),  // 26: google.protobuf.Duration
+	(*SmtpConfig)(nil),           // 21: kratos.api.SmtpConfig
+	(*MailConfig)(nil),           // 22: kratos.api.MailConfig
+	(*MailServer)(nil),           // 23: kratos.api.MailServer
+	(*Registry_Etcd)(nil),        // 24: kratos.api.Registry.Etcd
+	(*WebServerConfig_TLS)(nil),  // 25: kratos.api.WebServerConfig.TLS
+	(*GrpcServerConfig_TLS)(nil), // 26: kratos.api.GrpcServerConfig.TLS
+	(*TcpServer_TLS)(nil),        // 27: kratos.api.TcpServer.TLS
+	(*WebConfig_JWT)(nil),        // 28: kratos.api.WebConfig.JWT
+	(*durationpb.Duration)(nil),  // 29: google.protobuf.Duration
 }
 var file_conf_proto_depIdxs = []int32{
-	21, // 0: kratos.api.Registry.etcd:type_name -> kratos.api.Registry.Etcd
-	22, // 1: kratos.api.WebServerConfig.tls:type_name -> kratos.api.WebServerConfig.TLS
-	23, // 2: kratos.api.GrpcServerConfig.tls:type_name -> kratos.api.GrpcServerConfig.TLS
-	26, // 3: kratos.api.GrpcServerConfig.timeout:type_name -> google.protobuf.Duration
-	24, // 4: kratos.api.TcpServer.tls:type_name -> kratos.api.TcpServer.TLS
-	26, // 5: kratos.api.TcpServer.timeout:type_name -> google.protobuf.Duration
+	24, // 0: kratos.api.Registry.etcd:type_name -> kratos.api.Registry.Etcd
+	25, // 1: kratos.api.WebServerConfig.tls:type_name -> kratos.api.WebServerConfig.TLS
+	26, // 2: kratos.api.GrpcServerConfig.tls:type_name -> kratos.api.GrpcServerConfig.TLS
+	29, // 3: kratos.api.GrpcServerConfig.timeout:type_name -> google.protobuf.Duration
+	27, // 4: kratos.api.TcpServer.tls:type_name -> kratos.api.TcpServer.TLS
+	29, // 5: kratos.api.TcpServer.timeout:type_name -> google.protobuf.Duration
 	6,  // 6: kratos.api.CollectorConfig.mqtt:type_name -> kratos.api.MTQQConfig
 	2,  // 7: kratos.api.CollectorServer.grpc_server:type_name -> kratos.api.GrpcServerConfig
 	0,  // 8: kratos.api.CollectorServer.registry:type_name -> kratos.api.Registry
@@ -1952,7 +2176,7 @@ var file_conf_proto_depIdxs = []int32{
 	11, // 18: kratos.api.UserServer.database:type_name -> kratos.api.DatabaseServerConfig
 	12, // 19: kratos.api.UserServer.config:type_name -> kratos.api.UserConfig
 	5,  // 20: kratos.api.UserServer.redis:type_name -> kratos.api.RedisConfig
-	25, // 21: kratos.api.WebConfig.jwt:type_name -> kratos.api.WebConfig.JWT
+	28, // 21: kratos.api.WebConfig.jwt:type_name -> kratos.api.WebConfig.JWT
 	1,  // 22: kratos.api.WebServer.server:type_name -> kratos.api.WebServerConfig
 	0,  // 23: kratos.api.WebServer.registry:type_name -> kratos.api.Registry
 	14, // 24: kratos.api.WebServer.config:type_name -> kratos.api.WebConfig
@@ -1968,12 +2192,16 @@ var file_conf_proto_depIdxs = []int32{
 	11, // 34: kratos.api.DeviceServer.database:type_name -> kratos.api.DatabaseServerConfig
 	19, // 35: kratos.api.DeviceServer.config:type_name -> kratos.api.DeviceConfig
 	5,  // 36: kratos.api.DeviceServer.redis:type_name -> kratos.api.RedisConfig
-	26, // 37: kratos.api.Registry.Etcd.timeout:type_name -> google.protobuf.Duration
-	38, // [38:38] is the sub-list for method output_type
-	38, // [38:38] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	21, // 37: kratos.api.MailConfig.smtp:type_name -> kratos.api.SmtpConfig
+	2,  // 38: kratos.api.MailServer.server:type_name -> kratos.api.GrpcServerConfig
+	0,  // 39: kratos.api.MailServer.registry:type_name -> kratos.api.Registry
+	22, // 40: kratos.api.MailServer.config:type_name -> kratos.api.MailConfig
+	29, // 41: kratos.api.Registry.Etcd.timeout:type_name -> google.protobuf.Duration
+	42, // [42:42] is the sub-list for method output_type
+	42, // [42:42] is the sub-list for method input_type
+	42, // [42:42] is the sub-list for extension type_name
+	42, // [42:42] is the sub-list for extension extendee
+	0,  // [0:42] is the sub-list for field type_name
 }
 
 func init() { file_conf_proto_init() }
@@ -2235,7 +2463,7 @@ func file_conf_proto_init() {
 			}
 		}
 		file_conf_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Registry_Etcd); i {
+			switch v := v.(*SmtpConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2247,7 +2475,7 @@ func file_conf_proto_init() {
 			}
 		}
 		file_conf_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WebServerConfig_TLS); i {
+			switch v := v.(*MailConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2259,7 +2487,7 @@ func file_conf_proto_init() {
 			}
 		}
 		file_conf_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GrpcServerConfig_TLS); i {
+			switch v := v.(*MailServer); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2271,7 +2499,7 @@ func file_conf_proto_init() {
 			}
 		}
 		file_conf_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TcpServer_TLS); i {
+			switch v := v.(*Registry_Etcd); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2283,6 +2511,42 @@ func file_conf_proto_init() {
 			}
 		}
 		file_conf_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WebServerConfig_TLS); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GrpcServerConfig_TLS); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TcpServer_TLS); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_conf_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WebConfig_JWT); i {
 			case 0:
 				return &v.state
@@ -2301,7 +2565,7 @@ func file_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_conf_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

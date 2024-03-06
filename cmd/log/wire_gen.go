@@ -11,6 +11,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	log3 "github.com/I-m-Surrounded-by-IoT/backend/internal/server/log"
 	log2 "github.com/I-m-Surrounded-by-IoT/backend/service/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -24,7 +25,8 @@ import (
 func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, databaseServerConfig *conf.DatabaseServerConfig, kafkaConfig *conf.KafkaConfig, logConfig *conf.LogConfig, logger log.Logger) (*kratos.App, func(), error) {
 	logService := log2.NewLogService(databaseServerConfig, logConfig)
 	grpcGatewayServer := log3.NewLogServer(grpcServerConfig, logService)
-	consumerGroup := log3.NewLogConsumer(kafkaConfig)
+	client := utils.ForceNewKafkaClient(kafkaConfig)
+	consumerGroup := log3.NewConsumerGroup(client)
 	deviceLogConsumer := log2.NewDeviceLogConsumer(logService)
 	deviceLogServer := log3.NewDeviceLogServer(consumerGroup, deviceLogConsumer)
 	registrar := registry.NewRegistry(confRegistry)

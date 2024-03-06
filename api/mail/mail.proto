@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package api.mail;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/mail;mail";
+
+import "google/api/annotations.proto";
+
+service Mail {
+  rpc SendMail(SendMailReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/mail/send"
+      body : "*"
+    };
+  }
+}
+
+message Empty {}
+
+message SendMailReq {
+  repeated string to = 1;
+  string subject = 2;
+  string body = 3;
+}

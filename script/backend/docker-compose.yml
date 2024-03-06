@@ -141,3 +141,27 @@ services:
       - COLLECTOR_MQTT_CLIENT_ID=${COLLECTOR_MQTT_CLIENT_ID}
       - COLLECTOR_MQTT_PASSWORD=${COLLECTOR_MQTT_PASSWORD}
     command: collector
+
+  mail:
+    image: "zijiren/backend:latest"
+    container_name: mail
+    restart: unless-stopped
+    ports:
+      - "14000:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:14000
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
+      - MAIL_SMTP_HOST=${MAIL_SMTP_HOST}
+      - MAIL_SMTP_PORT=${MAIL_SMTP_PORT}
+      - MAIL_SMTP_PROTOCOL=${MAIL_SMTP_PROTOCOL}
+      - MAIL_SMTP_USERNAME=${MAIL_SMTP_USERNAME}
+      - MAIL_SMTP_PASSWORD=${MAIL_SMTP_PASSWORD}
+      - MAIL_SMTP_FROM=${MAIL_SMTP_FROM}
+    command: collector

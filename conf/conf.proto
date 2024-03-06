@@ -149,3 +149,20 @@ message DeviceServer {
   DeviceConfig config = 4;
   RedisConfig redis = 5;
 }
+
+message SmtpConfig {
+  string host = 1;     // @gotags: env:"SMTP_HOST"
+  uint32 port = 2;     // @gotags: env:"SMTP_PORT"
+  string protocol = 3; // @gotags: env:"SMTP_PROTOCOL"
+  string username = 4; // @gotags: env:"SMTP_USERNAME"
+  string password = 5; // @gotags: env:"SMTP_PASSWORD"
+  string from = 6;     // @gotags: env:"SMTP_FROM"
+}
+
+message MailConfig { SmtpConfig smtp = 1; }
+
+message MailServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  MailConfig config = 3;
+}

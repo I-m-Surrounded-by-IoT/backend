@@ -535,6 +535,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.log.Empty'
+    /mail/send:
+        post:
+            tags:
+                - Mail
+            operationId: Mail_SendMail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.mail.SendMailReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.mail.Empty'
     /user:
         get:
             tags:
@@ -1000,6 +1018,20 @@ components:
                         $ref: '#/components/schemas/api.log.DeviceLog'
                 total:
                     type: string
+        api.mail.Empty:
+            type: object
+            properties: {}
+        api.mail.SendMailReq:
+            type: object
+            properties:
+                to:
+                    type: array
+                    items:
+                        type: string
+                subject:
+                    type: string
+                body:
+                    type: string
         api.user.CreateUserReq:
             type: object
             properties:
@@ -1120,4 +1152,5 @@ tags:
     - name: Collector
     - name: Device
     - name: Log
+    - name: Mail
     - name: User
