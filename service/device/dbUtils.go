@@ -30,6 +30,12 @@ func (u *dbUtils) CreateDevice(ctx context.Context, device *model.Device) error 
 	return u.db.WithContext(ctx).Create(device).Error
 }
 
+func (u *dbUtils) Transaction(fn func(db *dbUtils) error) error {
+	return u.db.Transaction(func(tx *gorm.DB) error {
+		return fn(newDBUtils(tx))
+	})
+}
+
 func (u *dbUtils) DelDevice(ctx context.Context, id uint64, fields ...string) (*model.Device, error) {
 	device := &model.Device{}
 	err := u.db.WithContext(ctx).Clauses(clause.Returning{}).Select(fields).Delete(device, id).Error

@@ -98,7 +98,7 @@ func (s *CollectionService) ListCollectionRecord(ctx context.Context, req *colle
 		return nil, err
 	}
 
-	opts = append(opts, model.WithPageAndPageSize(int(req.Page), int(req.Size)))
+	opts = append(opts, utils.WithPageAndPageSize(int(req.Page), int(req.Size)))
 	switch req.Order {
 	case collection.CollectionRecordOrder_CREATED_AT:
 		opts = append(opts, utils.WithOrder(fmt.Sprintf("created_at %s", req.Sort)))

@@ -90,12 +90,6 @@ func WithEndTime(endTime time.Time) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func WithPageAndPageSize(page, pageSize int) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset((page - 1) * pageSize).Limit(pageSize)
-	}
-}
-
 func WithOrder(order string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Order(order)

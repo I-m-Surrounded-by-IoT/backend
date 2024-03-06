@@ -65,9 +65,9 @@ message RedisConfig {
 }
 
 message MTQQConfig {
-  string addr = 1;     // @gotags: env:"MQTT_ADDR"
-  string username = 2; // @gotags: env:"MQTT_USERNAME"
-  string password = 3; // @gotags: env:"MQTT_PASSWORD"
+  string addr = 1;      // @gotags: env:"MQTT_ADDR"
+  string client_id = 2; // @gotags: env:"MQTT_CLIENT_ID"
+  string password = 3;  // @gotags: env:"MQTT_PASSWORD"
 }
 
 message CollectorConfig { MTQQConfig mqtt = 1; }
@@ -134,7 +134,13 @@ message LogServer {
   KafkaConfig kafka = 5;
 }
 
-message DeviceConfig {}
+message EmqxConfig {
+  string api = 1;       // @gotags: env:"EMQX_API"
+  string appid = 2;     // @gotags: env:"EMQX_APPID"
+  string appsecret = 3; // @gotags: env:"EMQX_APPSECRET"
+}
+
+message DeviceConfig { EmqxConfig emqx = 1; }
 
 message DeviceServer {
   GrpcServerConfig server = 1;

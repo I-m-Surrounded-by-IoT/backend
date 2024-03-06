@@ -41,10 +41,12 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 
 	opt := mqtt.NewClientOptions().
 		AddBroker(c.Mqtt.Addr).
-		SetUsername(c.Mqtt.Username).
+		SetUsername("collector").
+		SetClientID(c.Mqtt.ClientId).
 		SetPassword(c.Mqtt.Password).
 		SetAutoReconnect(true).
-		SetOrderMatters(false)
+		SetOrderMatters(false).
+		SetCleanSession(true)
 	s.mqttClient = mqtt.NewClient(opt)
 	if token := s.mqttClient.Connect(); token.WaitTimeout(time.Second*5) && token.Error() != nil {
 		log.Fatalf("failed to connect mqtt server: %v", token.Error())
@@ -105,7 +107,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	}
 	s.kafkaProducer = producer
 
-	s.mqttClient.Subscribe("$share/collector/device/+/report", 2, func(c mqtt.Client, m mqtt.Message) {
+	tk := s.mqttClient.Subscribe("$share/collector/device/+/report", 2, func(c mqtt.Client, m mqtt.Message) {
 		splited := strings.Split(m.Topic(), "/")
 		if len(splited) != 3 {
 			log.Errorf("invalid topic: %v", m.Topic())
@@ -150,7 +152,12 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 				Value: sarama.ByteEncoder(bytes),
 			}
 		}
-	}).WaitTimeout(5 * time.Second)
+	})
+	if !tk.WaitTimeout(5 * time.Second) {
+		log.Fatalf("failed to subscribe topic: %v", tk.Error())
+	}
+
+	log.Info("collector service started")
 
 	return s
 }

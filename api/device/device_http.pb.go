@@ -25,10 +25,10 @@ const OperationDeviceGetDeviceInfo = "/api.device.Device/GetDeviceInfo"
 const OperationDeviceGetDeviceInfoByMac = "/api.device.Device/GetDeviceInfoByMac"
 const OperationDeviceGetDeviceLastReport = "/api.device.Device/GetDeviceLastReport"
 const OperationDeviceGetDeviceLastSeen = "/api.device.Device/GetDeviceLastSeen"
-const OperationDeviceGetOrRegisterDevice = "/api.device.Device/GetOrRegisterDevice"
 const OperationDeviceListDeletedDeviceInfo = "/api.device.Device/ListDeletedDeviceInfo"
 const OperationDeviceListDevice = "/api.device.Device/ListDevice"
 const OperationDeviceRegisterDevice = "/api.device.Device/RegisterDevice"
+const OperationDeviceSetDevicePassword = "/api.device.Device/SetDevicePassword"
 const OperationDeviceUnDeleteDevice = "/api.device.Device/UnDeleteDevice"
 const OperationDeviceUpdateDeviceLastReport = "/api.device.Device/UpdateDeviceLastReport"
 const OperationDeviceUpdateDeviceLastSeen = "/api.device.Device/UpdateDeviceLastSeen"
@@ -40,10 +40,10 @@ type DeviceHTTPServer interface {
 	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
 	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
 	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error)
-	GetOrRegisterDevice(context.Context, *GetOrRegisterDeviceReq) (*DeviceInfo, error)
 	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	ListDevice(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	RegisterDevice(context.Context, *RegisterDeviceReq) (*DeviceInfo, error)
+	SetDevicePassword(context.Context, *SetDevicePasswordReq) (*Empty, error)
 	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
 	UpdateDeviceLastReport(context.Context, *UpdateDeviceLastReportReq) (*Empty, error)
 	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
@@ -54,7 +54,7 @@ func RegisterDeviceHTTPServer(s *http.Server, srv DeviceHTTPServer) {
 	r.GET("/device/{id}", _Device_GetDeviceInfo0_HTTP_Handler(srv))
 	r.GET("/device/mac/{mac}", _Device_GetDeviceInfoByMac0_HTTP_Handler(srv))
 	r.POST("/device", _Device_RegisterDevice0_HTTP_Handler(srv))
-	r.POST("/device/get_or_create", _Device_GetOrRegisterDevice0_HTTP_Handler(srv))
+	r.POST("/device/{id}/password", _Device_SetDevicePassword0_HTTP_Handler(srv))
 	r.POST("/device/{id}/delete", _Device_DeleteDevice0_HTTP_Handler(srv))
 	r.GET("/device/deleted", _Device_ListDeletedDeviceInfo0_HTTP_Handler(srv))
 	r.POST("/device/{id}/undelete", _Device_UnDeleteDevice0_HTTP_Handler(srv))
@@ -132,24 +132,27 @@ func _Device_RegisterDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Co
 	}
 }
 
-func _Device_GetOrRegisterDevice0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
+func _Device_SetDevicePassword0_HTTP_Handler(srv DeviceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetOrRegisterDeviceReq
+		var in SetDevicePasswordReq
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationDeviceGetOrRegisterDevice)
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationDeviceSetDevicePassword)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetOrRegisterDevice(ctx, req.(*GetOrRegisterDeviceReq))
+			return srv.SetDevicePassword(ctx, req.(*SetDevicePasswordReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceInfo)
+		reply := out.(*Empty)
 		return ctx.Result(200, reply)
 	}
 }
@@ -365,10 +368,10 @@ type DeviceHTTPClient interface {
 	GetDeviceInfoByMac(ctx context.Context, req *GetDeviceInfoByMacReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	GetDeviceLastReport(ctx context.Context, req *GetDeviceLastReportReq, opts ...http.CallOption) (rsp *DeviceLastReport, err error)
 	GetDeviceLastSeen(ctx context.Context, req *GetDeviceLastSeenReq, opts ...http.CallOption) (rsp *DeviceLastSeen, err error)
-	GetOrRegisterDevice(ctx context.Context, req *GetOrRegisterDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
 	ListDeletedDeviceInfo(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
 	ListDevice(ctx context.Context, req *ListDeviceReq, opts ...http.CallOption) (rsp *ListDeviceResp, err error)
 	RegisterDevice(ctx context.Context, req *RegisterDeviceReq, opts ...http.CallOption) (rsp *DeviceInfo, err error)
+	SetDevicePassword(ctx context.Context, req *SetDevicePasswordReq, opts ...http.CallOption) (rsp *Empty, err error)
 	UnDeleteDevice(ctx context.Context, req *UnDeleteDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
 	UpdateDeviceLastReport(ctx context.Context, req *UpdateDeviceLastReportReq, opts ...http.CallOption) (rsp *Empty, err error)
 	UpdateDeviceLastSeen(ctx context.Context, req *UpdateDeviceLastSeenReq, opts ...http.CallOption) (rsp *Empty, err error)
@@ -460,19 +463,6 @@ func (c *DeviceHTTPClientImpl) GetDeviceLastSeen(ctx context.Context, in *GetDev
 	return &out, err
 }
 
-func (c *DeviceHTTPClientImpl) GetOrRegisterDevice(ctx context.Context, in *GetOrRegisterDeviceReq, opts ...http.CallOption) (*DeviceInfo, error) {
-	var out DeviceInfo
-	pattern := "/device/get_or_create"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationDeviceGetOrRegisterDevice))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, err
-}
-
 func (c *DeviceHTTPClientImpl) ListDeletedDeviceInfo(ctx context.Context, in *ListDeviceReq, opts ...http.CallOption) (*ListDeviceResp, error) {
 	var out ListDeviceResp
 	pattern := "/device/deleted"
@@ -504,6 +494,19 @@ func (c *DeviceHTTPClientImpl) RegisterDevice(ctx context.Context, in *RegisterD
 	pattern := "/device"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationDeviceRegisterDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *DeviceHTTPClientImpl) SetDevicePassword(ctx context.Context, in *SetDevicePasswordReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/device/{id}/password"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationDeviceSetDevicePassword))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

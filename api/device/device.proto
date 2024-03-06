@@ -26,9 +26,9 @@ service Device {
     };
   }
 
-  rpc GetOrRegisterDevice(GetOrRegisterDeviceReq) returns (DeviceInfo) {
+  rpc SetDevicePassword(SetDevicePasswordReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/device/get_or_create"
+      post : "/device/{id}/password"
       body : "*"
     };
   }
@@ -142,11 +142,14 @@ message GetDeviceInfoByMacReq {
   repeated string fields = 2;
 }
 
-message RegisterDeviceReq { string mac = 1; }
+message RegisterDeviceReq {
+  string mac = 1;      // @gotags: json:"mac" binding:"required"`
+  string password = 2; // @gotags: json:"password" binding:"required"`
+}
 
-message GetOrRegisterDeviceReq {
-  string mac = 1;
-  repeated string fields = 2;
+message SetDevicePasswordReq {
+  uint64 id = 1;
+  string password = 2;
 }
 
 message DeleteDeviceReq { uint64 id = 1; }

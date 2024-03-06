@@ -249,24 +249,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.ListDeviceResp'
-    /device/get_or_create:
-        post:
-            tags:
-                - Device
-            operationId: Device_GetOrRegisterDevice
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.device.GetOrRegisterDeviceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.device.DeviceInfo'
     /device/mac/{mac}:
         get:
             tags:
@@ -393,6 +375,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.DeviceLastSeen'
+    /device/{id}/password:
+        post:
+            tags:
+                - Device
+            operationId: Device_SetDevicePassword
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.device.SetDevicePasswordReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.device.Empty'
     /device/{id}/undelete:
         post:
             tags:
@@ -916,15 +922,6 @@ components:
         api.device.Empty:
             type: object
             properties: {}
-        api.device.GetOrRegisterDeviceReq:
-            type: object
-            properties:
-                mac:
-                    type: string
-                fields:
-                    type: array
-                    items:
-                        type: string
         api.device.ListDeviceResp:
             type: object
             properties:
@@ -939,6 +936,15 @@ components:
             type: object
             properties:
                 mac:
+                    type: string
+                password:
+                    type: string
+        api.device.SetDevicePasswordReq:
+            type: object
+            properties:
+                id:
+                    type: string
+                password:
                     type: string
         api.device.UnDeleteDeviceReq:
             type: object

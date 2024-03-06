@@ -22,7 +22,7 @@ const (
 	Device_GetDeviceInfo_FullMethodName          = "/api.device.Device/GetDeviceInfo"
 	Device_GetDeviceInfoByMac_FullMethodName     = "/api.device.Device/GetDeviceInfoByMac"
 	Device_RegisterDevice_FullMethodName         = "/api.device.Device/RegisterDevice"
-	Device_GetOrRegisterDevice_FullMethodName    = "/api.device.Device/GetOrRegisterDevice"
+	Device_SetDevicePassword_FullMethodName      = "/api.device.Device/SetDevicePassword"
 	Device_DeleteDevice_FullMethodName           = "/api.device.Device/DeleteDevice"
 	Device_ListDeletedDeviceInfo_FullMethodName  = "/api.device.Device/ListDeletedDeviceInfo"
 	Device_UnDeleteDevice_FullMethodName         = "/api.device.Device/UnDeleteDevice"
@@ -41,7 +41,7 @@ type DeviceClient interface {
 	GetDeviceInfo(ctx context.Context, in *GetDeviceInfoReq, opts ...grpc.CallOption) (*DeviceInfo, error)
 	GetDeviceInfoByMac(ctx context.Context, in *GetDeviceInfoByMacReq, opts ...grpc.CallOption) (*DeviceInfo, error)
 	RegisterDevice(ctx context.Context, in *RegisterDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error)
-	GetOrRegisterDevice(ctx context.Context, in *GetOrRegisterDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error)
+	SetDevicePassword(ctx context.Context, in *SetDevicePasswordReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteDevice(ctx context.Context, in *DeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error)
 	ListDeletedDeviceInfo(ctx context.Context, in *ListDeviceReq, opts ...grpc.CallOption) (*ListDeviceResp, error)
 	UnDeleteDevice(ctx context.Context, in *UnDeleteDeviceReq, opts ...grpc.CallOption) (*Empty, error)
@@ -88,9 +88,9 @@ func (c *deviceClient) RegisterDevice(ctx context.Context, in *RegisterDeviceReq
 	return out, nil
 }
 
-func (c *deviceClient) GetOrRegisterDevice(ctx context.Context, in *GetOrRegisterDeviceReq, opts ...grpc.CallOption) (*DeviceInfo, error) {
-	out := new(DeviceInfo)
-	err := c.cc.Invoke(ctx, Device_GetOrRegisterDevice_FullMethodName, in, out, opts...)
+func (c *deviceClient) SetDevicePassword(ctx context.Context, in *SetDevicePasswordReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Device_SetDevicePassword_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ type DeviceServer interface {
 	GetDeviceInfo(context.Context, *GetDeviceInfoReq) (*DeviceInfo, error)
 	GetDeviceInfoByMac(context.Context, *GetDeviceInfoByMacReq) (*DeviceInfo, error)
 	RegisterDevice(context.Context, *RegisterDeviceReq) (*DeviceInfo, error)
-	GetOrRegisterDevice(context.Context, *GetOrRegisterDeviceReq) (*DeviceInfo, error)
+	SetDevicePassword(context.Context, *SetDevicePasswordReq) (*Empty, error)
 	DeleteDevice(context.Context, *DeleteDeviceReq) (*Empty, error)
 	ListDeletedDeviceInfo(context.Context, *ListDeviceReq) (*ListDeviceResp, error)
 	UnDeleteDevice(context.Context, *UnDeleteDeviceReq) (*Empty, error)
@@ -211,8 +211,8 @@ func (UnimplementedDeviceServer) GetDeviceInfoByMac(context.Context, *GetDeviceI
 func (UnimplementedDeviceServer) RegisterDevice(context.Context, *RegisterDeviceReq) (*DeviceInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterDevice not implemented")
 }
-func (UnimplementedDeviceServer) GetOrRegisterDevice(context.Context, *GetOrRegisterDeviceReq) (*DeviceInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOrRegisterDevice not implemented")
+func (UnimplementedDeviceServer) SetDevicePassword(context.Context, *SetDevicePasswordReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDevicePassword not implemented")
 }
 func (UnimplementedDeviceServer) DeleteDevice(context.Context, *DeleteDeviceReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDevice not implemented")
@@ -308,20 +308,20 @@ func _Device_RegisterDevice_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_GetOrRegisterDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOrRegisterDeviceReq)
+func _Device_SetDevicePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDevicePasswordReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceServer).GetOrRegisterDevice(ctx, in)
+		return srv.(DeviceServer).SetDevicePassword(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Device_GetOrRegisterDevice_FullMethodName,
+		FullMethod: Device_SetDevicePassword_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetOrRegisterDevice(ctx, req.(*GetOrRegisterDeviceReq))
+		return srv.(DeviceServer).SetDevicePassword(ctx, req.(*SetDevicePasswordReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -508,8 +508,8 @@ var Device_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Device_RegisterDevice_Handler,
 		},
 		{
-			MethodName: "GetOrRegisterDevice",
-			Handler:    _Device_GetOrRegisterDevice_Handler,
+			MethodName: "SetDevicePassword",
+			Handler:    _Device_SetDevicePassword_Handler,
 		},
 		{
 			MethodName: "DeleteDevice",

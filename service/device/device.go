@@ -3,12 +3,14 @@ package device
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/device/model"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/dbdial"
+	"github.com/I-m-Surrounded-by-IoT/backend/utils/emqx"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/rcache"
 	redsync "github.com/go-redsync/redsync/v4"
 	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
@@ -20,6 +22,7 @@ import (
 type DeviceService struct {
 	db      *dbUtils
 	drcache *DeviceRcache
+	emqxCli *emqx.Client
 	device.UnimplementedDeviceServer
 }
 
@@ -47,9 +50,25 @@ func NewDeviceService(dc *conf.DatabaseServerConfig, deviceConfig *conf.DeviceCo
 	db := newDBUtils(d)
 	rsync := redsync.New(goredis.NewPool(rdb))
 
+	if deviceConfig.Emqx == nil {
+		log.Fatalf("emqx config is required")
+	}
+	if deviceConfig.Emqx.Api == "" {
+		log.Fatalf("emqx api is required")
+	}
+	if deviceConfig.Emqx.Appid == "" {
+		log.Fatalf("emqx appid is required")
+	}
+	if deviceConfig.Emqx.Appsecret == "" {
+		log.Fatalf("emqx appsecret is required")
+	}
+
+	emqxCli := emqx.NewClient(deviceConfig.Emqx.Api, deviceConfig.Emqx.Appid, deviceConfig.Emqx.Appsecret)
+
 	return &DeviceService{
 		db:      db,
 		drcache: NewDeviceRcache(rcache.NewRcacheWithRsync(rdb, rsync), db),
+		emqxCli: emqxCli,
 	}
 }
 
@@ -72,10 +91,22 @@ func (s *DeviceService) GetDeviceID(ctx context.Context, req *device.GetDeviceID
 }
 
 func (s *DeviceService) RegisterDevice(ctx context.Context, req *device.RegisterDeviceReq) (*device.DeviceInfo, error) {
+	if req.Mac == "" {
+		return nil, fmt.Errorf("mac is required")
+	}
+	if req.Password == "" {
+		return nil, fmt.Errorf("password is required")
+	}
 	d := &model.Device{
 		Mac: req.Mac,
 	}
-	err := s.db.CreateDevice(ctx, d)
+	err := s.db.Transaction(func(tx *dbUtils) error {
+		err := tx.CreateDevice(ctx, d)
+		if err != nil {
+			return err
+		}
+		return s.emqxCli.CreateUsername(ctx, emqx.PasswordBased_BuildInDatabase, strconv.FormatUint(d.ID, 10), req.Password)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -83,22 +114,21 @@ func (s *DeviceService) RegisterDevice(ctx context.Context, req *device.Register
 }
 
 func (s *DeviceService) DeleteDevice(ctx context.Context, req *device.DeleteDeviceReq) (*device.Empty, error) {
-	_, err := s.drcache.DelDevice(ctx, req.Id)
+	err := s.drcache.Transaction(func(dc *DeviceRcache) error {
+		_, err := dc.DelDevice(ctx, req.Id)
+		if err != nil {
+			return err
+		}
+		err = s.emqxCli.DeleteUser(ctx, emqx.PasswordBased_BuildInDatabase, strconv.FormatUint(req.Id, 10))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 	return &device.Empty{}, nil
-}
-
-func (s *DeviceService) GetOrRegisterDevice(ctx context.Context, req *device.GetOrRegisterDeviceReq) (*device.DeviceInfo, error) {
-	d := &model.Device{
-		Mac: req.Mac,
-	}
-	err := s.db.FirstOrCreateDevice(ctx, d)
-	if err != nil {
-		return nil, err
-	}
-	return device2Proto(d), nil
 }
 
 func (s *DeviceService) ListDeletedDeviceInfo(ctx context.Context, req *device.ListDeviceReq) (*device.ListDeviceResp, error) {
@@ -187,4 +217,8 @@ func (s *DeviceService) UpdateDeviceLastReport(ctx context.Context, req *device.
 
 func (s *DeviceService) GetDeviceLastReport(ctx context.Context, req *device.GetDeviceLastReportReq) (*device.DeviceLastReport, error) {
 	return s.drcache.GetDeviceLastReport(ctx, req.Id)
+}
+
+func (s *DeviceService) SetDevicePassword(ctx context.Context, req *device.SetDevicePasswordReq) (*device.Empty, error) {
+	return &device.Empty{}, s.emqxCli.CreateUsername(ctx, emqx.PasswordBased_BuildInDatabase, strconv.FormatUint(req.Id, 10), req.Password)
 }

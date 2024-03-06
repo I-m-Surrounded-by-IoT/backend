@@ -67,16 +67,10 @@ func (ws *WebService) ListUser(ctx *gin.Context) {
 func (ws *WebService) RegisterDevice(ctx *gin.Context) {
 	log := ctx.MustGet("log").(*log.Entry)
 
-	req := model.RegisterDeviceReq{}
+	req := device.RegisterDeviceReq{}
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		log.Errorf("bind json error: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
-		return
-	}
-
-	if err := req.Validate(); err != nil {
-		log.Errorf("validate error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
@@ -89,6 +83,27 @@ func (ws *WebService) RegisterDevice(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, model.NewApiDataResp(info))
+}
+
+func (ws *WebService) SetDevicePassword(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
+	req := device.SetDevicePasswordReq{}
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		log.Errorf("bind json error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	_, err = ws.deviceClient.SetDevicePassword(ctx, (*device.SetDevicePasswordReq)(&req))
+	if err != nil {
+		log.Errorf("set device password error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
 
 func (ws *WebService) SetUserStatus(ctx *gin.Context) {

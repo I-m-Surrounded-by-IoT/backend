@@ -13,7 +13,7 @@ import (
 
 var (
 	addr     string
-	username string
+	clientid string
 	password string
 )
 
@@ -28,15 +28,16 @@ func ClientRun(cmd *cobra.Command, args []string) {
 	if addr == "" {
 		log.Fatal("mtqq address is required, please use -a to specify it.")
 	}
-	if username == "" {
-		log.Fatal("mtqq username is required, please use -u to specify it.")
+	if clientid == "" {
+		log.Fatal("mtqq client id is required, please use -c to specify it.")
 	}
 	if password == "" {
 		log.Fatal("mtqq password is required, please use -p to specify it.")
 	}
 	opt := mqtt.NewClientOptions().
 		AddBroker(addr).
-		SetUsername(username).
+		SetUsername("client").
+		SetClientID(clientid).
 		SetPassword(password).
 		SetAutoReconnect(true)
 	cli := mqtt.NewClient(opt)
@@ -62,13 +63,13 @@ func ClientRun(cmd *cobra.Command, args []string) {
 			continue
 		}
 		if token := cli.Publish("device/1/report", 2, false, bytes); !token.WaitTimeout(time.Second * 5) {
-			log.Errorf("failed to publish data: %v", err)
+			log.Errorf("failed to publish data: %v", token.Error())
 		}
 	}
 }
 
 func init() {
 	ClientCmd.PersistentFlags().StringVarP(&addr, "addr", "a", "", "mqtt address")
-	ClientCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "mqtt username")
+	ClientCmd.PersistentFlags().StringVarP(&clientid, "clientid", "c", "", "mqtt client id")
 	ClientCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "mqtt password")
 }

@@ -58,8 +58,10 @@ func Server(cmd *cobra.Command, args []string) {
 			Name: "device",
 		},
 		Registry: conf.DefaultRegistry(),
-		Config:   &conf.DeviceConfig{},
-		Redis:    &conf.RedisConfig{},
+		Config: &conf.DeviceConfig{
+			Emqx: &conf.EmqxConfig{},
+		},
+		Redis: &conf.RedisConfig{},
 	}
 
 	if flagconf != "" {

@@ -75,6 +75,8 @@ func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {
 		deviceApi := adminApi.Group("/device")
 
 		deviceApi.POST("/register", ws.RegisterDevice)
+
+		deviceApi.POST("/password", ws.SetDevicePassword)
 	}
 }
 

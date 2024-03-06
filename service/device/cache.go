@@ -109,6 +109,12 @@ func (dc *DeviceRcache) GetDeviceInfo(ctx context.Context, id uint64, fields ...
 	return deviceInfo, nil
 }
 
+func (dc *DeviceRcache) Transaction(fn func(dc *DeviceRcache) error) error {
+	return dc.db.Transaction(func(db *dbUtils) error {
+		return fn(NewDeviceRcache(dc.rcache, db))
+	})
+}
+
 func (dc *DeviceRcache) DelDevice(ctx context.Context, id uint64) (*model.Device, error) {
 	device, err := dc.db.DelDevice(ctx, id)
 	if err != nil {
@@ -121,6 +127,10 @@ func (dc *DeviceRcache) DelDevice(ctx context.Context, id uint64) (*model.Device
 	err = dc.DelDeviceIDCache(ctx, device.Mac)
 	if err != nil {
 		log.Errorf("failed to delete device id cache: %v", err)
+	}
+	err = dc.DelDeviceExtraCache(ctx, id)
+	if err != nil {
+		log.Errorf("failed to delete device extra cache: %v", err)
 	}
 	return device, nil
 }
@@ -207,6 +217,10 @@ func (dc *DeviceRcache) GetDeviceInfoByMac(ctx context.Context, mac string, fiel
 		return nil, err
 	}
 	return dc.GetDeviceInfo(ctx, id, fields...)
+}
+
+func (dc *DeviceRcache) DelDeviceExtraCache(ctx context.Context, id uint64) error {
+	return dc.rcache.Del(ctx, fmt.Sprintf("deviceinfo:extra:%d", id)).Err()
 }
 
 func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
