@@ -26,7 +26,7 @@ func NewDeviceRcache(rcache *rcache.Rcache, client *dbUtils) *DeviceRcache {
 func (dc *DeviceRcache) GetDeviceInfoFromCache(ctx context.Context, id uint64, fields ...string) (*device.DeviceInfo, error) {
 	info := new(device.DeviceInfo)
 	if len(fields) == 0 {
-		resp := dc.rcache.HGetAll(ctx, fmt.Sprintf("deviceinfo:%d", id))
+		resp := dc.rcache.HGetAll(ctx, fmt.Sprintf("device:info:%d", id))
 		if resp.Err() != nil {
 			return nil, resp.Err()
 		}
@@ -35,7 +35,7 @@ func (dc *DeviceRcache) GetDeviceInfoFromCache(ctx context.Context, id uint64, f
 		}
 		return info, resp.Scan(info)
 	} else {
-		resp := dc.rcache.HMGet(ctx, fmt.Sprintf("deviceinfo:%d", id), fields...)
+		resp := dc.rcache.HMGet(ctx, fmt.Sprintf("device:info:%d", id), fields...)
 		if resp.Err() != nil {
 			return nil, resp.Err()
 		}
@@ -47,11 +47,11 @@ func (dc *DeviceRcache) GetDeviceInfoFromCache(ctx context.Context, id uint64, f
 }
 
 func (dc *DeviceRcache) SetDeviceInfoToCache(ctx context.Context, id uint64, info *device.DeviceInfo) error {
-	return dc.rcache.HSet(ctx, fmt.Sprintf("deviceinfo:%d", id), info).Err()
+	return dc.rcache.HSet(ctx, fmt.Sprintf("device:info:%d", id), info).Err()
 }
 
 func (dc *DeviceRcache) DelDeviceInfoCache(ctx context.Context, id uint64) error {
-	return dc.rcache.Del(ctx, fmt.Sprintf("deviceinfo:%d", id)).Err()
+	return dc.rcache.Del(ctx, fmt.Sprintf("device:info:%d", id)).Err()
 }
 
 func (dc *DeviceRcache) GetDeviceInfo(ctx context.Context, id uint64, fields ...string) (*device.DeviceInfo, error) {
@@ -63,7 +63,7 @@ func (dc *DeviceRcache) GetDeviceInfo(ctx context.Context, id uint64, fields ...
 		log.Errorf("failed to get device info from cache: %v", err)
 	}
 
-	lock := dc.rcache.NewMutex(fmt.Sprintf("mutex:deviceinfo:%d", id))
+	lock := dc.rcache.NewMutex(fmt.Sprintf("mutex:device:info:%d", id))
 	err = lock.LockContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lock mutex: %v", err)
@@ -83,7 +83,7 @@ func (dc *DeviceRcache) GetDeviceInfo(ctx context.Context, id uint64, fields ...
 		log.Errorf("failed to get device info from cache: %v", err)
 	}
 
-	dbLock := dc.rcache.NewMutex(fmt.Sprintf("mutex:db:deviceinfo:%d", id))
+	dbLock := dc.rcache.NewMutex(fmt.Sprintf("mutex:db:device:info:%d", id))
 	err = dbLock.LockContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lock db mutex: %v", err)
@@ -220,25 +220,22 @@ func (dc *DeviceRcache) GetDeviceInfoByMac(ctx context.Context, mac string, fiel
 }
 
 func (dc *DeviceRcache) DelDeviceExtraCache(ctx context.Context, id uint64) error {
-	return dc.rcache.Del(ctx, fmt.Sprintf("deviceinfo:extra:%d", id)).Err()
+	return dc.rcache.Del(ctx, fmt.Sprintf("device:last:seen:%d", id)).Err()
 }
 
 func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
-	return dc.rcache.HSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastSeen).Err()
+	return dc.rcache.HSet(ctx, fmt.Sprintf("device:last:seen:%d", id), lastSeen).Err()
 }
 
 func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*device.DeviceLastSeen, error) {
-	lastSeen := &device.DeviceLastSeen{}
-	resp := dc.rcache.HMGet(ctx,
-		fmt.Sprintf("deviceinfo:extra:%d", id),
-		"lastSeenAt",
-	)
+	resp := dc.rcache.HGetAll(ctx, fmt.Sprintf("device:last:seen:%d", id))
 	if resp.Err() != nil {
 		if resp.Err() == redis.Nil {
-			return lastSeen, nil
+			return &device.DeviceLastSeen{}, nil
 		}
 		return nil, resp.Err()
 	}
+	lastSeen := &device.DeviceLastSeen{}
 	err := resp.Scan(lastSeen)
 	if err != nil {
 		return nil, err
@@ -247,18 +244,11 @@ func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*devi
 }
 
 func (dc *DeviceRcache) UpdateDeviceLastReport(ctx context.Context, id uint64, lastlocal *device.DeviceLastReport) error {
-	return dc.rcache.HSet(ctx, fmt.Sprintf("deviceinfo:extra:%d", id), lastlocal).Err()
+	return dc.rcache.HSet(ctx, fmt.Sprintf("device:last:report:%d", id), lastlocal).Err()
 }
 
 func (dc *DeviceRcache) GetDeviceLastReport(ctx context.Context, id uint64) (*device.DeviceLastReport, error) {
-	resp := dc.rcache.HMGet(ctx,
-		fmt.Sprintf("deviceinfo:extra:%d", id),
-		"lastReportAt",
-		"lastReportTimestamp",
-		"lastReportLat",
-		"lastReportLon",
-		"lastReportTemperature",
-	)
+	resp := dc.rcache.HGetAll(ctx, fmt.Sprintf("device:last:report:%d", id))
 	if resp.Err() != nil {
 		if resp.Err() == redis.Nil {
 			return &device.DeviceLastReport{}, nil

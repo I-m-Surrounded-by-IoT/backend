@@ -20,7 +20,6 @@ import (
 	json "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
-	"google.golang.org/protobuf/proto"
 )
 
 type CollectorService struct {
@@ -120,7 +119,11 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	}
 	s.kafkaProducer = producer
 
-	if tk := s.mqttClient.Subscribe("$share/collector/device/+/report", 2, s.handlerDeviceReport); !tk.WaitTimeout(5 * time.Second) {
+	if tk := s.mqttClient.Subscribe("$share/collector-device-report/device/+/report", 2, s.handlerDeviceReport); !tk.WaitTimeout(5 * time.Second) {
+		log.Fatalf("failed to subscribe topic: %v", tk.Error())
+	}
+
+	if tk := s.mqttClient.Subscribe("$share/collector-device-conn/event/device/conn", 2, s.handlerDeviceConn); !tk.WaitTimeout(5 * time.Second) {
 		log.Fatalf("failed to subscribe topic: %v", tk.Error())
 	}
 
@@ -146,13 +149,18 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", id)
 
-	if err := s.UpdateDeviceLastSeen(context.Background(), id); err != nil {
+	if err := s.UpdateDeviceLastSeen(
+		context.Background(),
+		id,
+		time.Now(),
+		"",
+	); err != nil {
 		log.Errorf("failed to update device last seen: %v", err)
 	}
 
 	data := &collection.CollectionData{}
 	if err := json.Unmarshal(m.Payload(), data); err != nil {
-		log.Errorf("failed to unmarshal message: %v", err)
+		log.Errorf("failed to unmarshal report message: %s, %v", m.Payload(), err)
 		return
 	}
 
@@ -162,46 +170,90 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		log.Errorf("failed to update device last report: %v", err)
 	}
 
-	bytes, err := proto.Marshal(data)
+	err = service.KafkaTopicDeviceReportSend(s.kafkaProducer, id, data)
 	if err != nil {
-		log.Errorf("failed to marshal info: %v", err)
+		log.Errorf("failed to send report message to kafka: %v", err)
 		return
-	}
-
-	topics := []string{
-		service.KafkaTopicDeviceReport,
-		fmt.Sprintf("%s-%d", service.KafkaTopicDeviceReport, id),
-	}
-	for _, topic := range topics {
-		s.kafkaProducer.Input() <- &sarama.ProducerMessage{
-			Topic: topic,
-			Key:   sarama.StringEncoder(strconv.FormatUint(id, 10)),
-			Value: sarama.ByteEncoder(bytes),
-		}
 	}
 }
 
-func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64) error {
+type connMessage struct {
+	Time     time.Time `json:"timestamp"`
+	Event    string    `json:"event"`
+	ClientID string    `json:"clientid"`
+	Peername string    `json:"peername"`
+}
+
+func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
+	log := log.WithField("topic", m.Topic())
+
+	msg := connMessage{}
+
+	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
+		log.Errorf("failed to unmarshal message: %v", err)
+		return
+	}
+
+	log.Infof("receive device conn message: %+v", msg)
+
+	before, fater, found := strings.Cut(msg.ClientID, "-")
+	if !found {
+		log.Errorf("invalid client id: %v", msg.ClientID)
+		return
+	}
+	if before != "device" {
+		log.Errorf("invalid client id: %v", msg.ClientID)
+		return
+	}
+	deviceID, err := strconv.ParseUint(fater, 10, 64)
+	if err != nil {
+		log.Errorf("failed to parse device id: %v", err)
+		return
+	}
+
+	log = log.WithField("device_id", deviceID)
+
+	if err := s.UpdateDeviceLastSeen(
+		context.Background(),
+		deviceID,
+		time.Now(),
+		msg.Peername,
+	); err != nil {
+		log.Errorf("failed to update device last seen: %v", err)
+	}
+
+	switch msg.Event {
+	case "client.connected":
+		// service.KafkaTopicMailSend(s.kafkaProducer, &mail.SendMailReq{})
+	case "client.disconnected":
+	}
+}
+
+func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, t time.Time, ip string) error {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
 		Id: id,
 		LastSeen: &device.DeviceLastSeen{
-			LastSeenAt: time.Now().UnixMilli(),
+			LastSeenAt: t.UnixMilli(),
+			LastSeenIp: ip,
 		},
 	})
 	return err
 }
 
 func (c *CollectorService) UpdateDeviceLastReport(ctx context.Context, id uint64, t time.Time, data *collection.CollectionData) error {
-	_, err := c.deviceClient.UpdateDeviceLastReport(ctx, &device.UpdateDeviceLastReportReq{
+	req := &device.UpdateDeviceLastReportReq{
 		Id: id,
 		LastReport: &device.DeviceLastReport{
 			LastReportAt: t.UnixMilli(),
 			Timestamp:    data.Timestamp,
-			Lat:          data.GeoPoint.Lat,
-			Lon:          data.GeoPoint.Lon,
 			Temperature:  data.Temperature,
 		},
-	})
+	}
+	if data.GeoPoint != nil {
+		req.LastReport.Lat = data.GeoPoint.Lat
+		req.LastReport.Lon = data.GeoPoint.Lon
+	}
+	_, err := c.deviceClient.UpdateDeviceLastReport(ctx, req)
 	return err
 }
 

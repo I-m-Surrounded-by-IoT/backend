@@ -20,29 +20,41 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationUserCreateUser = "/api.user.User/CreateUser"
+const OperationUserFollowDevice = "/api.user.User/FollowDevice"
 const OperationUserGetUserId = "/api.user.User/GetUserId"
 const OperationUserGetUserInfo = "/api.user.User/GetUserInfo"
 const OperationUserGetUserInfoByUsername = "/api.user.User/GetUserInfoByUsername"
+const OperationUserGetUserLastSeen = "/api.user.User/GetUserLastSeen"
 const OperationUserGetUserPasswordVersion = "/api.user.User/GetUserPasswordVersion"
+const OperationUserHasFollowedDevice = "/api.user.User/HasFollowedDevice"
+const OperationUserListFollowedDeviceIDs = "/api.user.User/ListFollowedDeviceIDs"
+const OperationUserListFollowedUserIDsByDevice = "/api.user.User/ListFollowedUserIDsByDevice"
 const OperationUserListUser = "/api.user.User/ListUser"
 const OperationUserSetUserPassword = "/api.user.User/SetUserPassword"
 const OperationUserSetUserRole = "/api.user.User/SetUserRole"
 const OperationUserSetUserStatus = "/api.user.User/SetUserStatus"
 const OperationUserSetUsername = "/api.user.User/SetUsername"
+const OperationUserUnfollowDevice = "/api.user.User/UnfollowDevice"
 const OperationUserUpdateUserLastSeen = "/api.user.User/UpdateUserLastSeen"
 const OperationUserValidateUserPassword = "/api.user.User/ValidateUserPassword"
 
 type UserHTTPServer interface {
 	CreateUser(context.Context, *CreateUserReq) (*UserInfo, error)
+	FollowDevice(context.Context, *FollowDeviceReq) (*Empty, error)
 	GetUserId(context.Context, *GetUserIdReq) (*GetUserIdResp, error)
 	GetUserInfo(context.Context, *GetUserInfoReq) (*UserInfo, error)
 	GetUserInfoByUsername(context.Context, *GetUserInfoByUsernameReq) (*UserInfo, error)
+	GetUserLastSeen(context.Context, *GetUserLastSeenReq) (*UserLastSeen, error)
 	GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error)
+	HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error)
+	ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error)
+	ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error)
 	ListUser(context.Context, *ListUserReq) (*ListUserResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
 	SetUserStatus(context.Context, *SetUserStatusReq) (*Empty, error)
 	SetUsername(context.Context, *SetUsernameReq) (*SetUsernameResp, error)
+	UnfollowDevice(context.Context, *UnfollowDeviceReq) (*Empty, error)
 	UpdateUserLastSeen(context.Context, *UpdateUserLastSeenReq) (*Empty, error)
 	ValidateUserPassword(context.Context, *ValidateUserPasswordReq) (*ValidateUserPasswordResp, error)
 }
@@ -61,6 +73,12 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.PUT("/user/username", _User_SetUsername0_HTTP_Handler(srv))
 	r.GET("/user", _User_ListUser0_HTTP_Handler(srv))
 	r.PUT("/user/last-seen", _User_UpdateUserLastSeen0_HTTP_Handler(srv))
+	r.GET("/user/last-seen/{id}", _User_GetUserLastSeen0_HTTP_Handler(srv))
+	r.POST("/user/follow/device", _User_FollowDevice0_HTTP_Handler(srv))
+	r.POST("/user/unfollow/device", _User_UnfollowDevice0_HTTP_Handler(srv))
+	r.GET("/user/follow/device/{user_id}", _User_ListFollowedDeviceIDs0_HTTP_Handler(srv))
+	r.GET("/user/follow/user/{device_id}", _User_ListFollowedUserIDsByDevice0_HTTP_Handler(srv))
+	r.GET("/user/follow/device/{user_id}/{device_id}", _User_HasFollowedDevice0_HTTP_Handler(srv))
 }
 
 func _User_CreateUser0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
@@ -324,17 +342,155 @@ func _User_UpdateUserLastSeen0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Co
 	}
 }
 
+func _User_GetUserLastSeen0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetUserLastSeenReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserGetUserLastSeen)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetUserLastSeen(ctx, req.(*GetUserLastSeenReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UserLastSeen)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_FollowDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in FollowDeviceReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserFollowDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.FollowDevice(ctx, req.(*FollowDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_UnfollowDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UnfollowDeviceReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserUnfollowDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UnfollowDevice(ctx, req.(*UnfollowDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_ListFollowedDeviceIDs0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFollowedDeviceIDsReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserListFollowedDeviceIDs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFollowedDeviceIDs(ctx, req.(*ListFollowedDeviceIDsReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFollowedDeviceIDsResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_ListFollowedUserIDsByDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFollowedUserIDsByDeviceReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserListFollowedUserIDsByDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFollowedUserIDsByDevice(ctx, req.(*ListFollowedUserIDsByDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFollowedUserIDsByDeviceResp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _User_HasFollowedDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HasFollowedDeviceReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserHasFollowedDevice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.HasFollowedDevice(ctx, req.(*HasFollowedDeviceReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HasFollowedDeviceResp)
+		return ctx.Result(200, reply)
+	}
+}
+
 type UserHTTPClient interface {
 	CreateUser(ctx context.Context, req *CreateUserReq, opts ...http.CallOption) (rsp *UserInfo, err error)
+	FollowDevice(ctx context.Context, req *FollowDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
 	GetUserId(ctx context.Context, req *GetUserIdReq, opts ...http.CallOption) (rsp *GetUserIdResp, err error)
 	GetUserInfo(ctx context.Context, req *GetUserInfoReq, opts ...http.CallOption) (rsp *UserInfo, err error)
 	GetUserInfoByUsername(ctx context.Context, req *GetUserInfoByUsernameReq, opts ...http.CallOption) (rsp *UserInfo, err error)
+	GetUserLastSeen(ctx context.Context, req *GetUserLastSeenReq, opts ...http.CallOption) (rsp *UserLastSeen, err error)
 	GetUserPasswordVersion(ctx context.Context, req *GetUserPasswordVersionReq, opts ...http.CallOption) (rsp *GetUserPasswordVersionResp, err error)
+	HasFollowedDevice(ctx context.Context, req *HasFollowedDeviceReq, opts ...http.CallOption) (rsp *HasFollowedDeviceResp, err error)
+	ListFollowedDeviceIDs(ctx context.Context, req *ListFollowedDeviceIDsReq, opts ...http.CallOption) (rsp *ListFollowedDeviceIDsResp, err error)
+	ListFollowedUserIDsByDevice(ctx context.Context, req *ListFollowedUserIDsByDeviceReq, opts ...http.CallOption) (rsp *ListFollowedUserIDsByDeviceResp, err error)
 	ListUser(ctx context.Context, req *ListUserReq, opts ...http.CallOption) (rsp *ListUserResp, err error)
 	SetUserPassword(ctx context.Context, req *SetUserPasswordReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserRole(ctx context.Context, req *SetUserRoleReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserStatus(ctx context.Context, req *SetUserStatusReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUsername(ctx context.Context, req *SetUsernameReq, opts ...http.CallOption) (rsp *SetUsernameResp, err error)
+	UnfollowDevice(ctx context.Context, req *UnfollowDeviceReq, opts ...http.CallOption) (rsp *Empty, err error)
 	UpdateUserLastSeen(ctx context.Context, req *UpdateUserLastSeenReq, opts ...http.CallOption) (rsp *Empty, err error)
 	ValidateUserPassword(ctx context.Context, req *ValidateUserPasswordReq, opts ...http.CallOption) (rsp *ValidateUserPasswordResp, err error)
 }
@@ -352,6 +508,19 @@ func (c *UserHTTPClientImpl) CreateUser(ctx context.Context, in *CreateUserReq, 
 	pattern := "/user"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserCreateUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) FollowDevice(ctx context.Context, in *FollowDeviceReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user/follow/device"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserFollowDevice))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -399,11 +568,63 @@ func (c *UserHTTPClientImpl) GetUserInfoByUsername(ctx context.Context, in *GetU
 	return &out, err
 }
 
+func (c *UserHTTPClientImpl) GetUserLastSeen(ctx context.Context, in *GetUserLastSeenReq, opts ...http.CallOption) (*UserLastSeen, error) {
+	var out UserLastSeen
+	pattern := "/user/last-seen/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserGetUserLastSeen))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *UserHTTPClientImpl) GetUserPasswordVersion(ctx context.Context, in *GetUserPasswordVersionReq, opts ...http.CallOption) (*GetUserPasswordVersionResp, error) {
 	var out GetUserPasswordVersionResp
 	pattern := "/user/password/version/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationUserGetUserPasswordVersion))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...http.CallOption) (*HasFollowedDeviceResp, error) {
+	var out HasFollowedDeviceResp
+	pattern := "/user/follow/device/{user_id}/{device_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserHasFollowedDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) ListFollowedDeviceIDs(ctx context.Context, in *ListFollowedDeviceIDsReq, opts ...http.CallOption) (*ListFollowedDeviceIDsResp, error) {
+	var out ListFollowedDeviceIDsResp
+	pattern := "/user/follow/device/{user_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserListFollowedDeviceIDs))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...http.CallOption) (*ListFollowedUserIDsByDeviceResp, error) {
+	var out ListFollowedUserIDsByDeviceResp
+	pattern := "/user/follow/user/{device_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationUserListFollowedUserIDsByDevice))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -471,6 +692,19 @@ func (c *UserHTTPClientImpl) SetUsername(ctx context.Context, in *SetUsernameReq
 	opts = append(opts, http.Operation(OperationUserSetUsername))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *UserHTTPClientImpl) UnfollowDevice(ctx context.Context, in *UnfollowDeviceReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/user/unfollow/device"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserUnfollowDevice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

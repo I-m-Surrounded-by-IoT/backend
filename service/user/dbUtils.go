@@ -89,8 +89,12 @@ func SetUserPassword(u *model.User, password string) error {
 
 func (u *dbUtils) GetUser(ctx context.Context, id string, fields ...string) (*model.User, error) {
 	user := new(model.User)
-
-	err := u.WithContext(ctx).Select(fields).Where("id = ?", id).First(user).Error
+	err := u.
+		WithContext(ctx).
+		Select(fields).
+		Where("id = ?", id).
+		First(user).
+		Error
 	if err != nil {
 		return nil, err
 	}
@@ -99,15 +103,23 @@ func (u *dbUtils) GetUser(ctx context.Context, id string, fields ...string) (*mo
 
 func (u *dbUtils) GetUserByName(ctx context.Context, name string, fields ...string) (*model.User, error) {
 	user := new(model.User)
-	err := u.WithContext(ctx).Select(fields).Where("username = ?", name).First(user).Error
+	err := u.
+		WithContext(ctx).
+		Select(fields).
+		Where("username = ?", name).
+		First(user).
+		Error
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (u *dbUtils) CreateUser(user *model.User) error {
-	return u.Create(user).Error
+func (u *dbUtils) CreateUser(ctx context.Context, user *model.User) error {
+	return u.
+		WithContext(ctx).
+		Create(user).
+		Error
 }
 
 func (u *dbUtils) CheckPassword(ctx context.Context, id string, password string) bool {
@@ -118,47 +130,72 @@ func (u *dbUtils) CheckPassword(ctx context.Context, id string, password string)
 	return CheckPassword(password, pwd)
 }
 
-func (u *dbUtils) UpdateUser(user *model.User) error {
-	return u.Save(user).Error
+func (u *dbUtils) UpdateUser(ctx context.Context, user *model.User) error {
+	return u.
+		WithContext(ctx).
+		Save(user).
+		Error
 }
 
-func (u *dbUtils) DeleteUser(id string) error {
-	return u.Delete(&model.User{}, id).Error
+func (u *dbUtils) DeleteUser(ctx context.Context, id string) error {
+	return u.
+		WithContext(ctx).
+		Delete(&model.User{}, id).
+		Error
 }
 
-func (u *dbUtils) ListUser(scopes ...func(*gorm.DB) *gorm.DB) ([]*model.User, error) {
+func (u *dbUtils) ListUser(ctx context.Context, scopes ...func(*gorm.DB) *gorm.DB) ([]*model.User, error) {
 	var users []*model.User
-	err := u.Scopes(scopes...).Find(&users).Error
+	err := u.
+		WithContext(ctx).
+		Scopes(scopes...).
+		Find(&users).
+		Error
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
-func (u *dbUtils) CountUser(scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
+func (u *dbUtils) CountUser(ctx context.Context, scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
 	var count int64
-	err := u.Scopes(scopes...).Model(&model.User{}).Count(&count).Error
+	err := u.
+		WithContext(ctx).
+		Scopes(scopes...).
+		Model(&model.User{}).
+		Count(&count).
+		Error
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
-func (u *dbUtils) ListUserWithPageAndPageSize(page, pageSize int, scopes ...func(*gorm.DB) *gorm.DB) (int64, []*model.User, error) {
-	count, err := u.CountUser(scopes...)
+func (u *dbUtils) ListUserWithPageAndPageSize(ctx context.Context, page, pageSize int, scopes ...func(*gorm.DB) *gorm.DB) (int64, []*model.User, error) {
+	count, err := u.CountUser(ctx, scopes...)
 	if err != nil {
 		return 0, nil, err
 	}
-	l, err := u.ListUser(append(scopes, utils.WithPageAndPageSize(page, pageSize))...)
+	l, err := u.ListUser(ctx, append(scopes, utils.WithPageAndPageSize(page, pageSize))...)
 	return count, l, err
 }
 
-func (u *dbUtils) SetUserStatus(id string, status user.Status) error {
-	return u.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
+func (u *dbUtils) SetUserStatus(ctx context.Context, id string, status user.Status) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", id).
+		Update("status", status).
+		Error
 }
 
-func (u *dbUtils) SetUserRole(id string, role user.Role) error {
-	return u.Model(&model.User{}).Where("id = ?", id).Update("role", role).Error
+func (u *dbUtils) SetUserRole(ctx context.Context, id string, role user.Role) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", id).
+		Update("role", role).
+		Error
 }
 
 func (u *dbUtils) GetUserPassword(ctx context.Context, id string) ([]byte, error) {
@@ -177,22 +214,29 @@ func (u *dbUtils) GetUserPasswordVersion(ctx context.Context, id string) (uint32
 	return GenUserPasswordVersion(pwd), nil
 }
 
-func (u *dbUtils) SetUserPassword(id string, password string) error {
+func (u *dbUtils) SetUserPassword(ctx context.Context, id string, password string) error {
 	user := model.User{}
 	err := SetUserPassword(&user, password)
 	if err != nil {
 		return err
 	}
-	return u.Model(&model.User{}).Where("id = ?", id).Update("hashed_password", user.HashedPassword).Error
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", id).
+		Update("hashed_password", user.HashedPassword).
+		Error
 }
 
-func (u *dbUtils) SetUsername(id, username string) (string, error) {
+func (u *dbUtils) SetUsername(ctx context.Context, id, username string) (string, error) {
 	user := model.User{}
 	err := SetUsername(&user, username)
 	if err != nil {
 		return "", err
 	}
-	err = u.Model(&user).
+	err = u.
+		WithContext(ctx).
+		Model(&user).
 		Clauses(clause.Returning{
 			Columns: []clause.Column{
 				{Name: "username"},
@@ -204,4 +248,78 @@ func (u *dbUtils) SetUsername(id, username string) (string, error) {
 		return "", err
 	}
 	return user.Username, nil
+}
+
+func (u *dbUtils) Transaction(fn func(*dbUtils) error) error {
+	return u.DB.Transaction(func(db *gorm.DB) error {
+		return fn(NewDBUtils(db))
+	})
+}
+
+func (u *dbUtils) FollowDevice(ctx context.Context, userId string, deviceId uint64) error {
+	return u.
+		WithContext(ctx).
+		Create(&model.FollowDevice{
+			UserID:   userId,
+			DeviceID: deviceId,
+		}).Error
+}
+
+func (u *dbUtils) UnfollowDevice(ctx context.Context, userId string, deviceId uint64) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userId).
+		Association("FollowDevices").
+		Delete(&model.FollowDevice{DeviceID: deviceId})
+}
+
+func (u *dbUtils) ListFollowedDeviceIDs(ctx context.Context, userId string, scopes ...utils.Scope) ([]uint64, error) {
+	var devices []uint64
+	err := u.
+		WithContext(ctx).
+		Model(&model.FollowDevice{}).
+		Where("user_id = ?", userId).
+		Scopes(scopes...).
+		Pluck("device_id", &devices).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return devices, nil
+}
+
+func (u *dbUtils) ListFollowedUserIDsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) ([]string, error) {
+	var users []string
+	err := u.
+		WithContext(ctx).
+		Model(&model.FollowDevice{}).
+		Where("device_id = ?", deviceId).
+		Scopes(scopes...).
+		Pluck("user_id", &users).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (u *dbUtils) DelFollowedDevice(ctx context.Context, deviceId uint64) error {
+	return u.
+		WithContext(ctx).
+		Where("device_id = ?", deviceId).
+		Delete(&model.FollowDevice{}).Error
+}
+
+func (u *dbUtils) HasFollowedDevice(ctx context.Context, userId string, deviceId uint64) (bool, error) {
+	var count int64
+	err := u.
+		WithContext(ctx).
+		Model(&model.FollowDevice{}).
+		Where("user_id = ? AND device_id = ?", userId, deviceId).
+		Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

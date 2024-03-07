@@ -65,7 +65,8 @@ func proto2Record(record *collectionApi.CollectionRecord) *model.CollectionRecor
 
 func record2Proto(record *model.CollectionRecord) *collectionApi.CollectionRecord {
 	return &collectionApi.CollectionRecord{
-		DeviceId: record.DeviceID,
+		DeviceId:  record.DeviceID,
+		CreatedAt: record.CreatedAt.UnixMilli(),
 		Data: &collectionApi.CollectionData{
 			Timestamp: record.Timestamp.UnixMilli(),
 			GeoPoint: &collectionApi.GeoPoint{

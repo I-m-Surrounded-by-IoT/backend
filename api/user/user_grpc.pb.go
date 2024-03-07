@@ -19,18 +19,24 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	User_CreateUser_FullMethodName             = "/api.user.User/CreateUser"
-	User_GetUserInfo_FullMethodName            = "/api.user.User/GetUserInfo"
-	User_GetUserInfoByUsername_FullMethodName  = "/api.user.User/GetUserInfoByUsername"
-	User_GetUserId_FullMethodName              = "/api.user.User/GetUserId"
-	User_ValidateUserPassword_FullMethodName   = "/api.user.User/ValidateUserPassword"
-	User_GetUserPasswordVersion_FullMethodName = "/api.user.User/GetUserPasswordVersion"
-	User_SetUserPassword_FullMethodName        = "/api.user.User/SetUserPassword"
-	User_SetUserRole_FullMethodName            = "/api.user.User/SetUserRole"
-	User_SetUserStatus_FullMethodName          = "/api.user.User/SetUserStatus"
-	User_SetUsername_FullMethodName            = "/api.user.User/SetUsername"
-	User_ListUser_FullMethodName               = "/api.user.User/ListUser"
-	User_UpdateUserLastSeen_FullMethodName     = "/api.user.User/UpdateUserLastSeen"
+	User_CreateUser_FullMethodName                  = "/api.user.User/CreateUser"
+	User_GetUserInfo_FullMethodName                 = "/api.user.User/GetUserInfo"
+	User_GetUserInfoByUsername_FullMethodName       = "/api.user.User/GetUserInfoByUsername"
+	User_GetUserId_FullMethodName                   = "/api.user.User/GetUserId"
+	User_ValidateUserPassword_FullMethodName        = "/api.user.User/ValidateUserPassword"
+	User_GetUserPasswordVersion_FullMethodName      = "/api.user.User/GetUserPasswordVersion"
+	User_SetUserPassword_FullMethodName             = "/api.user.User/SetUserPassword"
+	User_SetUserRole_FullMethodName                 = "/api.user.User/SetUserRole"
+	User_SetUserStatus_FullMethodName               = "/api.user.User/SetUserStatus"
+	User_SetUsername_FullMethodName                 = "/api.user.User/SetUsername"
+	User_ListUser_FullMethodName                    = "/api.user.User/ListUser"
+	User_UpdateUserLastSeen_FullMethodName          = "/api.user.User/UpdateUserLastSeen"
+	User_GetUserLastSeen_FullMethodName             = "/api.user.User/GetUserLastSeen"
+	User_FollowDevice_FullMethodName                = "/api.user.User/FollowDevice"
+	User_UnfollowDevice_FullMethodName              = "/api.user.User/UnfollowDevice"
+	User_ListFollowedDeviceIDs_FullMethodName       = "/api.user.User/ListFollowedDeviceIDs"
+	User_ListFollowedUserIDsByDevice_FullMethodName = "/api.user.User/ListFollowedUserIDsByDevice"
+	User_HasFollowedDevice_FullMethodName           = "/api.user.User/HasFollowedDevice"
 )
 
 // UserClient is the client API for User service.
@@ -49,6 +55,12 @@ type UserClient interface {
 	SetUsername(ctx context.Context, in *SetUsernameReq, opts ...grpc.CallOption) (*SetUsernameResp, error)
 	ListUser(ctx context.Context, in *ListUserReq, opts ...grpc.CallOption) (*ListUserResp, error)
 	UpdateUserLastSeen(ctx context.Context, in *UpdateUserLastSeenReq, opts ...grpc.CallOption) (*Empty, error)
+	GetUserLastSeen(ctx context.Context, in *GetUserLastSeenReq, opts ...grpc.CallOption) (*UserLastSeen, error)
+	FollowDevice(ctx context.Context, in *FollowDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	UnfollowDevice(ctx context.Context, in *UnfollowDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	ListFollowedDeviceIDs(ctx context.Context, in *ListFollowedDeviceIDsReq, opts ...grpc.CallOption) (*ListFollowedDeviceIDsResp, error)
+	ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserIDsByDeviceResp, error)
+	HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...grpc.CallOption) (*HasFollowedDeviceResp, error)
 }
 
 type userClient struct {
@@ -167,6 +179,60 @@ func (c *userClient) UpdateUserLastSeen(ctx context.Context, in *UpdateUserLastS
 	return out, nil
 }
 
+func (c *userClient) GetUserLastSeen(ctx context.Context, in *GetUserLastSeenReq, opts ...grpc.CallOption) (*UserLastSeen, error) {
+	out := new(UserLastSeen)
+	err := c.cc.Invoke(ctx, User_GetUserLastSeen_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) FollowDevice(ctx context.Context, in *FollowDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_FollowDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UnfollowDevice(ctx context.Context, in *UnfollowDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_UnfollowDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) ListFollowedDeviceIDs(ctx context.Context, in *ListFollowedDeviceIDsReq, opts ...grpc.CallOption) (*ListFollowedDeviceIDsResp, error) {
+	out := new(ListFollowedDeviceIDsResp)
+	err := c.cc.Invoke(ctx, User_ListFollowedDeviceIDs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserIDsByDeviceResp, error) {
+	out := new(ListFollowedUserIDsByDeviceResp)
+	err := c.cc.Invoke(ctx, User_ListFollowedUserIDsByDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...grpc.CallOption) (*HasFollowedDeviceResp, error) {
+	out := new(HasFollowedDeviceResp)
+	err := c.cc.Invoke(ctx, User_HasFollowedDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -183,6 +249,12 @@ type UserServer interface {
 	SetUsername(context.Context, *SetUsernameReq) (*SetUsernameResp, error)
 	ListUser(context.Context, *ListUserReq) (*ListUserResp, error)
 	UpdateUserLastSeen(context.Context, *UpdateUserLastSeenReq) (*Empty, error)
+	GetUserLastSeen(context.Context, *GetUserLastSeenReq) (*UserLastSeen, error)
+	FollowDevice(context.Context, *FollowDeviceReq) (*Empty, error)
+	UnfollowDevice(context.Context, *UnfollowDeviceReq) (*Empty, error)
+	ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error)
+	ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error)
+	HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -225,6 +297,24 @@ func (UnimplementedUserServer) ListUser(context.Context, *ListUserReq) (*ListUse
 }
 func (UnimplementedUserServer) UpdateUserLastSeen(context.Context, *UpdateUserLastSeenReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserLastSeen not implemented")
+}
+func (UnimplementedUserServer) GetUserLastSeen(context.Context, *GetUserLastSeenReq) (*UserLastSeen, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserLastSeen not implemented")
+}
+func (UnimplementedUserServer) FollowDevice(context.Context, *FollowDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FollowDevice not implemented")
+}
+func (UnimplementedUserServer) UnfollowDevice(context.Context, *UnfollowDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfollowDevice not implemented")
+}
+func (UnimplementedUserServer) ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedDeviceIDs not implemented")
+}
+func (UnimplementedUserServer) ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserIDsByDevice not implemented")
+}
+func (UnimplementedUserServer) HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasFollowedDevice not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -455,6 +545,114 @@ func _User_UpdateUserLastSeen_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_GetUserLastSeen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserLastSeenReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetUserLastSeen(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_GetUserLastSeen_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetUserLastSeen(ctx, req.(*GetUserLastSeenReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_FollowDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).FollowDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_FollowDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).FollowDevice(ctx, req.(*FollowDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UnfollowDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfollowDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UnfollowDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UnfollowDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UnfollowDevice(ctx, req.(*UnfollowDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_ListFollowedDeviceIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFollowedDeviceIDsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ListFollowedDeviceIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ListFollowedDeviceIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ListFollowedDeviceIDs(ctx, req.(*ListFollowedDeviceIDsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_ListFollowedUserIDsByDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFollowedUserIDsByDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ListFollowedUserIDsByDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ListFollowedUserIDsByDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ListFollowedUserIDsByDevice(ctx, req.(*ListFollowedUserIDsByDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_HasFollowedDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasFollowedDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).HasFollowedDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_HasFollowedDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).HasFollowedDevice(ctx, req.(*HasFollowedDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -509,6 +707,30 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateUserLastSeen",
 			Handler:    _User_UpdateUserLastSeen_Handler,
+		},
+		{
+			MethodName: "GetUserLastSeen",
+			Handler:    _User_GetUserLastSeen_Handler,
+		},
+		{
+			MethodName: "FollowDevice",
+			Handler:    _User_FollowDevice_Handler,
+		},
+		{
+			MethodName: "UnfollowDevice",
+			Handler:    _User_UnfollowDevice_Handler,
+		},
+		{
+			MethodName: "ListFollowedDeviceIDs",
+			Handler:    _User_ListFollowedDeviceIDs_Handler,
+		},
+		{
+			MethodName: "ListFollowedUserIDsByDevice",
+			Handler:    _User_ListFollowedUserIDsByDevice_Handler,
+		},
+		{
+			MethodName: "HasFollowedDevice",
+			Handler:    _User_HasFollowedDevice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

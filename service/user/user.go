@@ -83,7 +83,7 @@ func (us *UserService) CreateUser(ctx context.Context, req *user.CreateUserReq) 
 	if err != nil {
 		return nil, err
 	}
-	err = us.db.CreateUser(u)
+	err = us.db.CreateUser(ctx, u)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*us
 	if req.Status != "" {
 		opts = append(opts, model.WithStatusEq(user.StringToStatus(req.Status)))
 	}
-	count, err := us.db.CountUser(opts...)
+	count, err := us.db.CountUser(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (us *UserService) ListUser(ctx context.Context, req *user.ListUserReq) (*us
 	if len(req.Fields) != 0 {
 		opts = append(opts, model.WithFields(req.Fields...))
 	}
-	u, err := us.db.ListUser(opts...)
+	u, err := us.db.ListUser(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -187,5 +187,51 @@ func (us *UserService) SetUserStatus(ctx context.Context, req *user.SetUserStatu
 func (us *UserService) ValidateUserPassword(ctx context.Context, req *user.ValidateUserPasswordReq) (*user.ValidateUserPasswordResp, error) {
 	return &user.ValidateUserPasswordResp{
 		Valid: us.db.CheckPassword(ctx, req.Id, req.Password),
+	}, nil
+}
+
+func (us *UserService) GetUserLastSeen(ctx context.Context, req *user.GetUserLastSeenReq) (*user.UserLastSeen, error) {
+	return us.urcache.GetUserLastSeen(ctx, req.Id)
+}
+
+func (us *UserService) UpdateUserLastSeen(ctx context.Context, req *user.UpdateUserLastSeenReq) (*user.Empty, error) {
+	return &user.Empty{}, us.urcache.UpdateUserLastSeen(ctx, req.Id, req.LastSeen)
+}
+
+func (us *UserService) FollowDevice(ctx context.Context, req *user.FollowDeviceReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.FollowDevice(ctx, req.UserId, req.DeviceId)
+}
+
+func (us *UserService) UnfollowDevice(ctx context.Context, req *user.UnfollowDeviceReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.UnfollowDevice(ctx, req.UserId, req.DeviceId)
+}
+
+func (us *UserService) HasFollowedDevice(ctx context.Context, req *user.HasFollowedDeviceReq) (*user.HasFollowedDeviceResp, error) {
+	f, err := us.db.HasFollowedDevice(ctx, req.UserId, req.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	return &user.HasFollowedDeviceResp{
+		Followed: f,
+	}, nil
+}
+
+func (us *UserService) ListFollowedDeviceIDs(ctx context.Context, req *user.ListFollowedDeviceIDsReq) (*user.ListFollowedDeviceIDsResp, error) {
+	ids, err := us.db.ListFollowedDeviceIDs(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return &user.ListFollowedDeviceIDsResp{
+		DeviceIds: ids,
+	}, nil
+}
+
+func (us *UserService) ListFollowedUserIDsByDevice(ctx context.Context, req *user.ListFollowedUserIDsByDeviceReq) (*user.ListFollowedUserIDsByDeviceResp, error) {
+	ids, err := us.db.ListFollowedUserIDsByDevice(ctx, req.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	return &user.ListFollowedUserIDsByDeviceResp{
+		UserIds: ids,
 	}, nil
 }

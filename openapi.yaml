@@ -625,6 +625,83 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /user/follow/device:
+        post:
+            tags:
+                - User
+            operationId: User_FollowDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.FollowDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /user/follow/device/{userId}:
+        get:
+            tags:
+                - User
+            operationId: User_ListFollowedDeviceIDs
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.ListFollowedDeviceIDsResp'
+    /user/follow/device/{userId}/{deviceId}:
+        get:
+            tags:
+                - User
+            operationId: User_HasFollowedDevice
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: deviceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.HasFollowedDeviceResp'
+    /user/follow/user/{deviceId}:
+        get:
+            tags:
+                - User
+            operationId: User_ListFollowedUserIDsByDevice
+            parameters:
+                - name: deviceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.ListFollowedUserIDsByDeviceResp'
     /user/last-seen:
         put:
             tags:
@@ -643,6 +720,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
+    /user/last-seen/{id}:
+        get:
+            tags:
+                - User
+            operationId: User_GetUserLastSeen
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.UserLastSeen'
     /user/password:
         put:
             tags:
@@ -707,6 +802,24 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.user.SetUserStatusReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /user/unfollow/device:
+        post:
+            tags:
+                - User
+            operationId: User_UnfollowDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.UnfollowDeviceReq'
                 required: true
             responses:
                 "200":
@@ -939,6 +1052,8 @@ components:
             properties:
                 lastSeenAt:
                     type: string
+                lastSeenIp:
+                    type: string
         api.device.Empty:
             type: object
             properties: {}
@@ -1048,6 +1163,13 @@ components:
         api.user.Empty:
             type: object
             properties: {}
+        api.user.FollowDeviceReq:
+            type: object
+            properties:
+                userId:
+                    type: string
+                deviceId:
+                    type: string
         api.user.GetUserIdResp:
             type: object
             properties:
@@ -1059,6 +1181,25 @@ components:
                 version:
                     type: integer
                     format: uint32
+        api.user.HasFollowedDeviceResp:
+            type: object
+            properties:
+                followed:
+                    type: boolean
+        api.user.ListFollowedDeviceIDsResp:
+            type: object
+            properties:
+                deviceIds:
+                    type: array
+                    items:
+                        type: string
+        api.user.ListFollowedUserIDsByDeviceResp:
+            type: object
+            properties:
+                userIds:
+                    type: array
+                    items:
+                        type: string
         api.user.ListUserResp:
             type: object
             properties:
@@ -1103,6 +1244,13 @@ components:
             type: object
             properties:
                 oldUsername:
+                    type: string
+        api.user.UnfollowDeviceReq:
+            type: object
+            properties:
+                userId:
+                    type: string
+                deviceId:
                     type: string
         api.user.UpdateUserLastSeenReq:
             type: object

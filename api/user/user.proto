@@ -87,6 +87,46 @@ service User {
       body : "*"
     };
   }
+
+  rpc GetUserLastSeen(GetUserLastSeenReq) returns (UserLastSeen) {
+    option (google.api.http) = {
+      get : "/user/last-seen/{id}"
+    };
+  }
+
+  rpc FollowDevice(FollowDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/follow/device"
+      body : "*"
+    };
+  }
+
+  rpc UnfollowDevice(UnfollowDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/unfollow/device"
+      body : "*"
+    };
+  }
+
+  rpc ListFollowedDeviceIDs(ListFollowedDeviceIDsReq)
+      returns (ListFollowedDeviceIDsResp) {
+    option (google.api.http) = {
+      get : "/user/follow/device/{user_id}"
+    };
+  }
+
+  rpc ListFollowedUserIDsByDevice(ListFollowedUserIDsByDeviceReq)
+      returns (ListFollowedUserIDsByDeviceResp) {
+    option (google.api.http) = {
+      get : "/user/follow/user/{device_id}"
+    };
+  }
+
+  rpc HasFollowedDevice(HasFollowedDeviceReq) returns (HasFollowedDeviceResp) {
+    option (google.api.http) = {
+      get : "/user/follow/device/{user_id}/{device_id}"
+    };
+  }
 }
 
 message Empty {}
@@ -197,13 +237,39 @@ message ListUserResp {
 }
 
 message UserLastSeen {
-  int64 last_seen_at = 1;  // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
-  string last_seen_ip = 2; // @gotags: redis:"lastSeenIp" json:"lastSeenIP"
+  int64 last_seen_at = 1; // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
+  string last_seen_ip =
+      2; // @gotags: redis:"lastSeenIp,omitempty" json:"lastSeenIP"
 }
 
 message UpdateUserLastSeenReq {
-  uint64 id = 1;
+  string id = 1;
   UserLastSeen last_seen = 2;
 }
 
-message GetUserLastSeenReq { uint64 id = 1; }
+message GetUserLastSeenReq { string id = 1; }
+
+message FollowDeviceReq {
+  string user_id = 1;
+  uint64 device_id = 2;
+}
+
+message UnfollowDeviceReq {
+  string user_id = 1;
+  uint64 device_id = 2;
+}
+
+message ListFollowedDeviceIDsReq { string user_id = 1; }
+
+message ListFollowedDeviceIDsResp { repeated uint64 device_ids = 1; }
+
+message ListFollowedUserIDsByDeviceReq { uint64 device_id = 1; }
+
+message ListFollowedUserIDsByDeviceResp { repeated string user_ids = 1; }
+
+message HasFollowedDeviceReq {
+  string user_id = 1;
+  uint64 device_id = 2;
+}
+
+message HasFollowedDeviceResp { bool followed = 1; }

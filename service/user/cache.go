@@ -25,7 +25,7 @@ func NewUserRcache(rcache *rcache.Rcache, client *dbUtils) *UserRcache {
 func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, fields ...string) (*user.UserInfo, error) {
 	info := new(user.UserInfo)
 	if len(fields) == 0 {
-		resp := uc.rcache.HGetAll(ctx, fmt.Sprintf("userinfo:%s", id))
+		resp := uc.rcache.HGetAll(ctx, fmt.Sprintf("user:info:%s", id))
 		if resp.Err() != nil {
 			return nil, resp.Err()
 		}
@@ -34,7 +34,7 @@ func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, field
 		}
 		return info, resp.Scan(info)
 	} else {
-		resp := uc.rcache.HMGet(ctx, fmt.Sprintf("userinfo:%s", id), fields...)
+		resp := uc.rcache.HMGet(ctx, fmt.Sprintf("user:info:%s", id), fields...)
 		if resp.Err() != nil {
 			return nil, resp.Err()
 		}
@@ -46,11 +46,11 @@ func (uc *UserRcache) GetUserInfoFromCache(ctx context.Context, id string, field
 }
 
 func (uc *UserRcache) SetUserInfoToCache(ctx context.Context, id string, info *user.UserInfo) error {
-	return uc.rcache.HSet(ctx, fmt.Sprintf("userinfo:%s", id), info).Err()
+	return uc.rcache.HSet(ctx, fmt.Sprintf("user:info:%s", id), info).Err()
 }
 
 func (uc *UserRcache) DelUserInfoCache(ctx context.Context, id string) error {
-	return uc.rcache.Del(ctx, fmt.Sprintf("userinfo:%s", id)).Err()
+	return uc.rcache.Del(ctx, fmt.Sprintf("user:info:%s", id)).Err()
 }
 
 func (uc *UserRcache) GetUserInfo(ctx context.Context, id string, fields ...string) (*user.UserInfo, error) {
@@ -62,7 +62,7 @@ func (uc *UserRcache) GetUserInfo(ctx context.Context, id string, fields ...stri
 		log.Errorf("failed to get user info from cache: %v", err)
 	}
 
-	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:userinfo:%s", id))
+	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:user:info:%s", id))
 	err = lock.LockContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lock mutex: %w", err)
@@ -82,7 +82,7 @@ func (uc *UserRcache) GetUserInfo(ctx context.Context, id string, fields ...stri
 		log.Errorf("failed to get user info from cache: %v", err)
 	}
 
-	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", id))
+	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:user:info:%s", id))
 	err = dbLock.LockContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lock db mutex: %w", err)
@@ -178,7 +178,7 @@ func (uc *UserRcache) SetUserPassword(ctx context.Context, id string, password s
 		}
 	}()
 
-	err = uc.db.SetUserPassword(id, password)
+	err = uc.db.SetUserPassword(ctx, id, password)
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func (uc *UserRcache) GetUserID(ctx context.Context, name string) (string, error
 		return "", fmt.Errorf("failed to get user id from db: %w", err)
 	}
 
-	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", info.ID))
+	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:user:info:%s", info.ID))
 	err = dbLock.LockContext(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to lock db mutex: %w", err)
@@ -281,7 +281,7 @@ func (uc *UserRcache) GetUserInfoByUsername(ctx context.Context, name string, fi
 }
 
 func (uc *UserRcache) SetUsername(ctx context.Context, id, name string) (string, error) {
-	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", id))
+	dbLock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:user:info:%s", id))
 	err := dbLock.LockContext(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to lock db mutex: %w", err)
@@ -293,7 +293,7 @@ func (uc *UserRcache) SetUsername(ctx context.Context, id, name string) (string,
 		}
 	}()
 
-	old, err := uc.db.SetUsername(id, name)
+	old, err := uc.db.SetUsername(ctx, id, name)
 	if err != nil {
 		return "", err
 	}
@@ -312,7 +312,7 @@ func (uc *UserRcache) SetUsername(ctx context.Context, id, name string) (string,
 }
 
 func (uc *UserRcache) SetUserRole(ctx context.Context, id string, role user.Role) error {
-	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", id))
+	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:user:info:%s", id))
 	err := lock.LockContext(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to lock db mutex: %w", err)
@@ -324,7 +324,7 @@ func (uc *UserRcache) SetUserRole(ctx context.Context, id string, role user.Role
 		}
 	}()
 
-	err = uc.db.SetUserRole(id, role)
+	err = uc.db.SetUserRole(ctx, id, role)
 	if err != nil {
 		return err
 	}
@@ -337,7 +337,7 @@ func (uc *UserRcache) SetUserRole(ctx context.Context, id string, role user.Role
 }
 
 func (uc *UserRcache) SetUserStatus(ctx context.Context, id string, status user.Status) error {
-	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:userinfo:%s", id))
+	lock := uc.rcache.NewMutex(fmt.Sprintf("mutex:db:user:info:%s", id))
 	err := lock.LockContext(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to lock db mutex: %w", err)
@@ -349,7 +349,7 @@ func (uc *UserRcache) SetUserStatus(ctx context.Context, id string, status user.
 		}
 	}()
 
-	err = uc.db.SetUserStatus(id, status)
+	err = uc.db.SetUserStatus(ctx, id, status)
 	if err != nil {
 		return err
 	}
@@ -359,4 +359,24 @@ func (uc *UserRcache) SetUserStatus(ctx context.Context, id string, status user.
 		log.Errorf("failed to del user info cache: %v", err)
 	}
 	return nil
+}
+
+func (uc *UserRcache) UpdateUserLastSeen(ctx context.Context, id string, lastSeen *user.UserLastSeen) error {
+	return uc.rcache.HSet(ctx, fmt.Sprintf("user:last:seen:%s", id), lastSeen).Err()
+}
+
+func (uc *UserRcache) GetUserLastSeen(ctx context.Context, id string) (*user.UserLastSeen, error) {
+	resp := uc.rcache.HGetAll(ctx, fmt.Sprintf("user:last:seen:%s", id))
+	if resp.Err() != nil {
+		if resp.Err() == redis.Nil {
+			return &user.UserLastSeen{}, nil
+		}
+		return nil, resp.Err()
+	}
+	var lastSeen user.UserLastSeen
+	err := resp.Scan(&lastSeen)
+	if err != nil {
+		return nil, err
+	}
+	return &lastSeen, nil
 }

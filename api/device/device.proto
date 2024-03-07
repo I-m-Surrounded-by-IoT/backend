@@ -111,6 +111,8 @@ message GetDeviceInfoReq {
 
 message DeviceLastSeen {
   int64 last_seen_at = 1; // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
+  string last_seen_ip =
+      2; // @gotags: redis:"lastSeenIP,omitempty" json:"lastSeenIP"
 }
 
 message UpdateDeviceLastSeenReq {
@@ -124,8 +126,10 @@ message DeviceLastReport {
   int64 last_report_at = 1; // @gotags: redis:"lastReportAt" json:"lastReportAt"
   int64 timestamp =
       2; // @gotags: redis:"lastReportTimestamp" json:"lastReportTimestamp"
-  double lat = 3; // @gotags: redis:"lastReportLat" json:"lastReportLat"
-  double lon = 4; // @gotags: redis:"lastReportLon" json:"lastReportLon"
+  double lat =
+      3; // @gotags: redis:"lastReportLat,omitempty" json:"lastReportLat"
+  double lon =
+      4; // @gotags: redis:"lastReportLon,omitempty" json:"lastReportLon"
   float temperature =
       5; // @gotags: redis:"lastReportTemperature" json:"lastReportTemperature"
 }

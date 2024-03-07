@@ -7,7 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func WithPageAndPageSize(page, pageSize int) func(*gorm.DB) *gorm.DB {
+type Scope = func(*gorm.DB) *gorm.DB
+
+func WithPageAndPageSize(page, pageSize int) Scope {
 	if page <= 0 {
 		page = 1
 	}
@@ -21,25 +23,25 @@ func WithPageAndPageSize(page, pageSize int) func(*gorm.DB) *gorm.DB {
 	}
 }
 
-func WithTimestampBefore(t int64) func(db *gorm.DB) *gorm.DB {
+func WithTimestampBefore(t int64) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("timestamp < ?", time.UnixMilli(t))
 	}
 }
 
-func WithTimestampAfter(t int64) func(db *gorm.DB) *gorm.DB {
+func WithTimestampAfter(t int64) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("timestamp > ?", time.UnixMilli(t))
 	}
 }
 
-func WithOrder(order string) func(db *gorm.DB) *gorm.DB {
+func WithOrder(order string) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Order(order)
 	}
 }
 
-func WithDeviceIDEq[T constraints.Integer](id T) func(db *gorm.DB) *gorm.DB {
+func WithDeviceIDEq[T constraints.Integer](id T) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("device_id = ?", id)
 	}
@@ -51,7 +53,7 @@ func WithDeviceIDRange[T constraints.Integer](start, end T) func(*gorm.DB) *gorm
 	}
 }
 
-func WithIDEq[T constraints.Ordered](id T) func(db *gorm.DB) *gorm.DB {
+func WithIDEq[T constraints.Ordered](id T) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
 	}
