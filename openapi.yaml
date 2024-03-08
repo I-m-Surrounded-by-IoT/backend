@@ -6,6 +6,42 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /captcha/sendEmailCaptcha:
+        post:
+            tags:
+                - Captcha
+            operationId: Captcha_SendEmailCaptcha
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.captcha.SendEmailCaptchaReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.captcha.Empty'
+    /captcha/verifyEmailCaptcha:
+        post:
+            tags:
+                - Captcha
+            operationId: Captcha_VerifyEmailCaptcha
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.captcha.VerifyEmailCaptchaReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.captcha.Empty'
     /collection/get_device_stream_event:
         post:
             tags:
@@ -471,6 +507,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.device.Empty'
+    /email/send:
+        post:
+            tags:
+                - Email
+            operationId: Email_SendEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.email.SendEmailReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.email.Empty'
     /log/device:
         get:
             tags:
@@ -535,24 +589,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.log.Empty'
-    /mail/send:
-        post:
-            tags:
-                - Mail
-            operationId: Mail_SendMail
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.mail.SendMailReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.mail.Empty'
     /user:
         get:
             tags:
@@ -625,6 +661,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /user/email:
+        post:
+            tags:
+                - User
+            operationId: User_BindEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.BindEmailReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /user/email/unbind:
+        post:
+            tags:
+                - User
+            operationId: User_UnbindEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.UnbindEmailReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
     /user/follow/device:
         post:
             tags:
@@ -635,6 +707,24 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.user.FollowDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
+    /user/follow/device/all:
+        post:
+            tags:
+                - User
+            operationId: User_FollowAllDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.FollowAllDeviceReq'
                 required: true
             responses:
                 "200":
@@ -684,6 +774,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.HasFollowedDeviceResp'
+    /user/follow/user/email/{deviceId}:
+        get:
+            tags:
+                - User
+            operationId: User_ListFollowedUserEmailsByDevice
+            parameters:
+                - name: deviceId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.ListFollowedUserEmailsByDeviceResp'
     /user/follow/user/{deviceId}:
         get:
             tags:
@@ -828,6 +936,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.Empty'
+    /user/unfollow/device/all:
+        post:
+            tags:
+                - User
+            operationId: User_UnfollowAllDevice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.user.UnfollowAllDeviceReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.user.Empty'
     /user/username:
         put:
             tags:
@@ -932,6 +1058,27 @@ paths:
                                 $ref: '#/components/schemas/api.user.UserInfo'
 components:
     schemas:
+        api.captcha.Empty:
+            type: object
+            properties: {}
+        api.captcha.SendEmailCaptchaReq:
+            type: object
+            properties:
+                async:
+                    type: boolean
+                userId:
+                    type: string
+                email:
+                    type: string
+        api.captcha.VerifyEmailCaptchaReq:
+            type: object
+            properties:
+                userId:
+                    type: string
+                email:
+                    type: string
+                captcha:
+                    type: string
         api.collection.CollectionData:
             type: object
             properties:
@@ -1100,6 +1247,20 @@ components:
                     type: string
                 lastSeen:
                     $ref: '#/components/schemas/api.device.DeviceLastSeen'
+        api.email.Empty:
+            type: object
+            properties: {}
+        api.email.SendEmailReq:
+            type: object
+            properties:
+                to:
+                    type: array
+                    items:
+                        type: string
+                subject:
+                    type: string
+                body:
+                    type: string
         api.log.DeviceLog:
             type: object
             properties:
@@ -1133,19 +1294,12 @@ components:
                         $ref: '#/components/schemas/api.log.DeviceLog'
                 total:
                     type: string
-        api.mail.Empty:
-            type: object
-            properties: {}
-        api.mail.SendMailReq:
+        api.user.BindEmailReq:
             type: object
             properties:
-                to:
-                    type: array
-                    items:
-                        type: string
-                subject:
+                id:
                     type: string
-                body:
+                email:
                     type: string
         api.user.CreateUserReq:
             type: object
@@ -1163,6 +1317,11 @@ components:
         api.user.Empty:
             type: object
             properties: {}
+        api.user.FollowAllDeviceReq:
+            type: object
+            properties:
+                userId:
+                    type: string
         api.user.FollowDeviceReq:
             type: object
             properties:
@@ -1190,6 +1349,13 @@ components:
             type: object
             properties:
                 deviceIds:
+                    type: array
+                    items:
+                        type: string
+        api.user.ListFollowedUserEmailsByDeviceResp:
+            type: object
+            properties:
+                userEmails:
                     type: array
                     items:
                         type: string
@@ -1245,6 +1411,16 @@ components:
             properties:
                 oldUsername:
                     type: string
+        api.user.UnbindEmailReq:
+            type: object
+            properties:
+                id:
+                    type: string
+        api.user.UnfollowAllDeviceReq:
+            type: object
+            properties:
+                userId:
+                    type: string
         api.user.UnfollowDeviceReq:
             type: object
             properties:
@@ -1296,9 +1472,10 @@ components:
                 valid:
                     type: boolean
 tags:
+    - name: Captcha
     - name: Collection
     - name: Collector
     - name: Device
+    - name: Email
     - name: Log
-    - name: Mail
     - name: User

@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"hash/crc32"
 	"regexp"
@@ -290,18 +291,55 @@ func (u *dbUtils) ListFollowedDeviceIDs(ctx context.Context, userId string, scop
 }
 
 func (u *dbUtils) ListFollowedUserIDsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) ([]string, error) {
+	// follow_all_device = true or user_id in (select user_id from follow_device where device_id = ?)
 	var users []string
 	err := u.
 		WithContext(ctx).
-		Model(&model.FollowDevice{}).
-		Where("device_id = ?", deviceId).
-		Scopes(scopes...).
-		Pluck("user_id", &users).
+		Model(&model.User{}).
+		Where("follow_all_device = true").
+		Pluck("id", &users).
 		Error
 	if err != nil {
 		return nil, err
 	}
+	var users2 []string
+	err = u.
+		WithContext(ctx).
+		Model(&model.FollowDevice{}).
+		Where("device_id = ? AND user_id NOT IN ?", deviceId, users).
+		Pluck("user_id", &users2).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	users = append(users, users2...)
 	return users, nil
+}
+
+func (u *dbUtils) ListFollowedUserEmailsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) ([]string, error) {
+	var emails []string
+	err := u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("follow_all_device = true AND email IS NOT NULL").
+		Pluck("email", &emails).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	var emails2 []string
+	err = u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Joins("JOIN follow_devices ON users.id = follow_devices.user_id").
+		Where("follow_devices.device_id = ? AND users.email IS NOT NULL", deviceId).
+		Pluck("users.email", &emails2).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	emails = append(emails, emails2...)
+	return emails, nil
 }
 
 func (u *dbUtils) DelFollowedDevice(ctx context.Context, deviceId uint64) error {
@@ -311,9 +349,49 @@ func (u *dbUtils) DelFollowedDevice(ctx context.Context, deviceId uint64) error 
 		Delete(&model.FollowDevice{}).Error
 }
 
-func (u *dbUtils) HasFollowedDevice(ctx context.Context, userId string, deviceId uint64) (bool, error) {
-	var count int64
+func (u *dbUtils) FollowAllDevice(ctx context.Context, userId string) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userId).
+		Update("follow_all_device", true).
+		Error
+}
+
+func (u *dbUtils) UnfollowAllDevice(ctx context.Context, userId string) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userId).
+		Update("follow_all_device", false).
+		Error
+}
+
+func (u *dbUtils) HasFollowedAllDevice(ctx context.Context, userId string) (bool, error) {
+	var all sql.NullBool
 	err := u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userId).
+		Select("follow_all_device").
+		First(&all).
+		Error
+	if err != nil {
+		return false, err
+	}
+	return all.Bool, nil
+}
+
+func (u *dbUtils) HasFollowedDevice(ctx context.Context, userId string, deviceId uint64) (bool, error) {
+	all, err := u.HasFollowedAllDevice(ctx, userId)
+	if err != nil {
+		return false, err
+	}
+	if all {
+		return true, nil
+	}
+	var count int64
+	err = u.
 		WithContext(ctx).
 		Model(&model.FollowDevice{}).
 		Where("user_id = ? AND device_id = ?", userId, deviceId).
@@ -322,4 +400,17 @@ func (u *dbUtils) HasFollowedDevice(ctx context.Context, userId string, deviceId
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (u *dbUtils) BindEmail(ctx context.Context, userId, email string) error {
+	return u.
+		WithContext(ctx).
+		Model(&model.User{}).
+		Where("id = ?", userId).
+		Update("email", email).
+		Error
+}
+
+func (u *dbUtils) UnbindEmail(ctx context.Context, userId string) error {
+	return u.BindEmail(ctx, userId, "")
 }

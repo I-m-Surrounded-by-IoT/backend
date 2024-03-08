@@ -19,24 +19,29 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	User_CreateUser_FullMethodName                  = "/api.user.User/CreateUser"
-	User_GetUserInfo_FullMethodName                 = "/api.user.User/GetUserInfo"
-	User_GetUserInfoByUsername_FullMethodName       = "/api.user.User/GetUserInfoByUsername"
-	User_GetUserId_FullMethodName                   = "/api.user.User/GetUserId"
-	User_ValidateUserPassword_FullMethodName        = "/api.user.User/ValidateUserPassword"
-	User_GetUserPasswordVersion_FullMethodName      = "/api.user.User/GetUserPasswordVersion"
-	User_SetUserPassword_FullMethodName             = "/api.user.User/SetUserPassword"
-	User_SetUserRole_FullMethodName                 = "/api.user.User/SetUserRole"
-	User_SetUserStatus_FullMethodName               = "/api.user.User/SetUserStatus"
-	User_SetUsername_FullMethodName                 = "/api.user.User/SetUsername"
-	User_ListUser_FullMethodName                    = "/api.user.User/ListUser"
-	User_UpdateUserLastSeen_FullMethodName          = "/api.user.User/UpdateUserLastSeen"
-	User_GetUserLastSeen_FullMethodName             = "/api.user.User/GetUserLastSeen"
-	User_FollowDevice_FullMethodName                = "/api.user.User/FollowDevice"
-	User_UnfollowDevice_FullMethodName              = "/api.user.User/UnfollowDevice"
-	User_ListFollowedDeviceIDs_FullMethodName       = "/api.user.User/ListFollowedDeviceIDs"
-	User_ListFollowedUserIDsByDevice_FullMethodName = "/api.user.User/ListFollowedUserIDsByDevice"
-	User_HasFollowedDevice_FullMethodName           = "/api.user.User/HasFollowedDevice"
+	User_CreateUser_FullMethodName                     = "/api.user.User/CreateUser"
+	User_GetUserInfo_FullMethodName                    = "/api.user.User/GetUserInfo"
+	User_GetUserInfoByUsername_FullMethodName          = "/api.user.User/GetUserInfoByUsername"
+	User_GetUserId_FullMethodName                      = "/api.user.User/GetUserId"
+	User_ValidateUserPassword_FullMethodName           = "/api.user.User/ValidateUserPassword"
+	User_GetUserPasswordVersion_FullMethodName         = "/api.user.User/GetUserPasswordVersion"
+	User_SetUserPassword_FullMethodName                = "/api.user.User/SetUserPassword"
+	User_SetUserRole_FullMethodName                    = "/api.user.User/SetUserRole"
+	User_SetUserStatus_FullMethodName                  = "/api.user.User/SetUserStatus"
+	User_SetUsername_FullMethodName                    = "/api.user.User/SetUsername"
+	User_ListUser_FullMethodName                       = "/api.user.User/ListUser"
+	User_UpdateUserLastSeen_FullMethodName             = "/api.user.User/UpdateUserLastSeen"
+	User_GetUserLastSeen_FullMethodName                = "/api.user.User/GetUserLastSeen"
+	User_FollowDevice_FullMethodName                   = "/api.user.User/FollowDevice"
+	User_UnfollowDevice_FullMethodName                 = "/api.user.User/UnfollowDevice"
+	User_ListFollowedDeviceIDs_FullMethodName          = "/api.user.User/ListFollowedDeviceIDs"
+	User_ListFollowedUserIDsByDevice_FullMethodName    = "/api.user.User/ListFollowedUserIDsByDevice"
+	User_ListFollowedUserEmailsByDevice_FullMethodName = "/api.user.User/ListFollowedUserEmailsByDevice"
+	User_HasFollowedDevice_FullMethodName              = "/api.user.User/HasFollowedDevice"
+	User_FollowAllDevice_FullMethodName                = "/api.user.User/FollowAllDevice"
+	User_UnfollowAllDevice_FullMethodName              = "/api.user.User/UnfollowAllDevice"
+	User_BindEmail_FullMethodName                      = "/api.user.User/BindEmail"
+	User_UnbindEmail_FullMethodName                    = "/api.user.User/UnbindEmail"
 )
 
 // UserClient is the client API for User service.
@@ -60,7 +65,12 @@ type UserClient interface {
 	UnfollowDevice(ctx context.Context, in *UnfollowDeviceReq, opts ...grpc.CallOption) (*Empty, error)
 	ListFollowedDeviceIDs(ctx context.Context, in *ListFollowedDeviceIDsReq, opts ...grpc.CallOption) (*ListFollowedDeviceIDsResp, error)
 	ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserIDsByDeviceResp, error)
+	ListFollowedUserEmailsByDevice(ctx context.Context, in *ListFollowedUserEmailsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserEmailsByDeviceResp, error)
 	HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...grpc.CallOption) (*HasFollowedDeviceResp, error)
+	FollowAllDevice(ctx context.Context, in *FollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	UnfollowAllDevice(ctx context.Context, in *UnfollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error)
+	BindEmail(ctx context.Context, in *BindEmailReq, opts ...grpc.CallOption) (*Empty, error)
+	UnbindEmail(ctx context.Context, in *UnbindEmailReq, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type userClient struct {
@@ -224,9 +234,54 @@ func (c *userClient) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFo
 	return out, nil
 }
 
+func (c *userClient) ListFollowedUserEmailsByDevice(ctx context.Context, in *ListFollowedUserEmailsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserEmailsByDeviceResp, error) {
+	out := new(ListFollowedUserEmailsByDeviceResp)
+	err := c.cc.Invoke(ctx, User_ListFollowedUserEmailsByDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userClient) HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...grpc.CallOption) (*HasFollowedDeviceResp, error) {
 	out := new(HasFollowedDeviceResp)
 	err := c.cc.Invoke(ctx, User_HasFollowedDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) FollowAllDevice(ctx context.Context, in *FollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_FollowAllDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UnfollowAllDevice(ctx context.Context, in *UnfollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_UnfollowAllDevice_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) BindEmail(ctx context.Context, in *BindEmailReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_BindEmail_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UnbindEmail(ctx context.Context, in *UnbindEmailReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, User_UnbindEmail_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +309,12 @@ type UserServer interface {
 	UnfollowDevice(context.Context, *UnfollowDeviceReq) (*Empty, error)
 	ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error)
 	ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error)
+	ListFollowedUserEmailsByDevice(context.Context, *ListFollowedUserEmailsByDeviceReq) (*ListFollowedUserEmailsByDeviceResp, error)
 	HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error)
+	FollowAllDevice(context.Context, *FollowAllDeviceReq) (*Empty, error)
+	UnfollowAllDevice(context.Context, *UnfollowAllDeviceReq) (*Empty, error)
+	BindEmail(context.Context, *BindEmailReq) (*Empty, error)
+	UnbindEmail(context.Context, *UnbindEmailReq) (*Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -313,8 +373,23 @@ func (UnimplementedUserServer) ListFollowedDeviceIDs(context.Context, *ListFollo
 func (UnimplementedUserServer) ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserIDsByDevice not implemented")
 }
+func (UnimplementedUserServer) ListFollowedUserEmailsByDevice(context.Context, *ListFollowedUserEmailsByDeviceReq) (*ListFollowedUserEmailsByDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserEmailsByDevice not implemented")
+}
 func (UnimplementedUserServer) HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasFollowedDevice not implemented")
+}
+func (UnimplementedUserServer) FollowAllDevice(context.Context, *FollowAllDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FollowAllDevice not implemented")
+}
+func (UnimplementedUserServer) UnfollowAllDevice(context.Context, *UnfollowAllDeviceReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfollowAllDevice not implemented")
+}
+func (UnimplementedUserServer) BindEmail(context.Context, *BindEmailReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindEmail not implemented")
+}
+func (UnimplementedUserServer) UnbindEmail(context.Context, *UnbindEmailReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnbindEmail not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -635,6 +710,24 @@ func _User_ListFollowedUserIDsByDevice_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_ListFollowedUserEmailsByDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFollowedUserEmailsByDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).ListFollowedUserEmailsByDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_ListFollowedUserEmailsByDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).ListFollowedUserEmailsByDevice(ctx, req.(*ListFollowedUserEmailsByDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _User_HasFollowedDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HasFollowedDeviceReq)
 	if err := dec(in); err != nil {
@@ -649,6 +742,78 @@ func _User_HasFollowedDevice_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServer).HasFollowedDevice(ctx, req.(*HasFollowedDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_FollowAllDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FollowAllDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).FollowAllDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_FollowAllDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).FollowAllDevice(ctx, req.(*FollowAllDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UnfollowAllDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfollowAllDeviceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UnfollowAllDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UnfollowAllDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UnfollowAllDevice(ctx, req.(*UnfollowAllDeviceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_BindEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).BindEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_BindEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).BindEmail(ctx, req.(*BindEmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UnbindEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnbindEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UnbindEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: User_UnbindEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UnbindEmail(ctx, req.(*UnbindEmailReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -729,8 +894,28 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_ListFollowedUserIDsByDevice_Handler,
 		},
 		{
+			MethodName: "ListFollowedUserEmailsByDevice",
+			Handler:    _User_ListFollowedUserEmailsByDevice_Handler,
+		},
+		{
 			MethodName: "HasFollowedDevice",
 			Handler:    _User_HasFollowedDevice_Handler,
+		},
+		{
+			MethodName: "FollowAllDevice",
+			Handler:    _User_FollowAllDevice_Handler,
+		},
+		{
+			MethodName: "UnfollowAllDevice",
+			Handler:    _User_UnfollowAllDevice_Handler,
+		},
+		{
+			MethodName: "BindEmail",
+			Handler:    _User_BindEmail_Handler,
+		},
+		{
+			MethodName: "UnbindEmail",
+			Handler:    _User_UnbindEmail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

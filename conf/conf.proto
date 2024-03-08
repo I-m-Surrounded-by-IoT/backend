@@ -159,10 +159,21 @@ message SmtpConfig {
   string from = 6;     // @gotags: env:"SMTP_FROM"
 }
 
-message MailConfig { SmtpConfig smtp = 1; }
+message EmailConfig { SmtpConfig smtp = 1; }
 
-message MailServer {
+message EmailServer {
   GrpcServerConfig server = 1;
   Registry registry = 2;
-  MailConfig config = 3;
+  EmailConfig config = 3;
+  KafkaConfig kafka = 4;
+}
+
+message CaptchaConfig {}
+
+message CaptchaServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  CaptchaConfig config = 3;
+  KafkaConfig kafka = 4;
+  RedisConfig redis = 5;
 }

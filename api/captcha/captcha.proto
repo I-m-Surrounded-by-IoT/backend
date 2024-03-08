@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package api.captcha;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/captcha;captcha";
+
+import "google/api/annotations.proto";
+
+service Captcha {
+  rpc SendEmailCaptcha(SendEmailCaptchaReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/captcha/sendEmailCaptcha"
+      body : "*"
+    };
+  }
+
+  rpc VerifyEmailCaptcha(VerifyEmailCaptchaReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/captcha/verifyEmailCaptcha"
+      body : "*"
+    };
+  }
+}
+
+message Empty {}
+
+message SendEmailCaptchaReq {
+  bool async = 1;
+  string user_id = 2;
+  string email = 3;
+}
+
+message VerifyEmailCaptchaReq {
+  string user_id = 1;
+  string email = 2;
+  string captcha = 3;
+}

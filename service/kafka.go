@@ -3,10 +3,11 @@ package service
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/log"
-	"github.com/I-m-Surrounded-by-IoT/backend/api/mail"
 	"github.com/IBM/sarama"
 	"google.golang.org/protobuf/proto"
 )
@@ -36,9 +37,10 @@ func KafkaTopicDeviceReportSend(kc sarama.AsyncProducer, deviceID uint64, data *
 	}
 	for _, topic := range topics {
 		kc.Input() <- &sarama.ProducerMessage{
-			Topic: topic,
-			Key:   sarama.StringEncoder(strconv.FormatUint(deviceID, 10)),
-			Value: sarama.ByteEncoder(bytes),
+			Topic:     topic,
+			Key:       sarama.StringEncoder(strconv.FormatUint(deviceID, 10)),
+			Value:     sarama.ByteEncoder(bytes),
+			Timestamp: time.UnixMilli(data.Timestamp),
 		}
 	}
 	return nil
@@ -59,26 +61,26 @@ func KafkaTopicDeviceLogUnmarshalTo(data []byte, v *log.DeviceLogData) error {
 }
 
 const (
-	KafkaTopicMail = "mail"
+	KafkaTopicEmail = "email"
 )
 
-func KafkaTopicMailUnmarshal(data []byte) (*mail.SendMailReq, error) {
-	v := &mail.SendMailReq{}
+func KafkaTopicEmailUnmarshal(data []byte) (*email.SendEmailReq, error) {
+	v := &email.SendEmailReq{}
 	err := proto.Unmarshal(data, v)
 	return v, err
 }
 
-func KafkaTopicMailUnmarshalTo(data []byte, v *mail.SendMailReq) error {
+func KafkaTopicEmailUnmarshalTo(data []byte, v *email.SendEmailReq) error {
 	return proto.Unmarshal(data, v)
 }
 
-func KafkaTopicMailSend(kc sarama.AsyncProducer, data *mail.SendMailReq) error {
+func KafkaTopicEmailSend(kc sarama.AsyncProducer, data *email.SendEmailReq) error {
 	bytes, err := proto.Marshal(data)
 	if err != nil {
 		return err
 	}
 	kc.Input() <- &sarama.ProducerMessage{
-		Topic: KafkaTopicMail,
+		Topic: KafkaTopicEmail,
 		Value: sarama.ByteEncoder(bytes),
 	}
 	return nil

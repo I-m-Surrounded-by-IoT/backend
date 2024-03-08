@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-http v2.7.1
 // - protoc             v4.25.3
-// source: mail/mail.proto
+// source: email/email.proto
 
-package mail
+package email
 
 import (
 	context "context"
@@ -19,29 +19,29 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationMailSendMail = "/api.mail.Mail/SendMail"
+const OperationEmailSendEmail = "/api.email.Email/SendEmail"
 
-type MailHTTPServer interface {
-	SendMail(context.Context, *SendMailReq) (*Empty, error)
+type EmailHTTPServer interface {
+	SendEmail(context.Context, *SendEmailReq) (*Empty, error)
 }
 
-func RegisterMailHTTPServer(s *http.Server, srv MailHTTPServer) {
+func RegisterEmailHTTPServer(s *http.Server, srv EmailHTTPServer) {
 	r := s.Route("/")
-	r.POST("/mail/send", _Mail_SendMail0_HTTP_Handler(srv))
+	r.POST("/email/send", _Email_SendEmail0_HTTP_Handler(srv))
 }
 
-func _Mail_SendMail0_HTTP_Handler(srv MailHTTPServer) func(ctx http.Context) error {
+func _Email_SendEmail0_HTTP_Handler(srv EmailHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in SendMailReq
+		var in SendEmailReq
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationMailSendMail)
+		http.SetOperation(ctx, OperationEmailSendEmail)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SendMail(ctx, req.(*SendMailReq))
+			return srv.SendEmail(ctx, req.(*SendEmailReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -52,23 +52,23 @@ func _Mail_SendMail0_HTTP_Handler(srv MailHTTPServer) func(ctx http.Context) err
 	}
 }
 
-type MailHTTPClient interface {
-	SendMail(ctx context.Context, req *SendMailReq, opts ...http.CallOption) (rsp *Empty, err error)
+type EmailHTTPClient interface {
+	SendEmail(ctx context.Context, req *SendEmailReq, opts ...http.CallOption) (rsp *Empty, err error)
 }
 
-type MailHTTPClientImpl struct {
+type EmailHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewMailHTTPClient(client *http.Client) MailHTTPClient {
-	return &MailHTTPClientImpl{client}
+func NewEmailHTTPClient(client *http.Client) EmailHTTPClient {
+	return &EmailHTTPClientImpl{client}
 }
 
-func (c *MailHTTPClientImpl) SendMail(ctx context.Context, in *SendMailReq, opts ...http.CallOption) (*Empty, error) {
+func (c *EmailHTTPClientImpl) SendEmail(ctx context.Context, in *SendEmailReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/mail/send"
+	pattern := "/email/send"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationMailSendMail))
+	opts = append(opts, http.Operation(OperationEmailSendEmail))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

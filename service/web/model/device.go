@@ -13,3 +13,7 @@ type GetDeviceDetailResp struct {
 	*device.DeviceLastSeen
 	*device.DeviceLastReport
 }
+
+type DeviceIDReq struct {
+	DeviceID uint64 `json:"deviceId" binding:"required"`
+}

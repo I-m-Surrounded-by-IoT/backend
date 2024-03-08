@@ -52,6 +52,22 @@ func (ws *WebService) registerUser(api, needAuthUserApi *gin.RouterGroup) {
 	needAuthUserApi.POST("/username", ws.SetUsername)
 
 	needAuthUserApi.POST("/password", ws.SetUserPassword)
+
+	needAuthUserApi.POST("/email/captcha", ws.SendBindEmailCaptcha)
+
+	needAuthUserApi.POST("/email/bind", ws.BindEmail)
+
+	needAuthUserApi.POST("/email/unbind", ws.UnbindEmail)
+
+	needAuthUserApi.POST("/follow/device", ws.FollowDevice)
+
+	needAuthUserApi.POST("/follow/device/all", ws.FollowAllDevice)
+
+	needAuthUserApi.POST("/unfollow/device", ws.UnfollowDevice)
+
+	needAuthUserApi.POST("/unfollow/device/all", ws.UnfollowAllDevice)
+
+	needAuthUserApi.GET("/follow/device", ws.ListFollowedDevice)
 }
 
 func (ws *WebService) registerAdmin(adminApi *gin.RouterGroup) {

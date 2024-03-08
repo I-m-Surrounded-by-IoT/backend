@@ -10,6 +10,8 @@ import (
 	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
@@ -18,24 +20,33 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/go-kratos/kratos/v2/registry"
 	json "github.com/json-iterator/go"
+	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
 )
 
 type CollectorService struct {
 	deviceClient  device.DeviceClient
-	reg           registry.Registrar
-	er            *registryClient.EtcdRegistry
 	kafkaClient   sarama.Client
 	kafkaProducer sarama.AsyncProducer
 	mqttClient    mqtt.Client
+	userClient    user.UserClient
 	// TODO: grpc server
 	collectorApi.UnimplementedCollectorServer
 }
 
 func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
+	etcd := reg.(*registryClient.EtcdRegistry)
+	discoveryUserConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///user",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+
 	s := &CollectorService{
-		reg: reg,
+		userClient: user.NewUserClient(discoveryUserConn),
 	}
 
 	opt := mqtt.NewClientOptions().
@@ -51,19 +62,13 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to connect mqtt server: %v", token.Error())
 	}
 
-	switch reg := reg.(type) {
-	case *registryClient.EtcdRegistry:
-		cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
-			Endpoint: "discovery:///device",
-		}, reg)
-		if err != nil {
-			panic(err)
-		}
-		s.deviceClient = device.NewDeviceClient(cc)
-		s.er = reg
-	default:
-		panic("invalid registry")
+	cc, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///device",
+	}, etcd)
+	if err != nil {
+		panic(err)
 	}
+	s.deviceClient = device.NewDeviceClient(cc)
 
 	if k == nil || k.Brokers == "" {
 		log.Fatal("kafka config is empty")
@@ -149,14 +154,16 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", id)
 
-	if err := s.UpdateDeviceLastSeen(
-		context.Background(),
-		id,
-		time.Now(),
-		"",
-	); err != nil {
-		log.Errorf("failed to update device last seen: %v", err)
-	}
+	_ = ants.Submit(func() {
+		if err := s.UpdateDeviceLastSeen(
+			context.Background(),
+			id,
+			time.Now(),
+			"",
+		); err != nil {
+			log.Errorf("failed to update device last seen: %v", err)
+		}
+	})
 
 	data := &collection.CollectionData{}
 	if err := json.Unmarshal(m.Payload(), data); err != nil {
@@ -166,9 +173,11 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	log.Infof("receive report message: %+v", data)
 
-	if err := s.UpdateDeviceLastReport(context.Background(), id, time.Now(), data); err != nil {
-		log.Errorf("failed to update device last report: %v", err)
-	}
+	_ = ants.Submit(func() {
+		if err := s.UpdateDeviceLastReport(context.Background(), id, time.Now(), data); err != nil {
+			log.Errorf("failed to update device last report: %v", err)
+		}
+	})
 
 	err = service.KafkaTopicDeviceReportSend(s.kafkaProducer, id, data)
 	if err != nil {
@@ -178,10 +187,10 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 }
 
 type connMessage struct {
-	Time     time.Time `json:"timestamp"`
-	Event    string    `json:"event"`
-	ClientID string    `json:"clientid"`
-	Peername string    `json:"peername"`
+	Timestamp int64  `json:"timestamp"`
+	Event     string `json:"event"`
+	ClientID  string `json:"clientid"`
+	Peername  string `json:"peername"`
 }
 
 func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
@@ -190,7 +199,7 @@ func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
 	msg := connMessage{}
 
 	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
-		log.Errorf("failed to unmarshal message: %v", err)
+		log.Errorf("failed to unmarshal message: %s, err: %v", m.Payload(), err)
 		return
 	}
 
@@ -213,19 +222,39 @@ func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", deviceID)
 
-	if err := s.UpdateDeviceLastSeen(
-		context.Background(),
-		deviceID,
-		time.Now(),
-		msg.Peername,
-	); err != nil {
-		log.Errorf("failed to update device last seen: %v", err)
-	}
+	_ = ants.Submit(func() {
+		if err := s.UpdateDeviceLastSeen(
+			context.Background(),
+			deviceID,
+			time.UnixMilli(msg.Timestamp),
+			msg.Peername,
+		); err != nil {
+			log.Errorf("failed to update device last seen: %v", err)
+		}
+	})
 
 	switch msg.Event {
 	case "client.connected":
-		// service.KafkaTopicMailSend(s.kafkaProducer, &mail.SendMailReq{})
 	case "client.disconnected":
+		resp, err := s.userClient.ListFollowedUserEmailsByDevice(context.Background(), &user.ListFollowedUserEmailsByDeviceReq{
+			DeviceId: deviceID,
+		})
+		if err != nil {
+			log.Errorf("failed to get followed user: %v", err)
+			return
+		}
+		if len(resp.UserEmails) == 0 {
+			log.Warnf("no followed user for device %d", deviceID)
+			return
+		}
+		err = service.KafkaTopicEmailSend(s.kafkaProducer, &email.SendEmailReq{
+			To:      resp.UserEmails,
+			Subject: fmt.Sprintf("device %d %s", deviceID, msg.Event),
+			Body:    fmt.Sprintf("device %d %s at %s", deviceID, msg.Event, time.UnixMilli(msg.Timestamp).Format(time.RFC3339)),
+		})
+		if err != nil {
+			log.Errorf("failed to send mail: %v", err)
+		}
 	}
 }
 

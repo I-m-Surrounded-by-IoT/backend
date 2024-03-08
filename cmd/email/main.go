@@ -1,4 +1,4 @@
-package mail
+package email
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
+	"github.com/I-m-Surrounded-by-IoT/backend/internal/server/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -28,6 +29,7 @@ var (
 
 func newApp(logger log.Logger,
 	s *utils.GrpcGatewayServer,
+	q *email.EmailMQServer,
 	r registry.Registrar,
 ) *kratos.App {
 	es, err := s.Endpoints()
@@ -36,31 +38,33 @@ func newApp(logger log.Logger,
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("mail"),
+		kratos.Name("email"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(
 			s,
+			q,
 		),
 		kratos.Registrar(r),
 		kratos.Endpoint(es...),
 	)
 }
 
-var MailCmd = &cobra.Command{
-	Use:   "mail",
-	Short: "Start backend mail",
+var EmailCmd = &cobra.Command{
+	Use:   "email",
+	Short: "Start backend email",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	bc := conf.MailServer{
+	bc := conf.EmailServer{
 		Server:   conf.DefaultGrpcServer(),
 		Registry: conf.DefaultRegistry(),
-		Config: &conf.MailConfig{
+		Config: &conf.EmailConfig{
 			Smtp: &conf.SmtpConfig{},
 		},
+		Kafka: conf.DefaultKafka(),
 	}
 
 	if flagconf != "" {
@@ -83,7 +87,7 @@ func Server(cmd *cobra.Command, args []string) {
 		logrus.Fatalf("error parsing config: %v", err)
 	}
 	if err := env.ParseWithOptions(&bc, env.Options{
-		Prefix: "LOG_",
+		Prefix: "EMAIL_",
 	}); err != nil {
 		logrus.Fatalf("error parsing config: %v", err)
 	}
@@ -92,7 +96,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Config, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Config, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -104,5 +108,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	MailCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	EmailCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

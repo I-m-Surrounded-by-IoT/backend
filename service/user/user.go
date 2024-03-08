@@ -32,6 +32,7 @@ func NewUserService(dc *conf.DatabaseServerConfig, uc *conf.UserConfig, rc *conf
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.User),
+			new(model.FollowDevice),
 		)
 		if err != nil {
 			log.Fatalf("failed to migrate database: %v", err)
@@ -234,4 +235,30 @@ func (us *UserService) ListFollowedUserIDsByDevice(ctx context.Context, req *use
 	return &user.ListFollowedUserIDsByDeviceResp{
 		UserIds: ids,
 	}, nil
+}
+
+func (us *UserService) ListFollowedUserEmailsByDevice(ctx context.Context, req *user.ListFollowedUserEmailsByDeviceReq) (*user.ListFollowedUserEmailsByDeviceResp, error) {
+	emails, err := us.db.ListFollowedUserEmailsByDevice(ctx, req.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	return &user.ListFollowedUserEmailsByDeviceResp{
+		UserEmails: emails,
+	}, nil
+}
+
+func (us *UserService) FollowAllDevice(ctx context.Context, req *user.FollowAllDeviceReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.FollowAllDevice(ctx, req.UserId)
+}
+
+func (us *UserService) UnfollowAllDevice(ctx context.Context, req *user.UnfollowAllDeviceReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.UnfollowAllDevice(ctx, req.UserId)
+}
+
+func (us *UserService) BindEmail(ctx context.Context, req *user.BindEmailReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.BindEmail(ctx, req.Id, req.Email)
+}
+
+func (us *UserService) UnbindEmail(ctx context.Context, req *user.UnbindEmailReq) (*user.Empty, error) {
+	return &user.Empty{}, us.db.UnbindEmail(ctx, req.Id)
 }

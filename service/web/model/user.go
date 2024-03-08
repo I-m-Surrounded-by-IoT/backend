@@ -86,3 +86,16 @@ func (u *UserIDReq) Validate() error {
 	}
 	return nil
 }
+
+type SendBindEmailCaptchaReq struct {
+	Email string `json:"email" binding:"required"`
+}
+
+type SendBindEmailCaptchaResp struct {
+	Captcha string `json:"captcha"`
+}
+
+type BindEmailReq struct {
+	Email   string `json:"email" binding:"required"`
+	Captcha string `json:"captcha" binding:"required"`
+}

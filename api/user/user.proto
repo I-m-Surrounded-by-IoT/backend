@@ -122,9 +122,44 @@ service User {
     };
   }
 
+  rpc ListFollowedUserEmailsByDevice(ListFollowedUserEmailsByDeviceReq)
+      returns (ListFollowedUserEmailsByDeviceResp) {
+    option (google.api.http) = {
+      get : "/user/follow/user/email/{device_id}"
+    };
+  }
+
   rpc HasFollowedDevice(HasFollowedDeviceReq) returns (HasFollowedDeviceResp) {
     option (google.api.http) = {
       get : "/user/follow/device/{user_id}/{device_id}"
+    };
+  }
+
+  rpc FollowAllDevice(FollowAllDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/follow/device/all"
+      body : "*"
+    };
+  }
+
+  rpc UnfollowAllDevice(UnfollowAllDeviceReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/unfollow/device/all"
+      body : "*"
+    };
+  }
+
+  rpc BindEmail(BindEmailReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/email"
+      body : "*"
+    };
+  }
+
+  rpc UnbindEmail(UnbindEmailReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/user/email/unbind"
+      body : "*"
     };
   }
 }
@@ -267,9 +302,26 @@ message ListFollowedUserIDsByDeviceReq { uint64 device_id = 1; }
 
 message ListFollowedUserIDsByDeviceResp { repeated string user_ids = 1; }
 
+message ListFollowedUserEmailsByDeviceReq { uint64 device_id = 1; }
+
+message ListFollowedUserEmailsByDeviceResp { repeated string user_emails = 1; }
+
 message HasFollowedDeviceReq {
   string user_id = 1;
   uint64 device_id = 2;
 }
 
 message HasFollowedDeviceResp { bool followed = 1; }
+
+message FollowAllDeviceReq { string user_id = 1; }
+
+message UnfollowAllDeviceReq { string user_id = 1; }
+
+message BindEmailReq {
+  string id = 1;    // @gotags: json:"id" binding:"required"
+  string email = 2; // @gotags: json:"email" binding:"required"
+}
+
+message UnbindEmailReq {
+  string id = 1; // @gotags: json:"id" binding:"required"
+}
