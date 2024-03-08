@@ -11,6 +11,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/panjf2000/ants/v2"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -99,6 +100,16 @@ func (h *WebService) AuthUserMiddleware(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusForbidden, model.NewApiErrorStringResp("user is inactive"))
 		return
 	}
+
+	_ = ants.Submit(func() {
+		_, _ = h.userClient.UpdateUserLastSeen(ctx, &user.UpdateUserLastSeenReq{
+			Id: userInfo.Id,
+			LastSeen: &user.UserLastSeen{
+				LastSeenAt: time.Now().UnixMilli(),
+				LastSeenIp: ctx.ClientIP(),
+			},
+		})
+	})
 
 	ctx.Set("user", userInfo)
 	le := ctx.MustGet("log").(*log.Entry)
