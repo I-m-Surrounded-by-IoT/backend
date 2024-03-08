@@ -142,9 +142,9 @@ services:
       - COLLECTOR_MQTT_PASSWORD=${COLLECTOR_MQTT_PASSWORD}
     command: collector
 
-  mail:
+  email:
     image: "zijiren/backend:latest"
-    container_name: mail
+    container_name: email
     restart: unless-stopped
     ports:
       - "14000:9000"
@@ -158,10 +158,32 @@ services:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_USER=${KAFKA_USER}
       - KAFKA_PASSWORD=${KAFKA_PASSWORD}
-      - MAIL_SMTP_HOST=${MAIL_SMTP_HOST}
-      - MAIL_SMTP_PORT=${MAIL_SMTP_PORT}
-      - MAIL_SMTP_PROTOCOL=${MAIL_SMTP_PROTOCOL}
-      - MAIL_SMTP_USERNAME=${MAIL_SMTP_USERNAME}
-      - MAIL_SMTP_PASSWORD=${MAIL_SMTP_PASSWORD}
-      - MAIL_SMTP_FROM=${MAIL_SMTP_FROM}
-    command: collector
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT}
+      - EMAIL_SMTP_PROTOCOL=${EMAIL_SMTP_PROTOCOL}
+      - EMAIL_SMTP_USERNAME=${EMAIL_SMTP_USERNAME}
+      - EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD}
+      - EMAIL_SMTP_FROM=${EMAIL_SMTP_FROM}
+    command: email
+
+  captcha:
+    image: "zijiren/backend:latest"
+    container_name: captcha
+    restart: unless-stopped
+    ports:
+      - "15000:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:15000
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
+      - REDIS_ADDR=${REDIS_ADDR}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+    command: captcha
