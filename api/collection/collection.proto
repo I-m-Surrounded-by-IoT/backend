@@ -5,6 +5,7 @@ package api.collection;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection;collection";
 
 import "google/api/annotations.proto";
+import "collection/device_message.proto";
 
 service Collection {
   rpc CreateCollectionRecord(CollectionRecord) returns (Empty) {
@@ -22,7 +23,7 @@ service Collection {
   }
 
   rpc GetDeviceStreamReport(GetDeviceStreamReportReq)
-      returns (stream collection.CollectionData) {
+      returns (stream CollectionData) {
     option (google.api.http) = {
       post : "/collection/get_device_stream_report"
       body : "*"
@@ -36,17 +37,6 @@ service Collection {
       body : "*"
     };
   }
-}
-
-message GeoPoint {
-  double lat = 1; // @gotags: json:"lat"
-  double lon = 2; // @gotags: json:"lon"
-}
-
-message CollectionData {
-  int64 timestamp = 1;    // @gotags: json:"timestamp"
-  GeoPoint geo_point = 2; // @gotags: json:"geoPoint"
-  float temperature = 3;  // @gotags: json:"temperature"
 }
 
 message CollectionRecord {

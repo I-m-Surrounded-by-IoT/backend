@@ -36,7 +36,7 @@ config:
 
 .PHONY: api
 # generate api proto
-api:
+api: proto
 	protoc --proto_path=./api \
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./api \
@@ -45,6 +45,17 @@ api:
 	       --openapi_out=fq_schema_naming=true,default_response=false:. \
 	       $(API_PROTO_FILES)
 	protoc-go-inject-tag -input=./api/*/*.pb.go
+
+.PHONY: proto
+# generate proto
+proto:
+	protoc --go_out=paths=source_relative:. \
+    	--nanopb_out=. \
+		api/collection/device_message.proto
+	mkdir -p api/collection/c
+	rm -rf api/collection/c/*
+	mv api/collection/*.c api/collection/c/
+	mv api/collection/*.h api/collection/c/
 
 .PHONY: build
 # build

@@ -1,14 +1,16 @@
 package client
 
 import (
+	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -34,6 +36,10 @@ func ClientRun(cmd *cobra.Command, args []string) {
 	if password == "" {
 		log.Fatal("mtqq password is required, please use -p to specify it.")
 	}
+	_, deviceID, found := strings.Cut(clientid, "-")
+	if !found {
+		log.Fatalf("failed to get device id: %v", clientid)
+	}
 	opt := mqtt.NewClientOptions().
 		AddBroker(addr).
 		SetUsername("client").
@@ -57,12 +63,12 @@ func ClientRun(cmd *cobra.Command, args []string) {
 			Temperature: rand.Float32() * 40,
 		}
 		log.Infof("publish data: %+v", data)
-		bytes, err := jsoniter.Marshal(data)
+		bytes, err := proto.Marshal(data)
 		if err != nil {
 			log.Errorf("failed to marshal data: %v", err)
 			continue
 		}
-		if token := cli.Publish("device/1/report", 2, false, bytes); !token.WaitTimeout(time.Second * 5) {
+		if token := cli.Publish(fmt.Sprintf("device/%s/report", deviceID), 2, false, bytes); !token.WaitTimeout(time.Second * 5) {
 			log.Errorf("failed to publish data: %v", token.Error())
 		}
 	}

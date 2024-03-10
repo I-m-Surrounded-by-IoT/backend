@@ -165,8 +165,8 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		}
 	})
 
-	data := &collection.CollectionData{}
-	if err := json.Unmarshal(m.Payload(), data); err != nil {
+	data, err := service.UnmarshalCollectionData(m.Payload())
+	if err != nil {
 		log.Errorf("failed to unmarshal report message: %s, %v", m.Payload(), err)
 		return
 	}

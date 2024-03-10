@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package api.collection;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection;collection";
+
+message GeoPoint {
+  double lat = 1; // @gotags: json:"lat"
+  double lon = 2; // @gotags: json:"lon"
+}
+
+message CollectionData {
+  int64 timestamp = 1;    // @gotags: json:"timestamp"
+  GeoPoint geo_point = 2; // @gotags: json:"geoPoint"
+  float temperature = 3;  // @gotags: json:"temperature"
+}
