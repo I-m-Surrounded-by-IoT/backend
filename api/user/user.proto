@@ -272,9 +272,8 @@ message ListUserResp {
 }
 
 message UserLastSeen {
-  int64 last_seen_at = 1; // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
-  string last_seen_ip =
-      2; // @gotags: redis:"lastSeenIp,omitempty" json:"lastSeenIP"
+  int64 last_seen_at = 1;  // @gotags: redis:"at" json:"lastSeenAt"
+  string last_seen_ip = 2; // @gotags: redis:"ip,omitempty" json:"lastSeenIP"
 }
 
 message UpdateUserLastSeenReq {

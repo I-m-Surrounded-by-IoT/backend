@@ -119,7 +119,8 @@ func (s *DeviceService) RegisterDevice(ctx context.Context, req *device.Register
 		if err != nil {
 			return err
 		}
-		return s.emqxCli.CreateUsername(ctx,
+		return s.emqxCli.CreateUsername(
+			ctx,
 			emqx.PasswordBased_BuildInDatabase,
 			fmt.Sprintf("device-%d", d.ID),
 			req.Password,
