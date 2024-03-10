@@ -1248,8 +1248,8 @@ type UserLastSeen struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	LastSeenAt int64  `protobuf:"varint,1,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"lastSeenAt" redis:"lastSeenAt"` // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
-	LastSeenIp string `protobuf:"bytes,2,opt,name=last_seen_ip,json=lastSeenIp,proto3" json:"lastSeenIP" redis:"lastSeenIp,omitempty"`  // @gotags: redis:"lastSeenIp,omitempty" json:"lastSeenIP"
+	LastSeenAt int64  `protobuf:"varint,1,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"lastSeenAt" redis:"at"` // @gotags: redis:"at" json:"lastSeenAt"
+	LastSeenIp string `protobuf:"bytes,2,opt,name=last_seen_ip,json=lastSeenIp,proto3" json:"lastSeenIP" redis:"ip,omitempty"`  // @gotags: redis:"ip,omitempty" json:"lastSeenIP"
 }
 
 func (x *UserLastSeen) Reset() {

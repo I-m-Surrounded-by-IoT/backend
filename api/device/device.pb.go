@@ -343,8 +343,8 @@ type DeviceLastSeen struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	LastSeenAt int64  `protobuf:"varint,1,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"lastSeenAt" redis:"lastSeenAt"` // @gotags: redis:"lastSeenAt" json:"lastSeenAt"
-	LastSeenIp string `protobuf:"bytes,2,opt,name=last_seen_ip,json=lastSeenIp,proto3" json:"lastSeenIP" redis:"lastSeenIP,omitempty"`  // @gotags: redis:"lastSeenIP,omitempty" json:"lastSeenIP"
+	LastSeenAt int64  `protobuf:"varint,1,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"lastSeenAt" redis:"at"` // @gotags: redis:"at" json:"lastSeenAt"
+	LastSeenIp string `protobuf:"bytes,2,opt,name=last_seen_ip,json=lastSeenIp,proto3" json:"lastSeenIP" redis:"ip,omitempty"`  // @gotags: redis:"ip,omitempty" json:"lastSeenIP"
 }
 
 func (x *DeviceLastSeen) Reset() {
@@ -500,11 +500,11 @@ type DeviceLastReport struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	LastReportAt int64   `protobuf:"varint,1,opt,name=last_report_at,json=lastReportAt,proto3" json:"lastReportAt" redis:"lastReportAt"` // @gotags: redis:"lastReportAt" json:"lastReportAt"
-	Timestamp    int64   `protobuf:"varint,2,opt,name=timestamp,proto3" json:"lastReportTimestamp" redis:"lastReportTimestamp"`                             // @gotags: redis:"lastReportTimestamp" json:"lastReportTimestamp"
-	Lat          float64 `protobuf:"fixed64,3,opt,name=lat,proto3" json:"lastReportLat" redis:"lastReportLat,omitempty"`                                        // @gotags: redis:"lastReportLat,omitempty" json:"lastReportLat"
-	Lon          float64 `protobuf:"fixed64,4,opt,name=lon,proto3" json:"lastReportLon" redis:"lastReportLon,omitempty"`                                        // @gotags: redis:"lastReportLon,omitempty" json:"lastReportLon"
-	Temperature  float32 `protobuf:"fixed32,5,opt,name=temperature,proto3" json:"lastReportTemperature" redis:"lastReportTemperature"`                        // @gotags: redis:"lastReportTemperature" json:"lastReportTemperature"
+	LastReportAt int64   `protobuf:"varint,1,opt,name=last_report_at,json=lastReportAt,proto3" json:"lastReportAt" redis:"at"` // @gotags: redis:"at" json:"lastReportAt"
+	Timestamp    int64   `protobuf:"varint,2,opt,name=timestamp,proto3" json:"lastReportTimestamp" redis:"timestamp"`                             // @gotags: redis:"timestamp" json:"lastReportTimestamp"
+	Lat          float64 `protobuf:"fixed64,3,opt,name=lat,proto3" json:"lastReportLat" redis:"lat,omitempty"`                                        // @gotags: redis:"lat,omitempty" json:"lastReportLat"
+	Lon          float64 `protobuf:"fixed64,4,opt,name=lon,proto3" json:"lastReportLon" redis:"lon,omitempty"`                                        // @gotags: redis:"lon,omitempty" json:"lastReportLon"
+	Temperature  float32 `protobuf:"fixed32,5,opt,name=temperature,proto3" json:"lastReportTemperature" redis:"temperature,omitempty"`                        // @gotags: redis:"temperature,omitempty" json:"lastReportTemperature"
 }
 
 func (x *DeviceLastReport) Reset() {
