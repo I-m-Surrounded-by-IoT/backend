@@ -21,9 +21,9 @@ import (
 
 // Injectors from wire.go:
 
-func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, collectorConfig *conf.CollectorConfig, kafkaConfig *conf.KafkaConfig, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registry, collectorConfig *conf.CollectorConfig, kafkaConfig *conf.KafkaConfig, redisConfig *conf.RedisConfig, logger log.Logger) (*kratos.App, func(), error) {
 	registrar := registry.NewRegistry(confRegistry)
-	collectorService := collector.NewCollectorService(collectorConfig, kafkaConfig, registrar)
+	collectorService := collector.NewCollectorService(collectorConfig, kafkaConfig, registrar, redisConfig)
 	grpcGatewayServer := collector2.NewCollectorGrpcServer(grpcServerConfig, collectorService)
 	app := newApp(logger, grpcGatewayServer, registrar)
 	return app, func() {

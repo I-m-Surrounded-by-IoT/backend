@@ -10,7 +10,7 @@ import (
 	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
-	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
@@ -21,8 +21,10 @@ import (
 	"github.com/go-kratos/kratos/v2/registry"
 	json "github.com/json-iterator/go"
 	"github.com/panjf2000/ants/v2"
+	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
+	"github.com/zijiren233/timewheel-redis"
 )
 
 type CollectorService struct {
@@ -31,11 +33,12 @@ type CollectorService struct {
 	kafkaProducer sarama.AsyncProducer
 	mqttClient    mqtt.Client
 	userClient    user.UserClient
-	// TODO: grpc server
+	notifyClient  notify.NotifyClient
+	timewheel     *timewheel.TimeWheel
 	collectorApi.UnimplementedCollectorServer
 }
 
-func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar) *CollectorService {
+func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg registry.Registrar, rc *conf.RedisConfig) *CollectorService {
 	etcd := reg.(*registryClient.EtcdRegistry)
 	discoveryUserConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
 		Endpoint: "discovery:///user",
@@ -45,9 +48,28 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
 
-	s := &CollectorService{
-		userClient: user.NewUserClient(discoveryUserConn),
+	discoveryNotifyConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///notify",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
 	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     rc.Addr,
+		Username: rc.Username,
+		Password: rc.Password,
+		DB:       int(rc.Db),
+	})
+
+	s := &CollectorService{
+		userClient:   user.NewUserClient(discoveryUserConn),
+		notifyClient: notify.NewNotifyClient(discoveryNotifyConn),
+		timewheel:    timewheel.NewTimeWheel(rdb, "collector-timewheel"),
+	}
+
+	go s.timewheel.Run()
 
 	opt := mqtt.NewClientOptions().
 		AddBroker(c.Mqtt.Addr).
@@ -69,6 +91,39 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		panic(err)
 	}
 	s.deviceClient = device.NewDeviceClient(cc)
+
+	go func() {
+		for timer := range s.timewheel.DoneChan() {
+			id, err := strconv.ParseUint(timer.Id, 10, 64)
+			if err != nil {
+				log.Errorf("failed to parse device id: %v", err)
+				continue
+			}
+			resp, err := s.deviceClient.GetDeviceLastSeen(
+				context.Background(),
+				&device.GetDeviceLastSeenReq{
+					Id: id,
+				},
+			)
+			if err != nil {
+				log.Errorf("failed to get device last seen: %v", err)
+				continue
+			}
+			if time.Since(time.UnixMilli(resp.LastSeenAt)).Minutes() > 3 {
+				_, err := s.notifyClient.NotifyDeviceOffline(
+					context.Background(),
+					&notify.NotifyDeviceOfflineReq{
+						DeviceId:  id,
+						Timestamp: resp.LastSeenAt,
+						Async:     true,
+					},
+				)
+				if err != nil {
+					log.Errorf("failed to notify device offline: %v", err)
+				}
+			}
+		}
+	}()
 
 	if k == nil || k.Brokers == "" {
 		log.Fatal("kafka config is empty")
@@ -171,6 +226,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		return
 	}
 
+	log.Debugf("receive report message: %v", m.Payload())
 	log.Infof("receive report message: %+v", data)
 
 	_ = ants.Submit(func() {
@@ -222,7 +278,7 @@ func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", deviceID)
 
-	_ = ants.Submit(func() {
+	defer func() {
 		if err := s.UpdateDeviceLastSeen(
 			context.Background(),
 			deviceID,
@@ -231,29 +287,39 @@ func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
 		); err != nil {
 			log.Errorf("failed to update device last seen: %v", err)
 		}
-	})
+	}()
 
 	switch msg.Event {
 	case "client.connected":
+		ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
+			Id: deviceID,
+		})
+		if err != nil {
+			log.Errorf("failed to get device last seen: %v", err)
+			return
+		}
+		if time.Since(time.UnixMilli(ls.LastSeenAt)).Minutes() > 3 {
+			_, err := s.notifyClient.NotifyDeviceOnline(
+				context.Background(),
+				&notify.NotifyDeviceOnlineReq{
+					DeviceId:  deviceID,
+					Timestamp: msg.Timestamp,
+					Async:     true,
+					Ip:        msg.Peername,
+				},
+			)
+			if err != nil {
+				log.Errorf("failed to notify device online: %v", err)
+			}
+		}
 	case "client.disconnected":
-		resp, err := s.userClient.ListFollowedUserEmailsByDevice(context.Background(), &user.ListFollowedUserEmailsByDeviceReq{
-			DeviceId: deviceID,
-		})
+		err = s.timewheel.AddTimer(
+			strconv.FormatUint(deviceID, 10),
+			time.Minute*3,
+			timewheel.WithForce(),
+		)
 		if err != nil {
-			log.Errorf("failed to get followed user: %v", err)
-			return
-		}
-		if len(resp.UserEmails) == 0 {
-			log.Warnf("no followed user for device %d", deviceID)
-			return
-		}
-		err = service.KafkaTopicEmailSend(s.kafkaProducer, &email.SendEmailReq{
-			To:      resp.UserEmails,
-			Subject: fmt.Sprintf("device %d %s", deviceID, msg.Event),
-			Body:    fmt.Sprintf("device %d %s at %s", deviceID, msg.Event, time.UnixMilli(msg.Timestamp).Format(time.RFC3339)),
-		})
-		if err != nil {
-			log.Errorf("failed to send mail: %v", err)
+			log.Errorf("failed to add timer: %v", err)
 		}
 	}
 }
@@ -285,23 +351,3 @@ func (c *CollectorService) UpdateDeviceLastReport(ctx context.Context, id uint64
 	_, err := c.deviceClient.UpdateDeviceLastReport(ctx, req)
 	return err
 }
-
-// func (c *CollectorService) ReportImmediately(ctx context.Context, req *collectorApi.ReportImmediatelyReq) (*collectorApi.Empty, error) {
-// 	conn, ok := c.getOnlineDeviceConn(req.Id)
-// 	if !ok {
-// 		return nil, fmt.Errorf("device not online")
-// 	}
-// 	msg := collector.Message{
-// 		Type:    collector.MessageType_ReportImmediately,
-// 		Payload: &collector.Message_Empty{},
-// 	}
-// 	b, err := proto.Marshal(&msg)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = conn.Send(b)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &collectorApi.Empty{}, nil
-// }

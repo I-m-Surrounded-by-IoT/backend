@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package api.notify;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/notify;notify";
+
+import "google/api/annotations.proto";
+
+service Notify {
+  rpc NotifyDeviceOnline(NotifyDeviceOnlineReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/v1/notify/device/online"
+      body : "*"
+    };
+  }
+  rpc NotifyDeviceOffline(NotifyDeviceOfflineReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/v1/notify/device/offline"
+      body : "*"
+    };
+  }
+}
+
+message Empty {}
+
+message NotifyDeviceOnlineReq {
+  bool async = 1;
+  uint64 device_id = 2;
+  int64 timestamp = 3;
+  string ip = 4;
+}
+
+message NotifyDeviceOfflineReq {
+  bool async = 1;
+  uint64 device_id = 2;
+  int64 timestamp = 3;
+}

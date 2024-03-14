@@ -1056,6 +1056,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /v1/notify/device/offline:
+        post:
+            tags:
+                - Notify
+            operationId: Notify_NotifyDeviceOffline
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.notify.NotifyDeviceOfflineReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.notify.Empty'
+    /v1/notify/device/online:
+        post:
+            tags:
+                - Notify
+            operationId: Notify_NotifyDeviceOnline
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.notify.NotifyDeviceOnlineReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.notify.Empty'
 components:
     schemas:
         api.captcha.Empty:
@@ -1294,6 +1330,29 @@ components:
                         $ref: '#/components/schemas/api.log.DeviceLog'
                 total:
                     type: string
+        api.notify.Empty:
+            type: object
+            properties: {}
+        api.notify.NotifyDeviceOfflineReq:
+            type: object
+            properties:
+                async:
+                    type: boolean
+                deviceId:
+                    type: string
+                timestamp:
+                    type: string
+        api.notify.NotifyDeviceOnlineReq:
+            type: object
+            properties:
+                async:
+                    type: boolean
+                deviceId:
+                    type: string
+                timestamp:
+                    type: string
+                ip:
+                    type: string
         api.user.BindEmailReq:
             type: object
             properties:
@@ -1478,4 +1537,5 @@ tags:
     - name: Device
     - name: Email
     - name: Log
+    - name: Notify
     - name: User

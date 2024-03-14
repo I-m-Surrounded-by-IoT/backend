@@ -1,4 +1,4 @@
-package collector
+package notify
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar
 	}
 	return kratos.New(
 		kratos.ID(id),
-		kratos.Name("collector"),
+		kratos.Name("notify"),
 		kratos.Version(flags.Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
@@ -45,21 +45,18 @@ func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar
 	)
 }
 
-var CollectorCmd = &cobra.Command{
-	Use:   "collector",
-	Short: "Start backend collector",
+var NotifyCmd = &cobra.Command{
+	Use:   "notify",
+	Short: "Start backend notify",
 	Run:   Server,
 }
 
 func Server(cmd *cobra.Command, args []string) {
-	bc := conf.CollectorServer{
+	bc := conf.NotifyServer{
 		Server:   conf.DefaultGrpcServer(),
 		Registry: conf.DefaultRegistry(),
-		Config: &conf.CollectorConfig{
-			Mqtt: &conf.MTQQConfig{},
-		},
-		Kafka: conf.DefaultKafka(),
-		Redis: &conf.RedisConfig{},
+		Config:   &conf.NotifyConfig{},
+		Kafka:    conf.DefaultKafka(),
 	}
 
 	if flagconf != "" {
@@ -82,7 +79,7 @@ func Server(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 	if err := env.ParseWithOptions(&bc, env.Options{
-		Prefix: "COLLECTOR_",
+		Prefix: "NOTIFY_",
 	}); err != nil {
 		logrus.Fatalf("error parsing config: %v", err)
 	}
@@ -91,7 +88,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Config, bc.Kafka, bc.Redis, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Config, bc.Kafka, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -103,5 +100,5 @@ func Server(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	CollectorCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
+	NotifyCmd.PersistentFlags().StringVarP(&flagconf, "conf", "c", "", "config path, eg: -c config.yaml")
 }

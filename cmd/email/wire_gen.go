@@ -27,9 +27,9 @@ func wireApp(grpcServerConfig *conf.GrpcServerConfig, confRegistry *conf.Registr
 	grpcGatewayServer := email2.NewEmailServer(grpcServerConfig, emailService)
 	client := utils.ForceNewKafkaClient(kafkaConfig)
 	emailConsumer := email.NewEmailConsumer(emailService)
-	mailMQServer := email2.NewEmailMQServerServer(client, emailConsumer)
+	emailMQServer := email2.NewEmailMQServerServer(client, emailConsumer)
 	registrar := registry.NewRegistry(confRegistry)
-	app := newApp(logger, grpcGatewayServer, mailMQServer, registrar)
+	app := newApp(logger, grpcGatewayServer, emailMQServer, registrar)
 	return app, func() {
 	}, nil
 }

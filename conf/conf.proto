@@ -73,10 +73,11 @@ message MTQQConfig {
 message CollectorConfig { MTQQConfig mqtt = 1; }
 
 message CollectorServer {
-  GrpcServerConfig grpc_server = 1;
+  GrpcServerConfig server = 1;
   Registry registry = 2;
   CollectorConfig config = 3;
   KafkaConfig kafka = 4;
+  RedisConfig redis = 5;
 }
 
 message CollectionConfig {}
@@ -176,4 +177,13 @@ message CaptchaServer {
   CaptchaConfig config = 3;
   KafkaConfig kafka = 4;
   RedisConfig redis = 5;
+}
+
+message NotifyConfig {}
+
+message NotifyServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  NotifyConfig config = 3;
+  KafkaConfig kafka = 4;
 }

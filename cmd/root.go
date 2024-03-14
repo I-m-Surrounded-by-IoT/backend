@@ -12,6 +12,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/flags"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/cmd/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/cmd/web"
 	"github.com/I-m-Surrounded-by-IoT/backend/internal/bootstrap"
@@ -47,6 +48,7 @@ func init() {
 	RootCmd.AddCommand(web.WebCmd)
 	RootCmd.AddCommand(email.EmailCmd)
 	RootCmd.AddCommand(captcha.CaptchaCmd)
+	RootCmd.AddCommand(notify.NotifyCmd)
 }
 
 func init() {

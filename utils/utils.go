@@ -552,3 +552,27 @@ func ValidateMac(mac string) (string, error) {
 		return "", fmt.Errorf("mac is invalid")
 	}
 }
+
+func DailKafka(k *conf.KafkaConfig, kafkaOpts ...logkafka.KafkaOptionFunc) (sarama.Client, error) {
+	if k == nil || k.Brokers == "" {
+		return nil, errors.New("kafka config is empty")
+	}
+	opts := []logkafka.KafkaOptionFunc{
+		logkafka.WithKafkaSASLHandshake(true),
+		logkafka.WithKafkaSASLUser(k.User),
+		logkafka.WithKafkaSASLPassword(k.Password),
+	}
+	if k.User != "" || k.Password != "" {
+		opts = append(opts,
+			logkafka.WithKafkaSASLEnable(true),
+		)
+	}
+	client, err := logkafka.NewKafkaClient(
+		strings.Split(k.Brokers, ","),
+		append(opts, kafkaOpts...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
