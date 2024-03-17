@@ -221,14 +221,19 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		}
 	})
 
-	data, err := service.UnmarshalCollectionData(m.Payload())
-	if err != nil {
-		log.Errorf("failed to unmarshal report message: %s, %v", m.Payload(), err)
+	log.Debugf("receive report message: %v", m.Payload())
+
+	data := &collection.CollectionData{}
+	if err := json.Unmarshal(m.Payload(), data); err != nil {
+		log.Errorf("failed to unmarshal report message: %v", err)
 		return
 	}
 
-	log.Debugf("receive report message: %v", m.Payload())
-	log.Infof("receive report message: %+v", data)
+	// data, err := service.UnmarshalCollectionData(m.Payload())
+	// if err != nil {
+	// 	log.Errorf("failed to unmarshal report message: %s, %v", m.Payload(), err)
+	// 	return
+	// }
 
 	_ = ants.Submit(func() {
 		if err := s.UpdateDeviceLastReport(context.Background(), id, time.Now(), data); err != nil {

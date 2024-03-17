@@ -8,9 +8,9 @@ import (
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	json "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/proto"
 )
 
 var (
@@ -63,7 +63,14 @@ func ClientRun(cmd *cobra.Command, args []string) {
 			Temperature: rand.Float32() * 40,
 		}
 		log.Infof("publish data: %+v", data)
-		bytes, err := proto.Marshal(data)
+
+		// bytes, err := proto.Marshal(data)
+		// if err != nil {
+		// 	log.Errorf("failed to marshal data: %v", err)
+		// 	continue
+		// }
+
+		bytes, err := json.Marshal(data)
 		if err != nil {
 			log.Errorf("failed to marshal data: %v", err)
 			continue
