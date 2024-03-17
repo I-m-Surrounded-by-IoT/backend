@@ -58,7 +58,7 @@ type TcpServer struct {
 func NewTcpServer(conf *conf.TcpServer, handler TCPHandler) *TcpServer {
 	l, err := net.Listen("tcp", conf.Addr)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to listen tcp: %v", err)
 	}
 	return &TcpServer{
 		l:       l,
@@ -177,7 +177,7 @@ func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 
 	l, err := net.Listen("tcp", config.Addr)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to listen tcp: %v", err)
 	}
 
 	var hopts = []ghttp.ServerOption{
@@ -203,20 +203,19 @@ func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 		var rootCAs *x509.CertPool
 		rootCAs, err := x509.SystemCertPool()
 		if err != nil {
-			fmt.Println("Failed to load system root CA:", err)
-			panic(err)
+			logrus.Fatalf("failed to load system root CA: %v", err)
 		}
 		if config.Tls.CaFile != "" {
 			b, err := os.ReadFile(config.Tls.CaFile)
 			if err != nil {
-				panic(err)
+				logrus.Fatalf("failed to read CA file: %v", err)
 			}
 			rootCAs.AppendCertsFromPEM(b)
 		}
 
 		cert, err := tls.LoadX509KeyPair(config.Tls.CertFile, config.Tls.KeyFile)
 		if err != nil {
-			panic(err)
+			logrus.Fatalf("failed to load cert and key: %v", err)
 		}
 		hopts = append(hopts, ghttp.TLSConfig(&tls.Config{
 			RootCAs:      rootCAs,
@@ -231,7 +230,7 @@ func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 	if config.CustomEndpoint != "" {
 		u, err := url.Parse(config.CustomEndpoint)
 		if err != nil {
-			panic(err)
+			logrus.Fatalf("failed to parse custom endpoint: %v", err)
 		}
 		var (
 			hu = *u
@@ -252,7 +251,7 @@ func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 				gu.Scheme = "grpc"
 			}
 		} else {
-			panic("invalid custom endpoint scheme: " + u.Scheme)
+			logrus.Fatalf("invalid custom endpoint scheme: %s", u.Scheme)
 		}
 		hopts = append(hopts, ghttp.Endpoint(&hu))
 		gopts = append(gopts, ggrpc.Endpoint(&gu))

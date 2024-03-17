@@ -22,6 +22,7 @@ import (
 	json "github.com/json-iterator/go"
 	"github.com/panjf2000/ants/v2"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"github.com/zijiren233/timewheel-redis"
@@ -88,7 +89,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		Endpoint: "discovery:///device",
 	}, etcd)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to create grpc conn: %v", err)
 	}
 	s.deviceClient = device.NewDeviceClient(cc)
 

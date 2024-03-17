@@ -101,12 +101,12 @@ func Server(cmd *cobra.Command, args []string) {
 
 	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Config, uc.Redis, logger)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to new app: %v", err)
 	}
 	defer cleanup()
 
 	if err := app.Run(); err != nil {
-		panic(err)
+		logrus.Fatalf("failed to run app: %v", err)
 	}
 }
 

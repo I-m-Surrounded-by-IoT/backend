@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
+	"github.com/sirupsen/logrus"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -18,7 +19,7 @@ func newEtcd(c *conf.Registry_Etcd) *clientv3.Client {
 		DialTimeout: c.Timeout.AsDuration(),
 	})
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to create etcd client: %v", err)
 	}
 	return client
 }

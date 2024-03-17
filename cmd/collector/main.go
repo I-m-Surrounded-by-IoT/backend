@@ -29,7 +29,7 @@ var (
 func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
 	es, err := gs.Endpoints()
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to get endpoints: %v", err)
 	}
 	return kratos.New(
 		kratos.ID(id),
@@ -71,15 +71,15 @@ func Server(cmd *cobra.Command, args []string) {
 		defer c.Close()
 
 		if err := c.Load(); err != nil {
-			panic(err)
+			logrus.Fatalf("error loading config: %v", err)
 		}
 		if err := c.Scan(&bc); err != nil {
-			panic(err)
+			logrus.Fatalf("error parsing config: %v", err)
 		}
 	}
 
 	if err := env.Parse(&bc); err != nil {
-		panic(err)
+		logrus.Fatalf("error parsing config: %v", err)
 	}
 	if err := env.ParseWithOptions(&bc, env.Options{
 		Prefix: "COLLECTOR_",
@@ -93,12 +93,12 @@ func Server(cmd *cobra.Command, args []string) {
 
 	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Config, bc.Kafka, bc.Redis, logger)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to new app: %v", err)
 	}
 	defer cleanup()
 
 	if err := app.Run(); err != nil {
-		panic(err)
+		logrus.Fatalf("failed to run app: %v", err)
 	}
 }
 

@@ -30,7 +30,7 @@ var (
 func newApp(logger log.Logger, s *utils.GrpcGatewayServer, c *collection.CollectionConsumerServer, r registry.Registrar) *kratos.App {
 	es, err := s.Endpoints()
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to get endpoints: %v", err)
 	}
 	return kratos.New(
 		kratos.ID(id),
@@ -95,12 +95,12 @@ func Server(cmd *cobra.Command, args []string) {
 
 	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, bc.Config, logger)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to new app: %v", err)
 	}
 	defer cleanup()
 
 	if err := app.Run(); err != nil {
-		panic(err)
+		logrus.Fatalf("failed to run app: %v", err)
 	}
 }
 
