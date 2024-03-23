@@ -39,3 +39,7 @@ func (u *dbUtils) CountCollectionRecord(scopes ...func(*gorm.DB) *gorm.DB) (int6
 func (u *dbUtils) CreateCollectionRecord(collection *model.CollectionRecord) error {
 	return u.db.Create(collection).Error
 }
+
+func (u *dbUtils) UpdateCollectionRecordLevel(deviceID uint64, level int64) error {
+	return u.db.Model(&model.CollectionRecord{}).Where("device_id = ?", deviceID).Update("level", level).Error
+}

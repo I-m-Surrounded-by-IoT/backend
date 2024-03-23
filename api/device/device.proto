@@ -77,19 +77,6 @@ service Device {
       get : "/device/mac/{mac}/id"
     };
   }
-
-  rpc UpdateDeviceLastReport(UpdateDeviceLastReportReq) returns (Empty) {
-    option (google.api.http) = {
-      post : "/device/{id}/update_last_report"
-      body : "*"
-    };
-  }
-
-  rpc GetDeviceLastReport(GetDeviceLastReportReq) returns (DeviceLastReport) {
-    option (google.api.http) = {
-      get : "/device/{id}/last_report"
-    };
-  }
 }
 
 message Empty {}
@@ -120,22 +107,6 @@ message UpdateDeviceLastSeenReq {
 }
 
 message GetDeviceLastSeenReq { uint64 id = 1; }
-
-message DeviceLastReport {
-  int64 last_report_at = 1; // @gotags: redis:"at" json:"lastReportAt"
-  int64 timestamp = 2; // @gotags: redis:"timestamp" json:"lastReportTimestamp"
-  double lat = 3;      // @gotags: redis:"lat,omitempty" json:"lastReportLat"
-  double lon = 4;      // @gotags: redis:"lon,omitempty" json:"lastReportLon"
-  float temperature =
-      5; // @gotags: redis:"temperature,omitempty" json:"lastReportTemperature"
-}
-
-message UpdateDeviceLastReportReq {
-  uint64 id = 1;
-  DeviceLastReport last_report = 2;
-}
-
-message GetDeviceLastReportReq { uint64 id = 1; }
 
 message GetDeviceInfoByMacReq {
   string mac = 1;

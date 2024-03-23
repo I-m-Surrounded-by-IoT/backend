@@ -230,14 +230,6 @@ func (s *DeviceService) GetDeviceLastSeen(ctx context.Context, req *device.GetDe
 	return s.drcache.GetDeviceLastSeen(ctx, req.Id)
 }
 
-func (s *DeviceService) UpdateDeviceLastReport(ctx context.Context, req *device.UpdateDeviceLastReportReq) (*device.Empty, error) {
-	return &device.Empty{}, s.drcache.UpdateDeviceLastReport(ctx, req.Id, req.LastReport)
-}
-
-func (s *DeviceService) GetDeviceLastReport(ctx context.Context, req *device.GetDeviceLastReportReq) (*device.DeviceLastReport, error) {
-	return s.drcache.GetDeviceLastReport(ctx, req.Id)
-}
-
 func (s *DeviceService) SetDevicePassword(ctx context.Context, req *device.SetDevicePasswordReq) (*device.Empty, error) {
 	return &device.Empty{}, s.emqxCli.CreateUsername(ctx, emqx.PasswordBased_BuildInDatabase, strconv.FormatUint(req.Id, 10), req.Password)
 }

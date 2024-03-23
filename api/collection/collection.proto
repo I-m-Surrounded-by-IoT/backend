@@ -6,9 +6,10 @@ option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection;col
 
 import "google/api/annotations.proto";
 import "collection/device_message.proto";
+import "waterquality/waterquality.proto";
 
 service Collection {
-  rpc CreateCollectionRecord(CollectionRecord) returns (Empty) {
+  rpc CreateCollectionRecord(CreateCollectionRecordReq) returns (Empty) {
     option (google.api.http) = {
       post : "/collection/record"
       body : "*"
@@ -22,8 +23,15 @@ service Collection {
     };
   }
 
+  rpc GetPredictQuality(GetPredictQualityReq)
+      returns (waterquality.PredictAndGuessResp) {
+    option (google.api.http) = {
+      get : "/collection/predict_quality"
+    };
+  }
+
   rpc GetDeviceStreamReport(GetDeviceStreamReportReq)
-      returns (stream CollectionData) {
+      returns (stream CreateCollectionRecordReq) {
     option (google.api.http) = {
       post : "/collection/get_device_stream_report"
       body : "*"
@@ -37,13 +45,27 @@ service Collection {
       body : "*"
     };
   }
+
+  rpc GetDeviceLastReport(GetDeviceLastReportReq) returns (DeviceLastReport) {
+    option (google.api.http) = {
+      get : "/device/{id}/last_report"
+    };
+  }
+}
+
+message CreateCollectionRecordReq {
+  uint64 device_id = 1; // @gotags: form:"deviceId" json:"deviceId"
+  CollectionData data = 2;
+  int64 received_at = 3; // @gotags: form:"receivedAt" json:"receivedAt"
 }
 
 message CollectionRecord {
   uint64 id = 1;
-  uint64 device_id = 2; // @gotags: json:"deviceId"
-  int64 created_at = 3; // @gotags: json:"createdAt"
-  CollectionData data = 4;
+  uint64 device_id = 2;  // @gotags: json:"deviceId"
+  int64 created_at = 3;  // @gotags: json:"createdAt"
+  int64 received_at = 4; // @gotags: json:"receivedAt"
+  CollectionData data = 5;
+  int64 level = 6; // @gotags: json:"level"
 }
 
 message Empty {}
@@ -73,6 +95,10 @@ message ListCollectionRecordResp {
   int64 total = 2;
 }
 
+message GetPredictQualityReq {
+  uint64 device_id = 1; // @gotags: form:"deviceId" json:"deviceId"
+}
+
 message GetDeviceStreamReportReq {
   uint64 id = 1; // @gotags: form:"id"
 }
@@ -87,3 +113,11 @@ message GetDeviceStreamEventResp {
   string message = 2;  // @gotags: json:"message"
   int64 timestamp = 3; // @gotags: json:"timestamp"
 }
+
+message DeviceLastReport {
+  int64 received_at = 1;   // @gotags: json:"receivedAt"
+  CollectionData data = 2; // @gotags: redis:"data" json:"data"
+  int64 level = 3;         // @gotags: json:"level"
+}
+
+message GetDeviceLastReportReq { uint64 id = 1; }

@@ -19,19 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Device_GetDeviceInfo_FullMethodName          = "/api.device.Device/GetDeviceInfo"
-	Device_GetDeviceInfoByMac_FullMethodName     = "/api.device.Device/GetDeviceInfoByMac"
-	Device_RegisterDevice_FullMethodName         = "/api.device.Device/RegisterDevice"
-	Device_SetDevicePassword_FullMethodName      = "/api.device.Device/SetDevicePassword"
-	Device_DeleteDevice_FullMethodName           = "/api.device.Device/DeleteDevice"
-	Device_ListDeletedDeviceInfo_FullMethodName  = "/api.device.Device/ListDeletedDeviceInfo"
-	Device_UnDeleteDevice_FullMethodName         = "/api.device.Device/UnDeleteDevice"
-	Device_ListDevice_FullMethodName             = "/api.device.Device/ListDevice"
-	Device_UpdateDeviceLastSeen_FullMethodName   = "/api.device.Device/UpdateDeviceLastSeen"
-	Device_GetDeviceLastSeen_FullMethodName      = "/api.device.Device/GetDeviceLastSeen"
-	Device_GetDeviceID_FullMethodName            = "/api.device.Device/GetDeviceID"
-	Device_UpdateDeviceLastReport_FullMethodName = "/api.device.Device/UpdateDeviceLastReport"
-	Device_GetDeviceLastReport_FullMethodName    = "/api.device.Device/GetDeviceLastReport"
+	Device_GetDeviceInfo_FullMethodName         = "/api.device.Device/GetDeviceInfo"
+	Device_GetDeviceInfoByMac_FullMethodName    = "/api.device.Device/GetDeviceInfoByMac"
+	Device_RegisterDevice_FullMethodName        = "/api.device.Device/RegisterDevice"
+	Device_SetDevicePassword_FullMethodName     = "/api.device.Device/SetDevicePassword"
+	Device_DeleteDevice_FullMethodName          = "/api.device.Device/DeleteDevice"
+	Device_ListDeletedDeviceInfo_FullMethodName = "/api.device.Device/ListDeletedDeviceInfo"
+	Device_UnDeleteDevice_FullMethodName        = "/api.device.Device/UnDeleteDevice"
+	Device_ListDevice_FullMethodName            = "/api.device.Device/ListDevice"
+	Device_UpdateDeviceLastSeen_FullMethodName  = "/api.device.Device/UpdateDeviceLastSeen"
+	Device_GetDeviceLastSeen_FullMethodName     = "/api.device.Device/GetDeviceLastSeen"
+	Device_GetDeviceID_FullMethodName           = "/api.device.Device/GetDeviceID"
 )
 
 // DeviceClient is the client API for Device service.
@@ -49,8 +47,6 @@ type DeviceClient interface {
 	UpdateDeviceLastSeen(ctx context.Context, in *UpdateDeviceLastSeenReq, opts ...grpc.CallOption) (*Empty, error)
 	GetDeviceLastSeen(ctx context.Context, in *GetDeviceLastSeenReq, opts ...grpc.CallOption) (*DeviceLastSeen, error)
 	GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts ...grpc.CallOption) (*DeviceInfo, error)
-	UpdateDeviceLastReport(ctx context.Context, in *UpdateDeviceLastReportReq, opts ...grpc.CallOption) (*Empty, error)
-	GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error)
 }
 
 type deviceClient struct {
@@ -160,24 +156,6 @@ func (c *deviceClient) GetDeviceID(ctx context.Context, in *GetDeviceIDReq, opts
 	return out, nil
 }
 
-func (c *deviceClient) UpdateDeviceLastReport(ctx context.Context, in *UpdateDeviceLastReportReq, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, Device_UpdateDeviceLastReport_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *deviceClient) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error) {
-	out := new(DeviceLastReport)
-	err := c.cc.Invoke(ctx, Device_GetDeviceLastReport_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // DeviceServer is the server API for Device service.
 // All implementations must embed UnimplementedDeviceServer
 // for forward compatibility
@@ -193,8 +171,6 @@ type DeviceServer interface {
 	UpdateDeviceLastSeen(context.Context, *UpdateDeviceLastSeenReq) (*Empty, error)
 	GetDeviceLastSeen(context.Context, *GetDeviceLastSeenReq) (*DeviceLastSeen, error)
 	GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error)
-	UpdateDeviceLastReport(context.Context, *UpdateDeviceLastReportReq) (*Empty, error)
-	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
 	mustEmbedUnimplementedDeviceServer()
 }
 
@@ -234,12 +210,6 @@ func (UnimplementedDeviceServer) GetDeviceLastSeen(context.Context, *GetDeviceLa
 }
 func (UnimplementedDeviceServer) GetDeviceID(context.Context, *GetDeviceIDReq) (*DeviceInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceID not implemented")
-}
-func (UnimplementedDeviceServer) UpdateDeviceLastReport(context.Context, *UpdateDeviceLastReportReq) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateDeviceLastReport not implemented")
-}
-func (UnimplementedDeviceServer) GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLastReport not implemented")
 }
 func (UnimplementedDeviceServer) mustEmbedUnimplementedDeviceServer() {}
 
@@ -452,42 +422,6 @@ func _Device_GetDeviceID_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Device_UpdateDeviceLastReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateDeviceLastReportReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DeviceServer).UpdateDeviceLastReport(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Device_UpdateDeviceLastReport_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).UpdateDeviceLastReport(ctx, req.(*UpdateDeviceLastReportReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Device_GetDeviceLastReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDeviceLastReportReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DeviceServer).GetDeviceLastReport(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Device_GetDeviceLastReport_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceServer).GetDeviceLastReport(ctx, req.(*GetDeviceLastReportReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Device_ServiceDesc is the grpc.ServiceDesc for Device service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -538,14 +472,6 @@ var Device_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDeviceID",
 			Handler:    _Device_GetDeviceID_Handler,
-		},
-		{
-			MethodName: "UpdateDeviceLastReport",
-			Handler:    _Device_UpdateDeviceLastReport_Handler,
-		},
-		{
-			MethodName: "GetDeviceLastReport",
-			Handler:    _Device_GetDeviceLastReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

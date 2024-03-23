@@ -16,17 +16,17 @@ const (
 	KafkaTopicDeviceReport = "device-report"
 )
 
-func KafkaTopicDeviceReportUnmarshal(data []byte) (*collection.CollectionData, error) {
-	v := &collection.CollectionData{}
+func KafkaTopicDeviceReportUnmarshal(data []byte) (*collection.CreateCollectionRecordReq, error) {
+	v := &collection.CreateCollectionRecordReq{}
 	err := proto.Unmarshal(data, v)
 	return v, err
 }
 
-func KafkaTopicDeviceReportUnmarshalTo(data []byte, v *collection.CollectionData) error {
+func KafkaTopicDeviceReportUnmarshalTo(data []byte, v *collection.CreateCollectionRecordReq) error {
 	return proto.Unmarshal(data, v)
 }
 
-func KafkaTopicDeviceReportSend(kc sarama.AsyncProducer, deviceID uint64, data *collection.CollectionData) error {
+func KafkaTopicDeviceReportSend(kc sarama.AsyncProducer, deviceID uint64, data *collection.CreateCollectionRecordReq) error {
 	bytes, err := proto.Marshal(data)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func KafkaTopicDeviceReportSend(kc sarama.AsyncProducer, deviceID uint64, data *
 			Topic:     topic,
 			Key:       sarama.StringEncoder(strconv.FormatUint(deviceID, 10)),
 			Value:     sarama.ByteEncoder(bytes),
-			Timestamp: time.UnixMilli(data.Timestamp),
+			Timestamp: time.UnixMilli(data.Data.Timestamp),
 		}
 	}
 	return nil

@@ -77,7 +77,24 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collection.CollectionData'
+                                $ref: '#/components/schemas/api.collection.CreateCollectionRecordReq'
+    /collection/predict_quality:
+        get:
+            tags:
+                - Collection
+            operationId: Collection_GetPredictQuality
+            parameters:
+                - name: deviceId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.waterquality.PredictAndGuessResp'
     /collection/record:
         get:
             tags:
@@ -129,7 +146,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.collection.CollectionRecord'
+                            $ref: '#/components/schemas/api.collection.CreateCollectionRecordReq'
                 required: true
             responses:
                 "200":
@@ -378,8 +395,8 @@ paths:
     /device/{id}/last_report:
         get:
             tags:
-                - Device
-            operationId: Device_GetDeviceLastReport
+                - Collection
+            operationId: Collection_GetDeviceLastReport
             parameters:
                 - name: id
                   in: path
@@ -392,7 +409,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.device.DeviceLastReport'
+                                $ref: '#/components/schemas/api.collection.DeviceLastReport'
     /device/{id}/last_seen:
         get:
             tags:
@@ -451,30 +468,6 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/api.device.UnDeleteDeviceReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.device.Empty'
-    /device/{id}/update_last_report:
-        post:
-            tags:
-                - Device
-            operationId: Device_UpdateDeviceLastReport
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.device.UpdateDeviceLastReportReq'
                 required: true
             responses:
                 "200":
@@ -1125,6 +1118,9 @@ components:
                 temperature:
                     type: number
                     format: float
+                ph:
+                    type: number
+                    format: float
         api.collection.CollectionRecord:
             type: object
             properties:
@@ -1134,8 +1130,30 @@ components:
                     type: string
                 createdAt:
                     type: string
+                receivedAt:
+                    type: string
                 data:
                     $ref: '#/components/schemas/api.collection.CollectionData'
+                level:
+                    type: string
+        api.collection.CreateCollectionRecordReq:
+            type: object
+            properties:
+                deviceId:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/api.collection.CollectionData'
+                receivedAt:
+                    type: string
+        api.collection.DeviceLastReport:
+            type: object
+            properties:
+                receivedAt:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/api.collection.CollectionData'
+                level:
+                    type: string
         api.collection.Empty:
             type: object
             properties: {}
@@ -1214,22 +1232,6 @@ components:
                     type: string
                 comment:
                     type: string
-        api.device.DeviceLastReport:
-            type: object
-            properties:
-                lastReportAt:
-                    type: string
-                timestamp:
-                    type: string
-                lat:
-                    type: number
-                    format: double
-                lon:
-                    type: number
-                    format: double
-                temperature:
-                    type: number
-                    format: float
         api.device.DeviceLastSeen:
             type: object
             properties:
@@ -1269,13 +1271,6 @@ components:
             properties:
                 id:
                     type: string
-        api.device.UpdateDeviceLastReportReq:
-            type: object
-            properties:
-                id:
-                    type: string
-                lastReport:
-                    $ref: '#/components/schemas/api.device.DeviceLastReport'
         api.device.UpdateDeviceLastSeenReq:
             type: object
             properties:
@@ -1530,6 +1525,28 @@ components:
             properties:
                 valid:
                     type: boolean
+        api.waterquality.PredictAndGuessResp:
+            type: object
+            properties:
+                qualities:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.waterquality.Quality'
+                level:
+                    type: array
+                    items:
+                        type: string
+        api.waterquality.Quality:
+            type: object
+            properties:
+                timestamp:
+                    type: string
+                temperature:
+                    type: number
+                    format: float
+                ph:
+                    type: number
+                    format: float
 tags:
     - name: Captcha
     - name: Collection

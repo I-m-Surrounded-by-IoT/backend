@@ -62,6 +62,7 @@ func Server(cmd *cobra.Command, args []string) {
 		Registry: conf.DefaultRegistry(),
 		Config:   &conf.CollectionConfig{},
 		Kafka:    conf.DefaultKafka(),
+		Redis:    &conf.RedisConfig{},
 	}
 
 	if flagconf != "" {
@@ -93,7 +94,7 @@ func Server(cmd *cobra.Command, args []string) {
 
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
-	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, bc.Config, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Kafka, bc.Config, bc.Redis, logger)
 	if err != nil {
 		logrus.Fatalf("failed to new app: %v", err)
 	}

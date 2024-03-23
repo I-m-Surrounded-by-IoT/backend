@@ -12,11 +12,18 @@ import (
 )
 
 type CollectionRecord struct {
-	DeviceID    uint64    `gorm:"primarykey"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	Timestamp   time.Time `gorm:"primarykey"`
+	DeviceID        uint64    `gorm:"primarykey"`
+	CreatedAt       time.Time `gorm:"autoCreateTime"`
+	ReceivedAt      time.Time
+	*CollectionData `gorm:"embedded"`
+	Level           int64 `gorm:"default:-1"`
+}
+
+type CollectionData struct {
+	Timestamp   time.Time `gorm:"primarykey" redis:"timestamp"`
 	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326);index:,type:gist"`
-	Temperature float32   `gorm:"not null"`
+	Temperature float32
+	Ph          float32
 }
 
 type GeoPoint struct {

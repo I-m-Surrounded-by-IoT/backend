@@ -8,6 +8,7 @@ package collection
 
 import (
 	context "context"
+	waterquality "github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,18 +22,22 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Collection_CreateCollectionRecord_FullMethodName = "/api.collection.Collection/CreateCollectionRecord"
 	Collection_ListCollectionRecord_FullMethodName   = "/api.collection.Collection/ListCollectionRecord"
+	Collection_GetPredictQuality_FullMethodName      = "/api.collection.Collection/GetPredictQuality"
 	Collection_GetDeviceStreamReport_FullMethodName  = "/api.collection.Collection/GetDeviceStreamReport"
 	Collection_GetDeviceStreamEvent_FullMethodName   = "/api.collection.Collection/GetDeviceStreamEvent"
+	Collection_GetDeviceLastReport_FullMethodName    = "/api.collection.Collection/GetDeviceLastReport"
 )
 
 // CollectionClient is the client API for Collection service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectionClient interface {
-	CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...grpc.CallOption) (*Empty, error)
+	CreateCollectionRecord(ctx context.Context, in *CreateCollectionRecordReq, opts ...grpc.CallOption) (*Empty, error)
 	ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...grpc.CallOption) (*ListCollectionRecordResp, error)
+	GetPredictQuality(ctx context.Context, in *GetPredictQualityReq, opts ...grpc.CallOption) (*waterquality.PredictAndGuessResp, error)
 	GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamReportClient, error)
 	GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamEventClient, error)
+	GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error)
 }
 
 type collectionClient struct {
@@ -43,7 +48,7 @@ func NewCollectionClient(cc grpc.ClientConnInterface) CollectionClient {
 	return &collectionClient{cc}
 }
 
-func (c *collectionClient) CreateCollectionRecord(ctx context.Context, in *CollectionRecord, opts ...grpc.CallOption) (*Empty, error) {
+func (c *collectionClient) CreateCollectionRecord(ctx context.Context, in *CreateCollectionRecordReq, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, Collection_CreateCollectionRecord_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -55,6 +60,15 @@ func (c *collectionClient) CreateCollectionRecord(ctx context.Context, in *Colle
 func (c *collectionClient) ListCollectionRecord(ctx context.Context, in *ListCollectionRecordReq, opts ...grpc.CallOption) (*ListCollectionRecordResp, error) {
 	out := new(ListCollectionRecordResp)
 	err := c.cc.Invoke(ctx, Collection_ListCollectionRecord_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *collectionClient) GetPredictQuality(ctx context.Context, in *GetPredictQualityReq, opts ...grpc.CallOption) (*waterquality.PredictAndGuessResp, error) {
+	out := new(waterquality.PredictAndGuessResp)
+	err := c.cc.Invoke(ctx, Collection_GetPredictQuality_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +91,7 @@ func (c *collectionClient) GetDeviceStreamReport(ctx context.Context, in *GetDev
 }
 
 type Collection_GetDeviceStreamReportClient interface {
-	Recv() (*CollectionData, error)
+	Recv() (*CreateCollectionRecordReq, error)
 	grpc.ClientStream
 }
 
@@ -85,8 +99,8 @@ type collectionGetDeviceStreamReportClient struct {
 	grpc.ClientStream
 }
 
-func (x *collectionGetDeviceStreamReportClient) Recv() (*CollectionData, error) {
-	m := new(CollectionData)
+func (x *collectionGetDeviceStreamReportClient) Recv() (*CreateCollectionRecordReq, error) {
+	m := new(CreateCollectionRecordReq)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -125,14 +139,25 @@ func (x *collectionGetDeviceStreamEventClient) Recv() (*GetDeviceStreamEventResp
 	return m, nil
 }
 
+func (c *collectionClient) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error) {
+	out := new(DeviceLastReport)
+	err := c.cc.Invoke(ctx, Collection_GetDeviceLastReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CollectionServer is the server API for Collection service.
 // All implementations must embed UnimplementedCollectionServer
 // for forward compatibility
 type CollectionServer interface {
-	CreateCollectionRecord(context.Context, *CollectionRecord) (*Empty, error)
+	CreateCollectionRecord(context.Context, *CreateCollectionRecordReq) (*Empty, error)
 	ListCollectionRecord(context.Context, *ListCollectionRecordReq) (*ListCollectionRecordResp, error)
+	GetPredictQuality(context.Context, *GetPredictQualityReq) (*waterquality.PredictAndGuessResp, error)
 	GetDeviceStreamReport(*GetDeviceStreamReportReq, Collection_GetDeviceStreamReportServer) error
 	GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error
+	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
 	mustEmbedUnimplementedCollectionServer()
 }
 
@@ -140,17 +165,23 @@ type CollectionServer interface {
 type UnimplementedCollectionServer struct {
 }
 
-func (UnimplementedCollectionServer) CreateCollectionRecord(context.Context, *CollectionRecord) (*Empty, error) {
+func (UnimplementedCollectionServer) CreateCollectionRecord(context.Context, *CreateCollectionRecordReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCollectionRecord not implemented")
 }
 func (UnimplementedCollectionServer) ListCollectionRecord(context.Context, *ListCollectionRecordReq) (*ListCollectionRecordResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCollectionRecord not implemented")
+}
+func (UnimplementedCollectionServer) GetPredictQuality(context.Context, *GetPredictQualityReq) (*waterquality.PredictAndGuessResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPredictQuality not implemented")
 }
 func (UnimplementedCollectionServer) GetDeviceStreamReport(*GetDeviceStreamReportReq, Collection_GetDeviceStreamReportServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamReport not implemented")
 }
 func (UnimplementedCollectionServer) GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamEvent not implemented")
+}
+func (UnimplementedCollectionServer) GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLastReport not implemented")
 }
 func (UnimplementedCollectionServer) mustEmbedUnimplementedCollectionServer() {}
 
@@ -166,7 +197,7 @@ func RegisterCollectionServer(s grpc.ServiceRegistrar, srv CollectionServer) {
 }
 
 func _Collection_CreateCollectionRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CollectionRecord)
+	in := new(CreateCollectionRecordReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -178,7 +209,7 @@ func _Collection_CreateCollectionRecord_Handler(srv interface{}, ctx context.Con
 		FullMethod: Collection_CreateCollectionRecord_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CollectionServer).CreateCollectionRecord(ctx, req.(*CollectionRecord))
+		return srv.(CollectionServer).CreateCollectionRecord(ctx, req.(*CreateCollectionRecordReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -201,6 +232,24 @@ func _Collection_ListCollectionRecord_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Collection_GetPredictQuality_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPredictQualityReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CollectionServer).GetPredictQuality(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Collection_GetPredictQuality_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CollectionServer).GetPredictQuality(ctx, req.(*GetPredictQualityReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Collection_GetDeviceStreamReport_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(GetDeviceStreamReportReq)
 	if err := stream.RecvMsg(m); err != nil {
@@ -210,7 +259,7 @@ func _Collection_GetDeviceStreamReport_Handler(srv interface{}, stream grpc.Serv
 }
 
 type Collection_GetDeviceStreamReportServer interface {
-	Send(*CollectionData) error
+	Send(*CreateCollectionRecordReq) error
 	grpc.ServerStream
 }
 
@@ -218,7 +267,7 @@ type collectionGetDeviceStreamReportServer struct {
 	grpc.ServerStream
 }
 
-func (x *collectionGetDeviceStreamReportServer) Send(m *CollectionData) error {
+func (x *collectionGetDeviceStreamReportServer) Send(m *CreateCollectionRecordReq) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -243,6 +292,24 @@ func (x *collectionGetDeviceStreamEventServer) Send(m *GetDeviceStreamEventResp)
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Collection_GetDeviceLastReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceLastReportReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CollectionServer).GetDeviceLastReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Collection_GetDeviceLastReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CollectionServer).GetDeviceLastReport(ctx, req.(*GetDeviceLastReportReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Collection_ServiceDesc is the grpc.ServiceDesc for Collection service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -257,6 +324,14 @@ var Collection_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCollectionRecord",
 			Handler:    _Collection_ListCollectionRecord_Handler,
+		},
+		{
+			MethodName: "GetPredictQuality",
+			Handler:    _Collection_GetPredictQuality_Handler,
+		},
+		{
+			MethodName: "GetDeviceLastReport",
+			Handler:    _Collection_GetDeviceLastReport_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

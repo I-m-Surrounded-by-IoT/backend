@@ -223,8 +223,26 @@ func (dc *DeviceRcache) DelDeviceExtraCache(ctx context.Context, id uint64) erro
 	return dc.rcache.Del(ctx, fmt.Sprintf("device:last:seen:%d", id)).Err()
 }
 
+var updateDeviceLastReportScript = redis.NewScript(`
+local key = KEYS[1]
+local at = ARGV[1]
+local ip = ARGV[2]
+
+local last = redis.call('HGET', key, 'at')
+if last == false or last < at then
+	redis.call('HMSET', key, 'at', at, 'ip', ip)
+end
+return 0
+`)
+
 func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
-	return dc.rcache.HSet(ctx, fmt.Sprintf("device:last:seen:%d", id), lastSeen).Err()
+	return updateDeviceLastReportScript.Run(
+		ctx,
+		dc.rcache,
+		[]string{fmt.Sprintf("device:last:seen:%d", id)},
+		lastSeen.LastSeenAt,
+		lastSeen.LastSeenIp,
+	).Err()
 }
 
 func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*device.DeviceLastSeen, error) {
@@ -241,24 +259,4 @@ func (dc *DeviceRcache) GetDeviceLastSeen(ctx context.Context, id uint64) (*devi
 		return nil, err
 	}
 	return lastSeen, nil
-}
-
-func (dc *DeviceRcache) UpdateDeviceLastReport(ctx context.Context, id uint64, lastlocal *device.DeviceLastReport) error {
-	return dc.rcache.HSet(ctx, fmt.Sprintf("device:last:report:%d", id), lastlocal).Err()
-}
-
-func (dc *DeviceRcache) GetDeviceLastReport(ctx context.Context, id uint64) (*device.DeviceLastReport, error) {
-	resp := dc.rcache.HGetAll(ctx, fmt.Sprintf("device:last:report:%d", id))
-	if resp.Err() != nil {
-		if resp.Err() == redis.Nil {
-			return &device.DeviceLastReport{}, nil
-		}
-		return nil, resp.Err()
-	}
-	lastReport := &device.DeviceLastReport{}
-	err := resp.Scan(lastReport)
-	if err != nil {
-		return nil, err
-	}
-	return lastReport, nil
 }

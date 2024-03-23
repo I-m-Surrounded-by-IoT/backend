@@ -20,6 +20,7 @@ typedef struct _api_collection_CollectionData {
     bool has_geo_point;
     api_collection_GeoPoint geo_point; /* @gotags: json:"geoPoint" */
     float temperature; /* @gotags: json:"temperature" */
+    float ph; /* @gotags: json:"ph" */
 } api_collection_CollectionData;
 
 
@@ -29,9 +30,9 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define api_collection_GeoPoint_init_default     {0, 0}
-#define api_collection_CollectionData_init_default {0, false, api_collection_GeoPoint_init_default, 0}
+#define api_collection_CollectionData_init_default {0, false, api_collection_GeoPoint_init_default, 0, 0}
 #define api_collection_GeoPoint_init_zero        {0, 0}
-#define api_collection_CollectionData_init_zero  {0, false, api_collection_GeoPoint_init_zero, 0}
+#define api_collection_CollectionData_init_zero  {0, false, api_collection_GeoPoint_init_zero, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define api_collection_GeoPoint_lat_tag          1
@@ -39,6 +40,7 @@ extern "C" {
 #define api_collection_CollectionData_timestamp_tag 1
 #define api_collection_CollectionData_geo_point_tag 2
 #define api_collection_CollectionData_temperature_tag 3
+#define api_collection_CollectionData_ph_tag     4
 
 /* Struct field encoding specification for nanopb */
 #define api_collection_GeoPoint_FIELDLIST(X, a) \
@@ -50,7 +52,8 @@ X(a, STATIC,   SINGULAR, DOUBLE,   lon,               2)
 #define api_collection_CollectionData_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT64,    timestamp,         1) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  geo_point,         2) \
-X(a, STATIC,   SINGULAR, FLOAT,    temperature,       3)
+X(a, STATIC,   SINGULAR, FLOAT,    temperature,       3) \
+X(a, STATIC,   SINGULAR, FLOAT,    ph,                4)
 #define api_collection_CollectionData_CALLBACK NULL
 #define api_collection_CollectionData_DEFAULT NULL
 #define api_collection_CollectionData_geo_point_MSGTYPE api_collection_GeoPoint
@@ -64,7 +67,7 @@ extern const pb_msgdesc_t api_collection_CollectionData_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define API_COLLECTION_API_COLLECTION_DEVICE_MESSAGE_PB_H_MAX_SIZE api_collection_CollectionData_size
-#define api_collection_CollectionData_size       36
+#define api_collection_CollectionData_size       41
 #define api_collection_GeoPoint_size             18
 
 #ifdef __cplusplus

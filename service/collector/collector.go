@@ -235,13 +235,11 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 	// 	return
 	// }
 
-	_ = ants.Submit(func() {
-		if err := s.UpdateDeviceLastReport(context.Background(), id, time.Now(), data); err != nil {
-			log.Errorf("failed to update device last report: %v", err)
-		}
+	err = service.KafkaTopicDeviceReportSend(s.kafkaProducer, id, &collection.CreateCollectionRecordReq{
+		DeviceId:   id,
+		Data:       data,
+		ReceivedAt: time.Now().UnixMilli(),
 	})
-
-	err = service.KafkaTopicDeviceReportSend(s.kafkaProducer, id, data)
 	if err != nil {
 		log.Errorf("failed to send report message to kafka: %v", err)
 		return
@@ -338,22 +336,5 @@ func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, 
 			LastSeenIp: ip,
 		},
 	})
-	return err
-}
-
-func (c *CollectorService) UpdateDeviceLastReport(ctx context.Context, id uint64, t time.Time, data *collection.CollectionData) error {
-	req := &device.UpdateDeviceLastReportReq{
-		Id: id,
-		LastReport: &device.DeviceLastReport{
-			LastReportAt: t.UnixMilli(),
-			Timestamp:    data.Timestamp,
-			Temperature:  data.Temperature,
-		},
-	}
-	if data.GeoPoint != nil {
-		req.LastReport.Lat = data.GeoPoint.Lat
-		req.LastReport.Lon = data.GeoPoint.Lon
-	}
-	_, err := c.deviceClient.UpdateDeviceLastReport(ctx, req)
 	return err
 }

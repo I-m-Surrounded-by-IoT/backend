@@ -52,7 +52,7 @@ func (ws *WebService) GenDeviceDetail(ctx context.Context, id uint64) (*model.Ge
 	}
 	resp.DeviceLastSeen = lastSeen
 
-	lastReport, err := ws.deviceClient.GetDeviceLastReport(ctx, &device.GetDeviceLastReportReq{
+	lastReport, err := ws.collectionClient.GetDeviceLastReport(ctx, &collection.GetDeviceLastReportReq{
 		Id: id,
 	})
 	if err != nil {

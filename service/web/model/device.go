@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 )
 
@@ -11,7 +12,7 @@ type GetDeviceDetailReq struct {
 type GetDeviceDetailResp struct {
 	*device.DeviceInfo
 	*device.DeviceLastSeen
-	*device.DeviceLastReport
+	*collection.DeviceLastReport
 }
 
 type DeviceIDReq struct {

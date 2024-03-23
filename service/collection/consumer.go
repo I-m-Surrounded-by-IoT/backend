@@ -1,11 +1,10 @@
 package collection
 
 import (
+	"context"
 	"strconv"
-	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
-	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/IBM/sarama"
 	log "github.com/sirupsen/logrus"
 	"github.com/zijiren233/stream"
@@ -14,12 +13,12 @@ import (
 var _ sarama.ConsumerGroupHandler = (*CollectionConsumer)(nil)
 
 type CollectionConsumer struct {
-	db *dbUtils
+	s *CollectionService
 }
 
-func NewCollectionConsumer(dbs *CollectionService) *CollectionConsumer {
+func NewCollectionConsumer(s *CollectionService) *CollectionConsumer {
 	return &CollectionConsumer{
-		db: dbs.db,
+		s: s,
 	}
 }
 
@@ -37,7 +36,7 @@ func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, c
 	for {
 		select {
 		case msg := <-msgCh:
-			id, err := strconv.ParseUint(stream.BytesToString(msg.Key), 10, 64)
+			_, err := strconv.ParseUint(stream.BytesToString(msg.Key), 10, 64)
 			if err != nil {
 				log.Errorf("failed to parse device id (%s): %v", stream.BytesToString(msg.Key), err)
 				continue
@@ -47,15 +46,7 @@ func (s *CollectionConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, c
 				log.Errorf("failed to unmarshal device report (%s): %v", msg.Value, err)
 				continue
 			}
-			err = s.db.CreateCollectionRecord(&model.CollectionRecord{
-				DeviceID:  id,
-				Timestamp: time.UnixMilli(data.Timestamp),
-				GeoPoint: model.GeoPoint{
-					Lat: data.GeoPoint.Lat,
-					Lon: data.GeoPoint.Lon,
-				},
-				Temperature: data.Temperature,
-			})
+			_, err = s.s.CreateCollectionRecord(context.Background(), data)
 			if err != nil {
 				log.Errorf("failed to create collection record: %v", err)
 				continue
