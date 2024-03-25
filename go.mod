@@ -8,7 +8,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
 	github.com/emersion/go-smtp v0.20.2
-	github.com/gin-contrib/cors v1.7.0
+	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-kratos/aegis v0.2.0
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240311125537-f566bdc2e6ff
@@ -89,7 +89,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
