@@ -3,7 +3,7 @@ module github.com/I-m-Surrounded-by-IoT/backend
 go 1.21
 
 require (
-	github.com/IBM/sarama v1.43.0
+	github.com/IBM/sarama v1.43.1
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
