@@ -7,14 +7,13 @@ require (
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/emersion/go-sasl v0.0.0-20231106173351-e73c9f7bad43
-	github.com/emersion/go-smtp v0.20.2
+	github.com/emersion/go-smtp v0.21.0
 	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-kratos/aegis v0.2.0
-	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240311125537-f566bdc2e6ff
-	github.com/go-kratos/kratos/v2 v2.7.2
+	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240322155018-41971ffa647a
+	github.com/go-kratos/kratos/v2 v2.7.3
 	github.com/go-redsync/redsync/v4 v4.12.1
-	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
@@ -32,10 +31,10 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.12
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.21.0
-	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225
+	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
 	golang.org/x/net v0.22.0
 	golang.org/x/sync v0.6.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20240311173647-c811ad7063a7
+	google.golang.org/genproto/googleapis/api v0.0.0-20240325203815-454cdb8f5daa
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
 	gorm.io/driver/postgres v1.5.7
@@ -104,6 +103,6 @@ require (
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311173647-c811ad7063a7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

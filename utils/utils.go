@@ -42,7 +42,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 
-	jwtv4 "github.com/golang-jwt/jwt/v4"
+	jwtv5 "github.com/golang-jwt/jwt/v5"
 )
 
 type TCPHandler interface {
@@ -170,9 +170,9 @@ func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
 	middlewares := []middleware.Middleware{recovery.Recovery()}
 	if config.JwtSecret != "" {
 		jwtSecret := []byte(config.JwtSecret)
-		middlewares = append(middlewares, jwt.Server(func(token *jwtv4.Token) (interface{}, error) {
+		middlewares = append(middlewares, jwt.Server(func(token *jwtv5.Token) (interface{}, error) {
 			return jwtSecret, nil
-		}, jwt.WithSigningMethod(jwtv4.SigningMethodHS256)))
+		}, jwt.WithSigningMethod(jwtv5.SigningMethodHS256)))
 	}
 
 	l, err := net.Listen("tcp", config.Addr)
@@ -352,9 +352,9 @@ func NewDiscoveryGrpcConn(ctx context.Context, conf *Backend, d registry.Discove
 
 	if conf.JwtSecret != "" {
 		key := []byte(conf.JwtSecret)
-		middlewares = append(middlewares, jwt.Client(func(token *jwtv4.Token) (interface{}, error) {
+		middlewares = append(middlewares, jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
 			return key, nil
-		}, jwt.WithSigningMethod(jwtv4.SigningMethodHS256)))
+		}, jwt.WithSigningMethod(jwtv5.SigningMethodHS256)))
 	}
 
 	opts := []ggrpc.ClientOption{
@@ -418,9 +418,9 @@ func NewSignalGrpcConn(ctx context.Context, conf *Backend) (*grpc.ClientConn, er
 
 	if conf.JwtSecret != "" {
 		key := []byte(conf.JwtSecret)
-		middlewares = append(middlewares, jwt.Client(func(token *jwtv4.Token) (interface{}, error) {
+		middlewares = append(middlewares, jwt.Client(func(token *jwtv5.Token) (interface{}, error) {
 			return key, nil
-		}, jwt.WithSigningMethod(jwtv4.SigningMethodHS256)))
+		}, jwt.WithSigningMethod(jwtv5.SigningMethodHS256)))
 	}
 
 	opts := []ggrpc.ClientOption{

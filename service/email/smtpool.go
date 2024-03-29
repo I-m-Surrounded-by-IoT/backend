@@ -37,18 +37,19 @@ func validateSmtpConfig(c *conf.SmtpConfig) error {
 }
 
 func newSmtpClient(c *conf.SmtpConfig) (*smtp.Client, error) {
-	cli, err := smtp.Dial(fmt.Sprintf("%s:%d", c.Host, c.Port))
-	if err != nil {
-		return nil, fmt.Errorf("dial smtp server failed: %w", err)
-	}
+	var (
+		cli *smtp.Client
+		err error
+	)
 
 	switch strings.ToUpper(c.Protocol) {
 	case "TLS", "SSL":
-		err = cli.StartTLS(nil)
-		if err != nil {
-			cli.Close()
-			return nil, fmt.Errorf("start tls failed: %w", err)
-		}
+		cli, err = smtp.DialStartTLS(fmt.Sprintf("%s:%d", c.Host, c.Port), nil)
+	default:
+		cli, err = smtp.Dial(fmt.Sprintf("%s:%d", c.Host, c.Port))
+	}
+	if err != nil {
+		return nil, fmt.Errorf("dial smtp server failed: %w", err)
 	}
 
 	err = cli.Auth(sasl.NewLoginClient(c.Username, c.Password))
