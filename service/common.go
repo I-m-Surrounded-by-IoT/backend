@@ -8,6 +8,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/message"
 	"github.com/IBM/sarama"
 	"google.golang.org/protobuf/proto"
 )
@@ -94,4 +95,30 @@ func UnmarshalCollectionData(data []byte) (*collection.CollectionData, error) {
 
 func UnmarshalCollectionDataTo(data []byte, v *collection.CollectionData) error {
 	return proto.Unmarshal(data, v)
+}
+
+const (
+	KafkaTopicMessage = "message"
+)
+
+func KafkaTopicMessageUnmarshal(data []byte) (*message.SendMessageReq, error) {
+	v := &message.SendMessageReq{}
+	err := proto.Unmarshal(data, v)
+	return v, err
+}
+
+func KafkaTopicMessageUnmarshalTo(data []byte, v *message.SendMessageReq) error {
+	return proto.Unmarshal(data, v)
+}
+
+func KafkaTopicMessageSend(kc sarama.AsyncProducer, data *message.SendMessageReq) error {
+	bytes, err := proto.Marshal(data)
+	if err != nil {
+		return err
+	}
+	kc.Input() <- &sarama.ProducerMessage{
+		Topic: KafkaTopicMessage,
+		Value: sarama.ByteEncoder(bytes),
+	}
+	return nil
 }

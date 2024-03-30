@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/I-m-Surrounded-by-IoT/backend/internal/server/message"
 	"github.com/caarlos0/env/v9"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
@@ -26,7 +27,7 @@ var (
 	id, _ = os.Hostname()
 )
 
-func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, ms *message.MessageMQServer, r registry.Registrar) *kratos.App {
 	es, err := gs.Endpoints()
 	if err != nil {
 		logrus.Fatalf("failed to get endpoints: %v", err)
@@ -39,6 +40,7 @@ func newApp(logger log.Logger, gs *utils.GrpcGatewayServer, r registry.Registrar
 		kratos.Logger(logger),
 		kratos.Server(
 			gs,
+			ms,
 		),
 		kratos.Registrar(r),
 		kratos.Endpoint(es...),

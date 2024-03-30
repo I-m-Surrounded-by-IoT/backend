@@ -238,7 +238,7 @@ func (us *UserService) ListFollowedUserIDsByDevice(ctx context.Context, req *use
 }
 
 func (us *UserService) ListFollowedUserEmailsByDevice(ctx context.Context, req *user.ListFollowedUserEmailsByDeviceReq) (*user.ListFollowedUserEmailsByDeviceResp, error) {
-	emails, err := us.db.ListFollowedUserEmailsByDevice(ctx, req.DeviceId)
+	emails, err := us.db.ListFollowedUserIDAndEmailsByDevice(ctx, req.DeviceId)
 	if err != nil {
 		return nil, err
 	}

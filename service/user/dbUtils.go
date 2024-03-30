@@ -321,25 +321,33 @@ func (u *dbUtils) ListFollowedUserEmailsByDevice(ctx context.Context, deviceId u
 	err := u.
 		WithContext(ctx).
 		Model(&model.User{}).
-		Where("follow_all_device = true AND email IS NOT NULL").
-		Pluck("email", &emails).
+		Select("email").
+		Where("follow_all_device = true OR id IN (SELECT user_id FROM follow_devices WHERE device_id = ?)", deviceId).
+		Scan(&emails).
 		Error
-	if err != nil {
-		return nil, err
+	return emails, err
+}
+
+func (u *dbUtils) ListFollowedUserIDAndEmailsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) (map[string]string, error) {
+	var users []*struct {
+		ID    string
+		Email string
 	}
-	var emails2 []string
-	err = u.
+	err := u.
 		WithContext(ctx).
 		Model(&model.User{}).
-		Joins("JOIN follow_devices ON users.id = follow_devices.user_id").
-		Where("follow_devices.device_id = ? AND users.email IS NOT NULL", deviceId).
-		Pluck("users.email", &emails2).
+		Select("id, email").
+		Where("follow_all_device = true OR id IN (SELECT user_id FROM follow_devices WHERE device_id = ?)", deviceId).
+		Scan(&users).
 		Error
 	if err != nil {
 		return nil, err
 	}
-	emails = append(emails, emails2...)
-	return emails, nil
+	m := make(map[string]string, len(users))
+	for _, u := range users {
+		m[u.ID] = u.Email
+	}
+	return m, nil
 }
 
 func (u *dbUtils) DelFollowedDevice(ctx context.Context, deviceId uint64) error {

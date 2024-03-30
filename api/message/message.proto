@@ -7,7 +7,7 @@ option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/message;messag
 import "google/api/annotations.proto";
 
 service Message {
-  rpc SendMessage(MessagePayload) returns (Empty) {
+  rpc SendMessage(SendMessageReq) returns (Empty) {
     option (google.api.http) = {
       post : "/v1/message/send_message"
       body : "*"
@@ -53,21 +53,26 @@ message MessageRecord {
   int64 create_time = 2;
   int64 update_time = 3;
   bool unread = 4;
-  MessagePayload payload = 5;
+  string user_id = 5;
+  MessagePayload payload = 6;
 }
 
 message MessagePayload {
-  uint64 user_id = 1;
   int64 timestamp = 2;
   MessageType message_type = 3;
   string title = 4;
   string content = 5;
 }
 
-message MarkAllReadReq { uint64 user_id = 1; }
+message SendMessageReq {
+  repeated string user_id = 1;
+  MessagePayload payload = 2;
+}
+
+message MarkAllReadReq { string user_id = 1; }
 
 message GetUnreadNumReq {
-  uint64 user_id = 1;
+  string user_id = 1;
   string type_filter = 2;
 }
 
@@ -76,7 +81,7 @@ message GetUnreadNumResp { map<int32, int64> nums = 1; }
 message GetMessageReq { uint64 id = 1; }
 
 message GetMessageListReq {
-  uint64 user_id = 1;
+  string user_id = 1;
   string type_filter = 2;
   int64 start_time = 3;
   int64 end_time = 4;

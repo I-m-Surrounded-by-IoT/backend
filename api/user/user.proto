@@ -303,7 +303,9 @@ message ListFollowedUserIDsByDeviceResp { repeated string user_ids = 1; }
 
 message ListFollowedUserEmailsByDeviceReq { uint64 device_id = 1; }
 
-message ListFollowedUserEmailsByDeviceResp { repeated string user_emails = 1; }
+message ListFollowedUserEmailsByDeviceResp {
+  map<string, string> user_emails = 1;
+}
 
 message HasFollowedDeviceReq {
   string user_id = 1;

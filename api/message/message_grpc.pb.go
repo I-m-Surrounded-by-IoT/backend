@@ -30,7 +30,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessageClient interface {
-	SendMessage(ctx context.Context, in *MessagePayload, opts ...grpc.CallOption) (*Empty, error)
+	SendMessage(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*Empty, error)
 	MarkAllRead(ctx context.Context, in *MarkAllReadReq, opts ...grpc.CallOption) (*Empty, error)
 	GetUnreadNum(ctx context.Context, in *GetUnreadNumReq, opts ...grpc.CallOption) (*GetUnreadNumResp, error)
 	GetMessage(ctx context.Context, in *GetMessageReq, opts ...grpc.CallOption) (*MessageRecord, error)
@@ -45,7 +45,7 @@ func NewMessageClient(cc grpc.ClientConnInterface) MessageClient {
 	return &messageClient{cc}
 }
 
-func (c *messageClient) SendMessage(ctx context.Context, in *MessagePayload, opts ...grpc.CallOption) (*Empty, error) {
+func (c *messageClient) SendMessage(ctx context.Context, in *SendMessageReq, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, Message_SendMessage_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -94,7 +94,7 @@ func (c *messageClient) GetMessageList(ctx context.Context, in *GetMessageListRe
 // All implementations must embed UnimplementedMessageServer
 // for forward compatibility
 type MessageServer interface {
-	SendMessage(context.Context, *MessagePayload) (*Empty, error)
+	SendMessage(context.Context, *SendMessageReq) (*Empty, error)
 	MarkAllRead(context.Context, *MarkAllReadReq) (*Empty, error)
 	GetUnreadNum(context.Context, *GetUnreadNumReq) (*GetUnreadNumResp, error)
 	GetMessage(context.Context, *GetMessageReq) (*MessageRecord, error)
@@ -106,7 +106,7 @@ type MessageServer interface {
 type UnimplementedMessageServer struct {
 }
 
-func (UnimplementedMessageServer) SendMessage(context.Context, *MessagePayload) (*Empty, error) {
+func (UnimplementedMessageServer) SendMessage(context.Context, *SendMessageReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
 func (UnimplementedMessageServer) MarkAllRead(context.Context, *MarkAllReadReq) (*Empty, error) {
@@ -135,7 +135,7 @@ func RegisterMessageServer(s grpc.ServiceRegistrar, srv MessageServer) {
 }
 
 func _Message_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessagePayload)
+	in := new(SendMessageReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func _Message_SendMessage_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Message_SendMessage_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MessageServer).SendMessage(ctx, req.(*MessagePayload))
+		return srv.(MessageServer).SendMessage(ctx, req.(*SendMessageReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

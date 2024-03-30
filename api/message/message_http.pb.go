@@ -30,7 +30,7 @@ type MessageHTTPServer interface {
 	GetMessageList(context.Context, *GetMessageListReq) (*GetMessageListResp, error)
 	GetUnreadNum(context.Context, *GetUnreadNumReq) (*GetUnreadNumResp, error)
 	MarkAllRead(context.Context, *MarkAllReadReq) (*Empty, error)
-	SendMessage(context.Context, *MessagePayload) (*Empty, error)
+	SendMessage(context.Context, *SendMessageReq) (*Empty, error)
 }
 
 func RegisterMessageHTTPServer(s *http.Server, srv MessageHTTPServer) {
@@ -44,7 +44,7 @@ func RegisterMessageHTTPServer(s *http.Server, srv MessageHTTPServer) {
 
 func _Message_SendMessage0_HTTP_Handler(srv MessageHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in MessagePayload
+		var in SendMessageReq
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ func _Message_SendMessage0_HTTP_Handler(srv MessageHTTPServer) func(ctx http.Con
 		}
 		http.SetOperation(ctx, OperationMessageSendMessage)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SendMessage(ctx, req.(*MessagePayload))
+			return srv.SendMessage(ctx, req.(*SendMessageReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -148,7 +148,7 @@ type MessageHTTPClient interface {
 	GetMessageList(ctx context.Context, req *GetMessageListReq, opts ...http.CallOption) (rsp *GetMessageListResp, err error)
 	GetUnreadNum(ctx context.Context, req *GetUnreadNumReq, opts ...http.CallOption) (rsp *GetUnreadNumResp, err error)
 	MarkAllRead(ctx context.Context, req *MarkAllReadReq, opts ...http.CallOption) (rsp *Empty, err error)
-	SendMessage(ctx context.Context, req *MessagePayload, opts ...http.CallOption) (rsp *Empty, err error)
+	SendMessage(ctx context.Context, req *SendMessageReq, opts ...http.CallOption) (rsp *Empty, err error)
 }
 
 type MessageHTTPClientImpl struct {
@@ -211,7 +211,7 @@ func (c *MessageHTTPClientImpl) MarkAllRead(ctx context.Context, in *MarkAllRead
 	return &out, err
 }
 
-func (c *MessageHTTPClientImpl) SendMessage(ctx context.Context, in *MessagePayload, opts ...http.CallOption) (*Empty, error) {
+func (c *MessageHTTPClientImpl) SendMessage(ctx context.Context, in *SendMessageReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
 	pattern := "/v1/message/send_message"
 	path := binding.EncodeURL(pattern, in, false)

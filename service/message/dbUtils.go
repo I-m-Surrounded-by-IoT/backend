@@ -14,8 +14,18 @@ func newDBUtils(db *gorm.DB) *dbUtils {
 	return &dbUtils{db: db}
 }
 
+func (u *dbUtils) Transaction(fn func(db *dbUtils) error) error {
+	return u.db.Transaction(func(tx *gorm.DB) error {
+		return fn(newDBUtils(tx))
+	})
+}
+
 func (d *dbUtils) CreateMessage(m *model.Message) error {
 	return d.db.Create(m).Error
+}
+
+func (d *dbUtils) CreateMessages(ms []*model.Message) error {
+	return d.db.Create(ms).Error
 }
 
 func (d *dbUtils) GetMessageByID(id uint64) (*model.Message, error) {
@@ -31,7 +41,7 @@ func (d *dbUtils) GetMessageByID(id uint64) (*model.Message, error) {
 	return &m, nil
 }
 
-func (d *dbUtils) GetMessageList(userID uint64, scopes ...utils.Scope) ([]*model.Message, error) {
+func (d *dbUtils) GetMessageList(userID string, scopes ...utils.Scope) ([]*model.Message, error) {
 	var ms []*model.Message
 	err := d.db.
 		Where("user_id = ?", userID).
@@ -41,7 +51,7 @@ func (d *dbUtils) GetMessageList(userID uint64, scopes ...utils.Scope) ([]*model
 	return ms, err
 }
 
-func (d *dbUtils) GetMessageListCount(userID uint64, scopes ...utils.Scope) (int64, error) {
+func (d *dbUtils) GetMessageListCount(userID string, scopes ...utils.Scope) (int64, error) {
 	var count int64
 	err := d.db.
 		Model(&model.Message{}).
@@ -56,7 +66,7 @@ func (d *dbUtils) markMessageAsRead(id uint64) error {
 	return d.db.Model(&model.Message{}).Where("id = ?", id).Update("unread", false).Error
 }
 
-func (d *dbUtils) MarkAllRead(userID uint64, scopes ...utils.Scope) error {
+func (d *dbUtils) MarkAllRead(userID string, scopes ...utils.Scope) error {
 	return d.db.
 		Model(&model.Message{}).
 		Where("user_id = ?", userID).
@@ -65,7 +75,7 @@ func (d *dbUtils) MarkAllRead(userID uint64, scopes ...utils.Scope) error {
 		Error
 }
 
-func (d *dbUtils) GetUnreadMessages(userID uint64, scopes ...utils.Scope) ([]*model.Message, error) {
+func (d *dbUtils) GetUnreadMessages(userID string, scopes ...utils.Scope) ([]*model.Message, error) {
 	var ms []*model.Message
 	err := d.db.
 		Where("user_id = ? AND unread = ?", userID, true).
@@ -84,7 +94,7 @@ func (d *dbUtils) GetUnreadMessages(userID uint64, scopes ...utils.Scope) ([]*mo
 	return ms, nil
 }
 
-func (d *dbUtils) GetUnreadMessagesCount(userID uint64, scopes ...utils.Scope) (int64, error) {
+func (d *dbUtils) GetUnreadMessagesCount(userID string, scopes ...utils.Scope) (int64, error) {
 	var count int64
 	err := d.db.
 		Model(&model.Message{}).
@@ -95,7 +105,7 @@ func (d *dbUtils) GetUnreadMessagesCount(userID uint64, scopes ...utils.Scope) (
 	return count, err
 }
 
-func (d *dbUtils) GetUnreadMessagesCountGroupByMessageType(userID uint64, scopes ...utils.Scope) (map[int32]int64, error) {
+func (d *dbUtils) GetUnreadMessagesCountGroupByMessageType(userID string, scopes ...utils.Scope) (map[int32]int64, error) {
 	var counts []*struct {
 		MessageType int32
 		Count       int64

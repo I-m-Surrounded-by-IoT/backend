@@ -12,7 +12,7 @@ type Message struct {
 	CreatedAt   time.Time    `gorm:"autoCreateTime"`
 	UpdateAt    time.Time    `gorm:"autoUpdateTime"`
 	Unread      sql.NullBool `gorm:"default:true"`
-	UserID      uint64       `gorm:"not null;index"`
+	UserID      string       `gorm:"not null;index"`
 	Timestamp   time.Time    `gorm:"not null;index"`
 	MessageType message.MessageType
 	Title       string `gorm:"type:VARCHAR(255)"`

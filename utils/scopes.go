@@ -65,7 +65,7 @@ func WithIDRange[T constraints.Ordered](start, end T) func(*gorm.DB) *gorm.DB {
 	}
 }
 
-func WithUserIDEq[T constraints.Integer](id T) Scope {
+func WithUserIDEq(id string) Scope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("user_id = ?", id)
 	}

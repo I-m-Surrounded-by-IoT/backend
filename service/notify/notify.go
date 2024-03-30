@@ -3,9 +3,9 @@ package notify
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/message"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
@@ -15,10 +15,12 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/go-kratos/kratos/v2/registry"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 )
 
 type NotifyService struct {
 	emailClient   email.EmailClient
+	messageClient message.MessageClient
 	userClient    user.UserClient
 	kafkaClient   sarama.Client
 	kafkaProducer sarama.AsyncProducer
@@ -45,6 +47,15 @@ func NewNotifyService(dc *conf.NotifyConfig, k *conf.KafkaConfig, reg registry.R
 	}
 	userClient := user.NewUserClient(discoveryUserConn)
 
+	discoveryMessageConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///message",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	messageClient := message.NewMessageClient(discoveryMessageConn)
+
 	kafkaClient, err := utils.DailKafka(k)
 	if err != nil {
 		log.Fatalf("failed to create kafka conn: %v", err)
@@ -66,6 +77,7 @@ func NewNotifyService(dc *conf.NotifyConfig, k *conf.KafkaConfig, reg registry.R
 
 	return &NotifyService{
 		emailClient:   emailClient,
+		messageClient: messageClient,
 		userClient:    userClient,
 		kafkaClient:   kafkaClient,
 		kafkaProducer: kafkaProducer,
@@ -84,19 +96,37 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
-	payload := &email.SendEmailReq{
-		To:      resp.UserEmails,
-		Subject: fmt.Sprintf("device %d %s", req.DeviceId, "online"),
-		Body:    fmt.Sprintf("device %d %s at %s", req.DeviceId, "online", time.UnixMilli(req.Timestamp).Format(time.RFC3339)),
+	subject := fmt.Sprintf("device %d %s", req.DeviceId, "online")
+	body := formatDeviceOnlineBody(req.DeviceId, req.Timestamp)
+	emailPayload := &email.SendEmailReq{
+		To:      maps.Values(resp.UserEmails),
+		Subject: subject,
+		Body:    body,
 	}
 	if req.Async {
-		err = service.KafkaTopicEmailSend(s.kafkaProducer, payload)
+		err = service.KafkaTopicEmailSend(s.kafkaProducer, emailPayload)
 	} else {
-		_, err = s.emailClient.SendEmail(ctx, payload)
+		_, err = s.emailClient.SendEmail(ctx, emailPayload)
 	}
 	if err != nil {
-		log.Errorf("failed to send mail: %v", err)
 		return nil, fmt.Errorf("failed to send mail: %w", err)
+	}
+	messagePayload := &message.SendMessageReq{
+		UserId: maps.Keys(resp.UserEmails),
+		Payload: &message.MessagePayload{
+			Timestamp:   req.Timestamp,
+			MessageType: message.MessageType_TYPE_DEVICE_ONLINE,
+			Title:       subject,
+			Content:     body,
+		},
+	}
+	if req.Async {
+		err = service.KafkaTopicMessageSend(s.kafkaProducer, messagePayload)
+	} else {
+		_, err = s.messageClient.SendMessage(ctx, messagePayload)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to send message: %w", err)
 	}
 	return &notify.Empty{}, nil
 }
@@ -113,19 +143,37 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
-	payload := &email.SendEmailReq{
-		To:      resp.UserEmails,
-		Subject: fmt.Sprintf("device %d %s", req.DeviceId, "offline"),
-		Body:    fmt.Sprintf("device %d %s at %s", req.DeviceId, "offline", time.UnixMilli(req.Timestamp).Format(time.RFC3339)),
+	subject := fmt.Sprintf("device %d %s", req.DeviceId, "offline")
+	body := formatDeviceOfflineBody(req.DeviceId, req.Timestamp)
+	emailPayload := &email.SendEmailReq{
+		To:      maps.Values(resp.UserEmails),
+		Subject: subject,
+		Body:    body,
 	}
 	if req.Async {
-		err = service.KafkaTopicEmailSend(s.kafkaProducer, payload)
+		err = service.KafkaTopicEmailSend(s.kafkaProducer, emailPayload)
 	} else {
-		_, err = s.emailClient.SendEmail(ctx, payload)
+		_, err = s.emailClient.SendEmail(ctx, emailPayload)
 	}
 	if err != nil {
-		log.Errorf("failed to send mail: %v", err)
 		return nil, fmt.Errorf("failed to send mail: %w", err)
+	}
+	messagePayload := &message.SendMessageReq{
+		UserId: maps.Keys(resp.UserEmails),
+		Payload: &message.MessagePayload{
+			Timestamp:   req.Timestamp,
+			MessageType: message.MessageType_TYPE_DEVICE_OFFLINE,
+			Title:       subject,
+			Content:     body,
+		},
+	}
+	if req.Async {
+		err = service.KafkaTopicMessageSend(s.kafkaProducer, messagePayload)
+	} else {
+		_, err = s.messageClient.SendMessage(ctx, messagePayload)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to send message: %w", err)
 	}
 	return &notify.Empty{}, nil
 }

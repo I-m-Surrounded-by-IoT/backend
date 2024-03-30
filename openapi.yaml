@@ -1157,7 +1157,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.message.MessagePayload'
+                            $ref: '#/components/schemas/api.message.SendMessageReq'
                 required: true
             responses:
                 "200":
@@ -1469,8 +1469,6 @@ components:
         api.message.MessagePayload:
             type: object
             properties:
-                userId:
-                    type: string
                 timestamp:
                     type: string
                 messageType:
@@ -1491,6 +1489,17 @@ components:
                     type: string
                 unread:
                     type: boolean
+                userId:
+                    type: string
+                payload:
+                    $ref: '#/components/schemas/api.message.MessagePayload'
+        api.message.SendMessageReq:
+            type: object
+            properties:
+                userId:
+                    type: array
+                    items:
+                        type: string
                 payload:
                     $ref: '#/components/schemas/api.message.MessagePayload'
         api.notify.Empty:
@@ -1578,8 +1587,8 @@ components:
             type: object
             properties:
                 userEmails:
-                    type: array
-                    items:
+                    type: object
+                    additionalProperties:
                         type: string
         api.user.ListFollowedUserIDsByDeviceResp:
             type: object

@@ -53,19 +53,21 @@ func (ms *MessageService) MarkAllRead(ctx context.Context, req *messageApi.MarkA
 	return &messageApi.Empty{}, nil
 }
 
-func (ms *MessageService) SendMessage(ctx context.Context, req *messageApi.MessagePayload) (*messageApi.Empty, error) {
-	m := model.Message{
-		UserID:      req.UserId,
-		Timestamp:   time.UnixMilli(req.Timestamp),
-		MessageType: req.MessageType,
-		Title:       req.Title,
-		Content:     req.Content,
+func (ms *MessageService) SendMessage(ctx context.Context, req *messageApi.SendMessageReq) (*messageApi.Empty, error) {
+	messages := make([]*model.Message, len(req.UserId))
+	for i, userid := range req.UserId {
+		m := model.Message{
+			UserID:      userid,
+			Timestamp:   time.UnixMilli(req.Payload.Timestamp),
+			MessageType: req.Payload.MessageType,
+			Title:       req.Payload.Title,
+			Content:     req.Payload.Content,
+		}
+		messages[i] = &m
 	}
-	err := ms.db.CreateMessage(&m)
-	if err != nil {
-		return nil, err
-	}
-	return &messageApi.Empty{}, nil
+	return &messageApi.Empty{}, ms.db.Transaction(func(db *dbUtils) error {
+		return db.CreateMessages(messages)
+	})
 }
 
 func messageRecordFromModel(m *model.Message) *messageApi.MessageRecord {
@@ -74,8 +76,8 @@ func messageRecordFromModel(m *model.Message) *messageApi.MessageRecord {
 		CreateTime: m.CreatedAt.UnixMilli(),
 		UpdateTime: m.UpdateAt.UnixMilli(),
 		Unread:     m.Unread.Bool,
+		UserId:     m.UserID,
 		Payload: &messageApi.MessagePayload{
-			UserId:      m.UserID,
 			Timestamp:   m.Timestamp.UnixMilli(),
 			MessageType: m.MessageType,
 			Title:       m.Title,
