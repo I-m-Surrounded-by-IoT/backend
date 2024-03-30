@@ -122,8 +122,9 @@ service User {
     };
   }
 
-  rpc ListFollowedUserEmailsByDevice(ListFollowedUserEmailsByDeviceReq)
-      returns (ListFollowedUserEmailsByDeviceResp) {
+  rpc ListFollowedUserNotificationMethodsByDevice(
+      ListFollowedUserNotificationMethodsByDeviceReq)
+      returns (ListFollowedUserNotificationMethodsByDeviceResp) {
     option (google.api.http) = {
       get : "/user/follow/user/email/{device_id}"
     };
@@ -301,10 +302,15 @@ message ListFollowedUserIDsByDeviceReq { uint64 device_id = 1; }
 
 message ListFollowedUserIDsByDeviceResp { repeated string user_ids = 1; }
 
-message ListFollowedUserEmailsByDeviceReq { uint64 device_id = 1; }
+message ListFollowedUserNotificationMethodsByDeviceReq { uint64 device_id = 1; }
 
-message ListFollowedUserEmailsByDeviceResp {
-  map<string, string> user_emails = 1;
+message NotificationMethod {
+  string email = 1;
+  string phone = 2;
+}
+
+message ListFollowedUserNotificationMethodsByDeviceResp {
+  map<string, NotificationMethod> user_notification_methods = 1;
 }
 
 message HasFollowedDeviceReq {

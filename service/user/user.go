@@ -237,13 +237,13 @@ func (us *UserService) ListFollowedUserIDsByDevice(ctx context.Context, req *use
 	}, nil
 }
 
-func (us *UserService) ListFollowedUserEmailsByDevice(ctx context.Context, req *user.ListFollowedUserEmailsByDeviceReq) (*user.ListFollowedUserEmailsByDeviceResp, error) {
-	emails, err := us.db.ListFollowedUserIDAndEmailsByDevice(ctx, req.DeviceId)
+func (us *UserService) ListFollowedUserNotificationMethodsByDevice(ctx context.Context, req *user.ListFollowedUserNotificationMethodsByDeviceReq) (*user.ListFollowedUserNotificationMethodsByDeviceResp, error) {
+	methods, err := us.db.ListFollowedUserIDAndNotificationMethodByDevice(ctx, req.DeviceId)
 	if err != nil {
 		return nil, err
 	}
-	return &user.ListFollowedUserEmailsByDeviceResp{
-		UserEmails: emails,
+	return &user.ListFollowedUserNotificationMethodsByDeviceResp{
+		UserNotificationMethods: methods,
 	}, nil
 }
 

@@ -19,29 +19,29 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	User_CreateUser_FullMethodName                     = "/api.user.User/CreateUser"
-	User_GetUserInfo_FullMethodName                    = "/api.user.User/GetUserInfo"
-	User_GetUserInfoByUsername_FullMethodName          = "/api.user.User/GetUserInfoByUsername"
-	User_GetUserId_FullMethodName                      = "/api.user.User/GetUserId"
-	User_ValidateUserPassword_FullMethodName           = "/api.user.User/ValidateUserPassword"
-	User_GetUserPasswordVersion_FullMethodName         = "/api.user.User/GetUserPasswordVersion"
-	User_SetUserPassword_FullMethodName                = "/api.user.User/SetUserPassword"
-	User_SetUserRole_FullMethodName                    = "/api.user.User/SetUserRole"
-	User_SetUserStatus_FullMethodName                  = "/api.user.User/SetUserStatus"
-	User_SetUsername_FullMethodName                    = "/api.user.User/SetUsername"
-	User_ListUser_FullMethodName                       = "/api.user.User/ListUser"
-	User_UpdateUserLastSeen_FullMethodName             = "/api.user.User/UpdateUserLastSeen"
-	User_GetUserLastSeen_FullMethodName                = "/api.user.User/GetUserLastSeen"
-	User_FollowDevice_FullMethodName                   = "/api.user.User/FollowDevice"
-	User_UnfollowDevice_FullMethodName                 = "/api.user.User/UnfollowDevice"
-	User_ListFollowedDeviceIDs_FullMethodName          = "/api.user.User/ListFollowedDeviceIDs"
-	User_ListFollowedUserIDsByDevice_FullMethodName    = "/api.user.User/ListFollowedUserIDsByDevice"
-	User_ListFollowedUserEmailsByDevice_FullMethodName = "/api.user.User/ListFollowedUserEmailsByDevice"
-	User_HasFollowedDevice_FullMethodName              = "/api.user.User/HasFollowedDevice"
-	User_FollowAllDevice_FullMethodName                = "/api.user.User/FollowAllDevice"
-	User_UnfollowAllDevice_FullMethodName              = "/api.user.User/UnfollowAllDevice"
-	User_BindEmail_FullMethodName                      = "/api.user.User/BindEmail"
-	User_UnbindEmail_FullMethodName                    = "/api.user.User/UnbindEmail"
+	User_CreateUser_FullMethodName                                  = "/api.user.User/CreateUser"
+	User_GetUserInfo_FullMethodName                                 = "/api.user.User/GetUserInfo"
+	User_GetUserInfoByUsername_FullMethodName                       = "/api.user.User/GetUserInfoByUsername"
+	User_GetUserId_FullMethodName                                   = "/api.user.User/GetUserId"
+	User_ValidateUserPassword_FullMethodName                        = "/api.user.User/ValidateUserPassword"
+	User_GetUserPasswordVersion_FullMethodName                      = "/api.user.User/GetUserPasswordVersion"
+	User_SetUserPassword_FullMethodName                             = "/api.user.User/SetUserPassword"
+	User_SetUserRole_FullMethodName                                 = "/api.user.User/SetUserRole"
+	User_SetUserStatus_FullMethodName                               = "/api.user.User/SetUserStatus"
+	User_SetUsername_FullMethodName                                 = "/api.user.User/SetUsername"
+	User_ListUser_FullMethodName                                    = "/api.user.User/ListUser"
+	User_UpdateUserLastSeen_FullMethodName                          = "/api.user.User/UpdateUserLastSeen"
+	User_GetUserLastSeen_FullMethodName                             = "/api.user.User/GetUserLastSeen"
+	User_FollowDevice_FullMethodName                                = "/api.user.User/FollowDevice"
+	User_UnfollowDevice_FullMethodName                              = "/api.user.User/UnfollowDevice"
+	User_ListFollowedDeviceIDs_FullMethodName                       = "/api.user.User/ListFollowedDeviceIDs"
+	User_ListFollowedUserIDsByDevice_FullMethodName                 = "/api.user.User/ListFollowedUserIDsByDevice"
+	User_ListFollowedUserNotificationMethodsByDevice_FullMethodName = "/api.user.User/ListFollowedUserNotificationMethodsByDevice"
+	User_HasFollowedDevice_FullMethodName                           = "/api.user.User/HasFollowedDevice"
+	User_FollowAllDevice_FullMethodName                             = "/api.user.User/FollowAllDevice"
+	User_UnfollowAllDevice_FullMethodName                           = "/api.user.User/UnfollowAllDevice"
+	User_BindEmail_FullMethodName                                   = "/api.user.User/BindEmail"
+	User_UnbindEmail_FullMethodName                                 = "/api.user.User/UnbindEmail"
 )
 
 // UserClient is the client API for User service.
@@ -65,7 +65,7 @@ type UserClient interface {
 	UnfollowDevice(ctx context.Context, in *UnfollowDeviceReq, opts ...grpc.CallOption) (*Empty, error)
 	ListFollowedDeviceIDs(ctx context.Context, in *ListFollowedDeviceIDsReq, opts ...grpc.CallOption) (*ListFollowedDeviceIDsResp, error)
 	ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserIDsByDeviceResp, error)
-	ListFollowedUserEmailsByDevice(ctx context.Context, in *ListFollowedUserEmailsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserEmailsByDeviceResp, error)
+	ListFollowedUserNotificationMethodsByDevice(ctx context.Context, in *ListFollowedUserNotificationMethodsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserNotificationMethodsByDeviceResp, error)
 	HasFollowedDevice(ctx context.Context, in *HasFollowedDeviceReq, opts ...grpc.CallOption) (*HasFollowedDeviceResp, error)
 	FollowAllDevice(ctx context.Context, in *FollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error)
 	UnfollowAllDevice(ctx context.Context, in *UnfollowAllDeviceReq, opts ...grpc.CallOption) (*Empty, error)
@@ -234,9 +234,9 @@ func (c *userClient) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFo
 	return out, nil
 }
 
-func (c *userClient) ListFollowedUserEmailsByDevice(ctx context.Context, in *ListFollowedUserEmailsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserEmailsByDeviceResp, error) {
-	out := new(ListFollowedUserEmailsByDeviceResp)
-	err := c.cc.Invoke(ctx, User_ListFollowedUserEmailsByDevice_FullMethodName, in, out, opts...)
+func (c *userClient) ListFollowedUserNotificationMethodsByDevice(ctx context.Context, in *ListFollowedUserNotificationMethodsByDeviceReq, opts ...grpc.CallOption) (*ListFollowedUserNotificationMethodsByDeviceResp, error) {
+	out := new(ListFollowedUserNotificationMethodsByDeviceResp)
+	err := c.cc.Invoke(ctx, User_ListFollowedUserNotificationMethodsByDevice_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +309,7 @@ type UserServer interface {
 	UnfollowDevice(context.Context, *UnfollowDeviceReq) (*Empty, error)
 	ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error)
 	ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error)
-	ListFollowedUserEmailsByDevice(context.Context, *ListFollowedUserEmailsByDeviceReq) (*ListFollowedUserEmailsByDeviceResp, error)
+	ListFollowedUserNotificationMethodsByDevice(context.Context, *ListFollowedUserNotificationMethodsByDeviceReq) (*ListFollowedUserNotificationMethodsByDeviceResp, error)
 	HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error)
 	FollowAllDevice(context.Context, *FollowAllDeviceReq) (*Empty, error)
 	UnfollowAllDevice(context.Context, *UnfollowAllDeviceReq) (*Empty, error)
@@ -373,8 +373,8 @@ func (UnimplementedUserServer) ListFollowedDeviceIDs(context.Context, *ListFollo
 func (UnimplementedUserServer) ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserIDsByDevice not implemented")
 }
-func (UnimplementedUserServer) ListFollowedUserEmailsByDevice(context.Context, *ListFollowedUserEmailsByDeviceReq) (*ListFollowedUserEmailsByDeviceResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserEmailsByDevice not implemented")
+func (UnimplementedUserServer) ListFollowedUserNotificationMethodsByDevice(context.Context, *ListFollowedUserNotificationMethodsByDeviceReq) (*ListFollowedUserNotificationMethodsByDeviceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFollowedUserNotificationMethodsByDevice not implemented")
 }
 func (UnimplementedUserServer) HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasFollowedDevice not implemented")
@@ -710,20 +710,20 @@ func _User_ListFollowedUserIDsByDevice_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_ListFollowedUserEmailsByDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFollowedUserEmailsByDeviceReq)
+func _User_ListFollowedUserNotificationMethodsByDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFollowedUserNotificationMethodsByDeviceReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).ListFollowedUserEmailsByDevice(ctx, in)
+		return srv.(UserServer).ListFollowedUserNotificationMethodsByDevice(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: User_ListFollowedUserEmailsByDevice_FullMethodName,
+		FullMethod: User_ListFollowedUserNotificationMethodsByDevice_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).ListFollowedUserEmailsByDevice(ctx, req.(*ListFollowedUserEmailsByDeviceReq))
+		return srv.(UserServer).ListFollowedUserNotificationMethodsByDevice(ctx, req.(*ListFollowedUserNotificationMethodsByDeviceReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -894,8 +894,8 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_ListFollowedUserIDsByDevice_Handler,
 		},
 		{
-			MethodName: "ListFollowedUserEmailsByDevice",
-			Handler:    _User_ListFollowedUserEmailsByDevice_Handler,
+			MethodName: "ListFollowedUserNotificationMethodsByDevice",
+			Handler:    _User_ListFollowedUserNotificationMethodsByDevice_Handler,
 		},
 		{
 			MethodName: "HasFollowedDevice",

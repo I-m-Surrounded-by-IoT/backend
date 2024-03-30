@@ -85,21 +85,26 @@ func NewNotifyService(dc *conf.NotifyConfig, k *conf.KafkaConfig, reg registry.R
 }
 
 func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.NotifyDeviceOnlineReq) (*notify.Empty, error) {
-	resp, err := s.userClient.ListFollowedUserEmailsByDevice(context.Background(), &user.ListFollowedUserEmailsByDeviceReq{
+	resp, err := s.userClient.ListFollowedUserNotificationMethodsByDevice(context.Background(), &user.ListFollowedUserNotificationMethodsByDeviceReq{
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
 		log.Errorf("failed to get followed user: %v", err)
 		return nil, fmt.Errorf("failed to get followed user: %w", err)
 	}
-	if len(resp.UserEmails) == 0 {
+	if len(resp.UserNotificationMethods) == 0 {
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
 	subject := fmt.Sprintf("device %d %s", req.DeviceId, "online")
 	body := formatDeviceOnlineBody(req.DeviceId, req.Timestamp)
+	methods := maps.Values(resp.UserNotificationMethods)
+	emails := make([]string, len(methods))
+	for i, m := range methods {
+		emails[i] = m.Email
+	}
 	emailPayload := &email.SendEmailReq{
-		To:      maps.Values(resp.UserEmails),
+		To:      emails,
 		Subject: subject,
 		Body:    body,
 	}
@@ -112,7 +117,7 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 		return nil, fmt.Errorf("failed to send mail: %w", err)
 	}
 	messagePayload := &message.SendMessageReq{
-		UserId: maps.Keys(resp.UserEmails),
+		UserId: maps.Keys(resp.UserNotificationMethods),
 		Payload: &message.MessagePayload{
 			Timestamp:   req.Timestamp,
 			MessageType: message.MessageType_TYPE_DEVICE_ONLINE,
@@ -132,21 +137,26 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 }
 
 func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.NotifyDeviceOfflineReq) (*notify.Empty, error) {
-	resp, err := s.userClient.ListFollowedUserEmailsByDevice(context.Background(), &user.ListFollowedUserEmailsByDeviceReq{
+	resp, err := s.userClient.ListFollowedUserNotificationMethodsByDevice(context.Background(), &user.ListFollowedUserNotificationMethodsByDeviceReq{
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
 		log.Errorf("failed to get followed user: %v", err)
 		return nil, fmt.Errorf("failed to get followed user: %w", err)
 	}
-	if len(resp.UserEmails) == 0 {
+	if len(resp.UserNotificationMethods) == 0 {
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
 	subject := fmt.Sprintf("device %d %s", req.DeviceId, "offline")
 	body := formatDeviceOfflineBody(req.DeviceId, req.Timestamp)
+	methods := maps.Values(resp.UserNotificationMethods)
+	emails := make([]string, len(methods))
+	for i, m := range methods {
+		emails[i] = m.Email
+	}
 	emailPayload := &email.SendEmailReq{
-		To:      maps.Values(resp.UserEmails),
+		To:      emails,
 		Subject: subject,
 		Body:    body,
 	}
@@ -159,7 +169,7 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 		return nil, fmt.Errorf("failed to send mail: %w", err)
 	}
 	messagePayload := &message.SendMessageReq{
-		UserId: maps.Keys(resp.UserEmails),
+		UserId: maps.Keys(resp.UserNotificationMethods),
 		Payload: &message.MessagePayload{
 			Timestamp:   req.Timestamp,
 			MessageType: message.MessageType_TYPE_DEVICE_OFFLINE,

@@ -316,36 +316,24 @@ func (u *dbUtils) ListFollowedUserIDsByDevice(ctx context.Context, deviceId uint
 	return users, nil
 }
 
-func (u *dbUtils) ListFollowedUserEmailsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) ([]string, error) {
-	var emails []string
-	err := u.
-		WithContext(ctx).
-		Model(&model.User{}).
-		Select("email").
-		Where("follow_all_device = true OR id IN (SELECT user_id FROM follow_devices WHERE device_id = ?)", deviceId).
-		Scan(&emails).
-		Error
-	return emails, err
-}
-
-func (u *dbUtils) ListFollowedUserIDAndEmailsByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) (map[string]string, error) {
+func (u *dbUtils) ListFollowedUserIDAndNotificationMethodByDevice(ctx context.Context, deviceId uint64, scopes ...utils.Scope) (map[string]*user.NotificationMethod, error) {
 	var users []*struct {
-		ID    string
-		Email string
+		ID string
+		*user.NotificationMethod
 	}
 	err := u.
 		WithContext(ctx).
 		Model(&model.User{}).
-		Select("id, email").
+		Select("id, email, phone").
 		Where("follow_all_device = true OR id IN (SELECT user_id FROM follow_devices WHERE device_id = ?)", deviceId).
 		Scan(&users).
 		Error
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]string, len(users))
+	m := make(map[string]*user.NotificationMethod, len(users))
 	for _, u := range users {
-		m[u.ID] = u.Email
+		m[u.ID] = u.NotificationMethod
 	}
 	return m, nil
 }

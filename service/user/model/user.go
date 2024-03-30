@@ -18,6 +18,7 @@ type User struct {
 	Role            user.Role       `gorm:"not null;default:0"`
 	Status          user.Status     `gorm:"not null;default:0"`
 	Email           string          `gorm:"type:varchar(64)"`
+	Phone           string          `gorm:"type:varchar(16)"`
 	FollowDevices   []*FollowDevice `gorm:"foreignKey:UserID;references:ID"`
 	FollowAllDevice sql.NullBool    `gorm:"default:false"`
 }

@@ -9,33 +9,33 @@ import "google/api/annotations.proto";
 service Message {
   rpc SendMessage(SendMessageReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/v1/message/send_message"
+      post : "/message/send_message"
       body : "*"
     };
   }
 
   rpc MarkAllRead(MarkAllReadReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/v1/message/mark_all_read"
+      post : "/message/mark_all_read"
       body : "*"
     };
   }
 
   rpc GetUnreadNum(GetUnreadNumReq) returns (GetUnreadNumResp) {
     option (google.api.http) = {
-      get : "/v1/message/get_user_unread_num"
+      get : "/message/get_user_unread_num"
     };
   }
 
   rpc GetMessage(GetMessageReq) returns (MessageRecord) {
     option (google.api.http) = {
-      get : "/v1/message/get_message"
+      get : "/message/get_message"
     };
   }
 
   rpc GetMessageList(GetMessageListReq) returns (GetMessageListResp) {
     option (google.api.http) = {
-      get : "/v1/message/get_message_list"
+      get : "/message/get_message_list"
     };
   }
 }

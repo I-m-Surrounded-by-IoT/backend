@@ -21,7 +21,7 @@ func NewMessageMQServerServer(
 	c *message.MessageConsumer,
 ) *MessageMQServer {
 	group, err := sarama.NewConsumerGroupFromClient(
-		service.KafkaTopicEmail,
+		service.KafkaTopicMessage,
 		cli,
 	)
 	if err != nil {
@@ -36,7 +36,7 @@ func NewMessageMQServerServer(
 func (l *MessageMQServer) Start(ctx context.Context) error {
 	logrus.Infof("start message consumer...")
 	l.ctx, l.cancel = context.WithCancel(ctx)
-	err := l.group.Consume(l.ctx, []string{service.KafkaTopicEmail}, l.handler)
+	err := l.group.Consume(l.ctx, []string{service.KafkaTopicMessage}, l.handler)
 	if err != nil {
 		logrus.Errorf("failed to consume: %v", err)
 	}

@@ -30,8 +30,8 @@ const OperationUserGetUserLastSeen = "/api.user.User/GetUserLastSeen"
 const OperationUserGetUserPasswordVersion = "/api.user.User/GetUserPasswordVersion"
 const OperationUserHasFollowedDevice = "/api.user.User/HasFollowedDevice"
 const OperationUserListFollowedDeviceIDs = "/api.user.User/ListFollowedDeviceIDs"
-const OperationUserListFollowedUserEmailsByDevice = "/api.user.User/ListFollowedUserEmailsByDevice"
 const OperationUserListFollowedUserIDsByDevice = "/api.user.User/ListFollowedUserIDsByDevice"
+const OperationUserListFollowedUserNotificationMethodsByDevice = "/api.user.User/ListFollowedUserNotificationMethodsByDevice"
 const OperationUserListUser = "/api.user.User/ListUser"
 const OperationUserSetUserPassword = "/api.user.User/SetUserPassword"
 const OperationUserSetUserRole = "/api.user.User/SetUserRole"
@@ -55,8 +55,8 @@ type UserHTTPServer interface {
 	GetUserPasswordVersion(context.Context, *GetUserPasswordVersionReq) (*GetUserPasswordVersionResp, error)
 	HasFollowedDevice(context.Context, *HasFollowedDeviceReq) (*HasFollowedDeviceResp, error)
 	ListFollowedDeviceIDs(context.Context, *ListFollowedDeviceIDsReq) (*ListFollowedDeviceIDsResp, error)
-	ListFollowedUserEmailsByDevice(context.Context, *ListFollowedUserEmailsByDeviceReq) (*ListFollowedUserEmailsByDeviceResp, error)
 	ListFollowedUserIDsByDevice(context.Context, *ListFollowedUserIDsByDeviceReq) (*ListFollowedUserIDsByDeviceResp, error)
+	ListFollowedUserNotificationMethodsByDevice(context.Context, *ListFollowedUserNotificationMethodsByDeviceReq) (*ListFollowedUserNotificationMethodsByDeviceResp, error)
 	ListUser(context.Context, *ListUserReq) (*ListUserResp, error)
 	SetUserPassword(context.Context, *SetUserPasswordReq) (*Empty, error)
 	SetUserRole(context.Context, *SetUserRoleReq) (*Empty, error)
@@ -88,7 +88,7 @@ func RegisterUserHTTPServer(s *http.Server, srv UserHTTPServer) {
 	r.POST("/user/unfollow/device", _User_UnfollowDevice0_HTTP_Handler(srv))
 	r.GET("/user/follow/device/{user_id}", _User_ListFollowedDeviceIDs0_HTTP_Handler(srv))
 	r.GET("/user/follow/user/{device_id}", _User_ListFollowedUserIDsByDevice0_HTTP_Handler(srv))
-	r.GET("/user/follow/user/email/{device_id}", _User_ListFollowedUserEmailsByDevice0_HTTP_Handler(srv))
+	r.GET("/user/follow/user/email/{device_id}", _User_ListFollowedUserNotificationMethodsByDevice0_HTTP_Handler(srv))
 	r.GET("/user/follow/device/{user_id}/{device_id}", _User_HasFollowedDevice0_HTTP_Handler(srv))
 	r.POST("/user/follow/device/all", _User_FollowAllDevice0_HTTP_Handler(srv))
 	r.POST("/user/unfollow/device/all", _User_UnfollowAllDevice0_HTTP_Handler(srv))
@@ -467,24 +467,24 @@ func _User_ListFollowedUserIDsByDevice0_HTTP_Handler(srv UserHTTPServer) func(ct
 	}
 }
 
-func _User_ListFollowedUserEmailsByDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
+func _User_ListFollowedUserNotificationMethodsByDevice0_HTTP_Handler(srv UserHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListFollowedUserEmailsByDeviceReq
+		var in ListFollowedUserNotificationMethodsByDeviceReq
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationUserListFollowedUserEmailsByDevice)
+		http.SetOperation(ctx, OperationUserListFollowedUserNotificationMethodsByDevice)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListFollowedUserEmailsByDevice(ctx, req.(*ListFollowedUserEmailsByDeviceReq))
+			return srv.ListFollowedUserNotificationMethodsByDevice(ctx, req.(*ListFollowedUserNotificationMethodsByDeviceReq))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListFollowedUserEmailsByDeviceResp)
+		reply := out.(*ListFollowedUserNotificationMethodsByDeviceResp)
 		return ctx.Result(200, reply)
 	}
 }
@@ -611,8 +611,8 @@ type UserHTTPClient interface {
 	GetUserPasswordVersion(ctx context.Context, req *GetUserPasswordVersionReq, opts ...http.CallOption) (rsp *GetUserPasswordVersionResp, err error)
 	HasFollowedDevice(ctx context.Context, req *HasFollowedDeviceReq, opts ...http.CallOption) (rsp *HasFollowedDeviceResp, err error)
 	ListFollowedDeviceIDs(ctx context.Context, req *ListFollowedDeviceIDsReq, opts ...http.CallOption) (rsp *ListFollowedDeviceIDsResp, err error)
-	ListFollowedUserEmailsByDevice(ctx context.Context, req *ListFollowedUserEmailsByDeviceReq, opts ...http.CallOption) (rsp *ListFollowedUserEmailsByDeviceResp, err error)
 	ListFollowedUserIDsByDevice(ctx context.Context, req *ListFollowedUserIDsByDeviceReq, opts ...http.CallOption) (rsp *ListFollowedUserIDsByDeviceResp, err error)
+	ListFollowedUserNotificationMethodsByDevice(ctx context.Context, req *ListFollowedUserNotificationMethodsByDeviceReq, opts ...http.CallOption) (rsp *ListFollowedUserNotificationMethodsByDeviceResp, err error)
 	ListUser(ctx context.Context, req *ListUserReq, opts ...http.CallOption) (rsp *ListUserResp, err error)
 	SetUserPassword(ctx context.Context, req *SetUserPasswordReq, opts ...http.CallOption) (rsp *Empty, err error)
 	SetUserRole(ctx context.Context, req *SetUserRoleReq, opts ...http.CallOption) (rsp *Empty, err error)
@@ -776,11 +776,11 @@ func (c *UserHTTPClientImpl) ListFollowedDeviceIDs(ctx context.Context, in *List
 	return &out, err
 }
 
-func (c *UserHTTPClientImpl) ListFollowedUserEmailsByDevice(ctx context.Context, in *ListFollowedUserEmailsByDeviceReq, opts ...http.CallOption) (*ListFollowedUserEmailsByDeviceResp, error) {
-	var out ListFollowedUserEmailsByDeviceResp
-	pattern := "/user/follow/user/email/{device_id}"
+func (c *UserHTTPClientImpl) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...http.CallOption) (*ListFollowedUserIDsByDeviceResp, error) {
+	var out ListFollowedUserIDsByDeviceResp
+	pattern := "/user/follow/user/{device_id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserListFollowedUserEmailsByDevice))
+	opts = append(opts, http.Operation(OperationUserListFollowedUserIDsByDevice))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -789,11 +789,11 @@ func (c *UserHTTPClientImpl) ListFollowedUserEmailsByDevice(ctx context.Context,
 	return &out, err
 }
 
-func (c *UserHTTPClientImpl) ListFollowedUserIDsByDevice(ctx context.Context, in *ListFollowedUserIDsByDeviceReq, opts ...http.CallOption) (*ListFollowedUserIDsByDeviceResp, error) {
-	var out ListFollowedUserIDsByDeviceResp
-	pattern := "/user/follow/user/{device_id}"
+func (c *UserHTTPClientImpl) ListFollowedUserNotificationMethodsByDevice(ctx context.Context, in *ListFollowedUserNotificationMethodsByDeviceReq, opts ...http.CallOption) (*ListFollowedUserNotificationMethodsByDeviceResp, error) {
+	var out ListFollowedUserNotificationMethodsByDeviceResp
+	pattern := "/user/follow/user/email/{device_id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationUserListFollowedUserIDsByDevice))
+	opts = append(opts, http.Operation(OperationUserListFollowedUserNotificationMethodsByDevice))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

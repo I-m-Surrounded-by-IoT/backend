@@ -28,24 +28,24 @@ func (s *MessageConsumer) Cleanup(sarama.ConsumerGroupSession) error {
 }
 
 func (s *MessageConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	log.Infof("email consumer started")
+	log.Infof("message consumer started")
 	msgCh := claim.Messages()
 	for {
 		select {
 		case msg := <-msgCh:
 			data, err := service.KafkaTopicMessageUnmarshal(msg.Value)
 			if err != nil {
-				log.Errorf("failed to unmarshal email (%s): %v", msg.Value, err)
+				log.Errorf("failed to unmarshal message (%s): %v", msg.Value, err)
 				continue
 			}
 
 			_, err = s.ms.SendMessage(session.Context(), data)
 			if err != nil {
-				log.Errorf("failed to create email: %v", err)
+				log.Errorf("failed to create message: %v", err)
 				continue
 			}
 		case <-session.Context().Done():
-			log.Infof("email consumer closed")
+			log.Infof("message consumer closed")
 			return nil
 		}
 	}

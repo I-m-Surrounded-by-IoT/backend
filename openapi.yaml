@@ -582,6 +582,123 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.log.Empty'
+    /message/get_message:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetMessage
+            parameters:
+                - name: id
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.MessageRecord'
+    /message/get_message_list:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetMessageList
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
+                - name: typeFilter
+                  in: query
+                  schema:
+                    type: string
+                - name: startTime
+                  in: query
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: unreadOnly
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.GetMessageListResp'
+    /message/get_user_unread_num:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetUnreadNum
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
+                - name: typeFilter
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.GetUnreadNumResp'
+    /message/mark_all_read:
+        post:
+            tags:
+                - Message
+            operationId: Message_MarkAllRead
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.message.MarkAllReadReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.Empty'
+    /message/send_message:
+        post:
+            tags:
+                - Message
+            operationId: Message_SendMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.message.SendMessageReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.Empty'
     /user:
         get:
             tags:
@@ -771,7 +888,7 @@ paths:
         get:
             tags:
                 - User
-            operationId: User_ListFollowedUserEmailsByDevice
+            operationId: User_ListFollowedUserNotificationMethodsByDevice
             parameters:
                 - name: deviceId
                   in: path
@@ -784,7 +901,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.user.ListFollowedUserEmailsByDeviceResp'
+                                $ref: '#/components/schemas/api.user.ListFollowedUserNotificationMethodsByDeviceResp'
     /user/follow/user/{deviceId}:
         get:
             tags:
@@ -1049,123 +1166,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
-    /v1/message/get_message:
-        get:
-            tags:
-                - Message
-            operationId: Message_GetMessage
-            parameters:
-                - name: id
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.message.MessageRecord'
-    /v1/message/get_message_list:
-        get:
-            tags:
-                - Message
-            operationId: Message_GetMessageList
-            parameters:
-                - name: userId
-                  in: query
-                  schema:
-                    type: string
-                - name: typeFilter
-                  in: query
-                  schema:
-                    type: string
-                - name: startTime
-                  in: query
-                  schema:
-                    type: string
-                - name: endTime
-                  in: query
-                  schema:
-                    type: string
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: size
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: unreadOnly
-                  in: query
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.message.GetMessageListResp'
-    /v1/message/get_user_unread_num:
-        get:
-            tags:
-                - Message
-            operationId: Message_GetUnreadNum
-            parameters:
-                - name: userId
-                  in: query
-                  schema:
-                    type: string
-                - name: typeFilter
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.message.GetUnreadNumResp'
-    /v1/message/mark_all_read:
-        post:
-            tags:
-                - Message
-            operationId: Message_MarkAllRead
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.message.MarkAllReadReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.message.Empty'
-    /v1/message/send_message:
-        post:
-            tags:
-                - Message
-            operationId: Message_SendMessage
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.message.SendMessageReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.message.Empty'
     /v1/notify/device/offline:
         post:
             tags:
@@ -1583,13 +1583,6 @@ components:
                     type: array
                     items:
                         type: string
-        api.user.ListFollowedUserEmailsByDeviceResp:
-            type: object
-            properties:
-                userEmails:
-                    type: object
-                    additionalProperties:
-                        type: string
         api.user.ListFollowedUserIDsByDeviceResp:
             type: object
             properties:
@@ -1597,6 +1590,13 @@ components:
                     type: array
                     items:
                         type: string
+        api.user.ListFollowedUserNotificationMethodsByDeviceResp:
+            type: object
+            properties:
+                userNotificationMethods:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/api.user.NotificationMethod'
         api.user.ListUserResp:
             type: object
             properties:
@@ -1607,6 +1607,13 @@ components:
                 total:
                     type: integer
                     format: int32
+        api.user.NotificationMethod:
+            type: object
+            properties:
+                email:
+                    type: string
+                phone:
+                    type: string
         api.user.SetUserPasswordReq:
             type: object
             properties:

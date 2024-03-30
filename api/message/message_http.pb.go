@@ -35,11 +35,11 @@ type MessageHTTPServer interface {
 
 func RegisterMessageHTTPServer(s *http.Server, srv MessageHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/message/send_message", _Message_SendMessage0_HTTP_Handler(srv))
-	r.POST("/v1/message/mark_all_read", _Message_MarkAllRead0_HTTP_Handler(srv))
-	r.GET("/v1/message/get_user_unread_num", _Message_GetUnreadNum0_HTTP_Handler(srv))
-	r.GET("/v1/message/get_message", _Message_GetMessage0_HTTP_Handler(srv))
-	r.GET("/v1/message/get_message_list", _Message_GetMessageList0_HTTP_Handler(srv))
+	r.POST("/message/send_message", _Message_SendMessage0_HTTP_Handler(srv))
+	r.POST("/message/mark_all_read", _Message_MarkAllRead0_HTTP_Handler(srv))
+	r.GET("/message/get_user_unread_num", _Message_GetUnreadNum0_HTTP_Handler(srv))
+	r.GET("/message/get_message", _Message_GetMessage0_HTTP_Handler(srv))
+	r.GET("/message/get_message_list", _Message_GetMessageList0_HTTP_Handler(srv))
 }
 
 func _Message_SendMessage0_HTTP_Handler(srv MessageHTTPServer) func(ctx http.Context) error {
@@ -161,7 +161,7 @@ func NewMessageHTTPClient(client *http.Client) MessageHTTPClient {
 
 func (c *MessageHTTPClientImpl) GetMessage(ctx context.Context, in *GetMessageReq, opts ...http.CallOption) (*MessageRecord, error) {
 	var out MessageRecord
-	pattern := "/v1/message/get_message"
+	pattern := "/message/get_message"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationMessageGetMessage))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -174,7 +174,7 @@ func (c *MessageHTTPClientImpl) GetMessage(ctx context.Context, in *GetMessageRe
 
 func (c *MessageHTTPClientImpl) GetMessageList(ctx context.Context, in *GetMessageListReq, opts ...http.CallOption) (*GetMessageListResp, error) {
 	var out GetMessageListResp
-	pattern := "/v1/message/get_message_list"
+	pattern := "/message/get_message_list"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationMessageGetMessageList))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -187,7 +187,7 @@ func (c *MessageHTTPClientImpl) GetMessageList(ctx context.Context, in *GetMessa
 
 func (c *MessageHTTPClientImpl) GetUnreadNum(ctx context.Context, in *GetUnreadNumReq, opts ...http.CallOption) (*GetUnreadNumResp, error) {
 	var out GetUnreadNumResp
-	pattern := "/v1/message/get_user_unread_num"
+	pattern := "/message/get_user_unread_num"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationMessageGetUnreadNum))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -200,7 +200,7 @@ func (c *MessageHTTPClientImpl) GetUnreadNum(ctx context.Context, in *GetUnreadN
 
 func (c *MessageHTTPClientImpl) MarkAllRead(ctx context.Context, in *MarkAllReadReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/message/mark_all_read"
+	pattern := "/message/mark_all_read"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationMessageMarkAllRead))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -213,7 +213,7 @@ func (c *MessageHTTPClientImpl) MarkAllRead(ctx context.Context, in *MarkAllRead
 
 func (c *MessageHTTPClientImpl) SendMessage(ctx context.Context, in *SendMessageReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/message/send_message"
+	pattern := "/message/send_message"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationMessageSendMessage))
 	opts = append(opts, http.PathTemplate(pattern))
