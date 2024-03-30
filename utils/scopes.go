@@ -9,7 +9,7 @@ import (
 
 type Scope = func(*gorm.DB) *gorm.DB
 
-func WithPageAndPageSize(page, pageSize int) Scope {
+func WithPageAndPageSize[T constraints.Integer](page, pageSize T) Scope {
 	if page <= 0 {
 		page = 1
 	}
@@ -19,7 +19,7 @@ func WithPageAndPageSize(page, pageSize int) Scope {
 		pageSize = 100
 	}
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset((page - 1) * pageSize).Limit(pageSize)
+		return db.Offset(int((page - 1) * pageSize)).Limit(int(pageSize))
 	}
 }
 
@@ -62,5 +62,11 @@ func WithIDEq[T constraints.Ordered](id T) Scope {
 func WithIDRange[T constraints.Ordered](start, end T) func(*gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id >= ? AND id <= ?", start, end)
+	}
+}
+
+func WithUserIDEq[T constraints.Integer](id T) Scope {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", id)
 	}
 }

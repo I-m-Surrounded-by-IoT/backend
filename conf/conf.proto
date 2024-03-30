@@ -188,3 +188,14 @@ message NotifyServer {
   NotifyConfig config = 3;
   KafkaConfig kafka = 4;
 }
+
+message MessageConfig {}
+
+message MessageServer {
+  GrpcServerConfig server = 1;
+  Registry registry = 2;
+  DatabaseServerConfig database = 3;
+  MessageConfig config = 4;
+  KafkaConfig kafka = 5;
+  RedisConfig redis = 6;
+}

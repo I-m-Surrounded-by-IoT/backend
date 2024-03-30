@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package api.message;
+
+option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/message;message";
+
+import "google/api/annotations.proto";
+
+service Message {
+  rpc SendMessage(MessagePayload) returns (Empty) {
+    option (google.api.http) = {
+      post : "/v1/message/send_message"
+      body : "*"
+    };
+  }
+
+  rpc MarkAllRead(MarkAllReadReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/v1/message/mark_all_read"
+      body : "*"
+    };
+  }
+
+  rpc GetUnreadNum(GetUnreadNumReq) returns (GetUnreadNumResp) {
+    option (google.api.http) = {
+      get : "/v1/message/get_user_unread_num"
+    };
+  }
+
+  rpc GetMessage(GetMessageReq) returns (MessageRecord) {
+    option (google.api.http) = {
+      get : "/v1/message/get_message"
+    };
+  }
+
+  rpc GetMessageList(GetMessageListReq) returns (GetMessageListResp) {
+    option (google.api.http) = {
+      get : "/v1/message/get_message_list"
+    };
+  }
+}
+
+message Empty {}
+
+enum MessageType {
+  TYPE_UNKNOWN = 0;
+  TYPE_DEVICE_ONLINE = 1;
+  TYPE_DEVICE_OFFLINE = 2;
+}
+
+message MessageRecord {
+  uint64 id = 1;
+  int64 create_time = 2;
+  int64 update_time = 3;
+  bool unread = 4;
+  MessagePayload payload = 5;
+}
+
+message MessagePayload {
+  uint64 user_id = 1;
+  int64 timestamp = 2;
+  MessageType message_type = 3;
+  string title = 4;
+  string content = 5;
+}
+
+message MarkAllReadReq { uint64 user_id = 1; }
+
+message GetUnreadNumReq {
+  uint64 user_id = 1;
+  string type_filter = 2;
+}
+
+message GetUnreadNumResp { map<int32, int64> nums = 1; }
+
+message GetMessageReq { uint64 id = 1; }
+
+message GetMessageListReq {
+  uint64 user_id = 1;
+  string type_filter = 2;
+  int64 start_time = 3;
+  int64 end_time = 4;
+  int32 page = 5;
+  int32 size = 6;
+  bool unread_only = 7;
+}
+
+message GetMessageListResp {
+  repeated MessageRecord records = 1;
+  int64 total = 2;
+}

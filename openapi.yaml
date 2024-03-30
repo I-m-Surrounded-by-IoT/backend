@@ -1049,6 +1049,123 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
+    /v1/message/get_message:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetMessage
+            parameters:
+                - name: id
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.MessageRecord'
+    /v1/message/get_message_list:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetMessageList
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
+                - name: typeFilter
+                  in: query
+                  schema:
+                    type: string
+                - name: startTime
+                  in: query
+                  schema:
+                    type: string
+                - name: endTime
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: size
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: unreadOnly
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.GetMessageListResp'
+    /v1/message/get_user_unread_num:
+        get:
+            tags:
+                - Message
+            operationId: Message_GetUnreadNum
+            parameters:
+                - name: userId
+                  in: query
+                  schema:
+                    type: string
+                - name: typeFilter
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.GetUnreadNumResp'
+    /v1/message/mark_all_read:
+        post:
+            tags:
+                - Message
+            operationId: Message_MarkAllRead
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.message.MarkAllReadReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.Empty'
+    /v1/message/send_message:
+        post:
+            tags:
+                - Message
+            operationId: Message_SendMessage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.message.MessagePayload'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.message.Empty'
     /v1/notify/device/offline:
         post:
             tags:
@@ -1325,6 +1442,57 @@ components:
                         $ref: '#/components/schemas/api.log.DeviceLog'
                 total:
                     type: string
+        api.message.Empty:
+            type: object
+            properties: {}
+        api.message.GetMessageListResp:
+            type: object
+            properties:
+                records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.message.MessageRecord'
+                total:
+                    type: string
+        api.message.GetUnreadNumResp:
+            type: object
+            properties:
+                nums:
+                    type: object
+                    additionalProperties:
+                        type: string
+        api.message.MarkAllReadReq:
+            type: object
+            properties:
+                userId:
+                    type: string
+        api.message.MessagePayload:
+            type: object
+            properties:
+                userId:
+                    type: string
+                timestamp:
+                    type: string
+                messageType:
+                    type: integer
+                    format: enum
+                title:
+                    type: string
+                content:
+                    type: string
+        api.message.MessageRecord:
+            type: object
+            properties:
+                id:
+                    type: string
+                createTime:
+                    type: string
+                updateTime:
+                    type: string
+                unread:
+                    type: boolean
+                payload:
+                    $ref: '#/components/schemas/api.message.MessagePayload'
         api.notify.Empty:
             type: object
             properties: {}
@@ -1554,5 +1722,6 @@ tags:
     - name: Device
     - name: Email
     - name: Log
+    - name: Message
     - name: Notify
     - name: User

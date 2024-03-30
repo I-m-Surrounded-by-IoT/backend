@@ -205,3 +205,27 @@ services:
       - KAFKA_USER=${KAFKA_USER}
       - KAFKA_PASSWORD=${KAFKA_PASSWORD}
     command: notify
+
+  message:
+    image: "zijiren/backend:latest"
+    container_name: message
+    restart: unless-stopped
+    ports:
+      - "18000:9000"
+    environment:
+      - PUID=0
+      - PGID=0
+      - UMASK=022
+      - TZ=Asia/Shanghai
+      - ETCD_ENDPOINT=${ETCD_ENDPOINT}
+      - GRPC_CUSTOM_ENDPOINT=grpc://${CUSTON_EXTERNAL_IP}:18000
+      - DATABASE_AUTOMIGRATE=${DATABASE_AUTOMIGRATE-false}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${MESSAGE_DATABASE_USER}
+      - DATABASE_PASSWORD=${MESSAGE_DATABASE_PASSWORD}
+      - DATABASE_NAME=${MESSAGE_DATABASE_NAME}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_USER=${KAFKA_USER}
+      - KAFKA_PASSWORD=${KAFKA_PASSWORD}
+    command: message
