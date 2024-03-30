@@ -1,9 +1,12 @@
 package notify
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"text/template"
 
+	"github.com/Boostport/mjml-go"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/message"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
@@ -11,10 +14,12 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
+	notify_template "github.com/I-m-Surrounded-by-IoT/backend/service/notify/template"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/IBM/sarama"
 	"github.com/go-kratos/kratos/v2/registry"
 	log "github.com/sirupsen/logrus"
+	"github.com/zijiren233/stream"
 	"golang.org/x/exp/maps"
 )
 
@@ -84,6 +89,39 @@ func NewNotifyService(dc *conf.NotifyConfig, k *conf.KafkaConfig, reg registry.R
 	}
 }
 
+var (
+	deviceOnlineTemplate  *template.Template
+	deviceOfflineTemplate *template.Template
+)
+
+func init() {
+	body, err := mjml.ToHTML(
+		context.Background(),
+		stream.BytesToString(notify_template.DeviceOnline),
+		mjml.WithMinify(true),
+	)
+	if err != nil {
+		log.Fatalf("failed to parse device online template: %v", err)
+	}
+	deviceOnlineTemplate, err = template.New("").Parse(body)
+	if err != nil {
+		log.Fatalf("failed to parse device online template: %v", err)
+	}
+
+	body, err = mjml.ToHTML(
+		context.Background(),
+		stream.BytesToString(notify_template.DeviceOffline),
+		mjml.WithMinify(true),
+	)
+	if err != nil {
+		log.Fatalf("failed to parse device offline template: %v", err)
+	}
+	deviceOfflineTemplate, err = template.New("").Parse(body)
+	if err != nil {
+		log.Fatalf("failed to parse device offline template: %v", err)
+	}
+}
+
 func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.NotifyDeviceOnlineReq) (*notify.Empty, error) {
 	resp, err := s.userClient.ListFollowedUserNotificationMethodsByDevice(context.Background(), &user.ListFollowedUserNotificationMethodsByDeviceReq{
 		DeviceId: req.DeviceId,
@@ -97,7 +135,14 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 		return nil, nil
 	}
 	subject := fmt.Sprintf("device %d %s", req.DeviceId, "online")
-	body := formatDeviceOnlineBody(req.DeviceId, req.Timestamp)
+	out := &bytes.Buffer{}
+	err = deviceOnlineTemplate.Execute(
+		out,
+		req,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
 	methods := maps.Values(resp.UserNotificationMethods)
 	emails := make([]string, len(methods))
 	for i, m := range methods {
@@ -106,7 +151,7 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 	emailPayload := &email.SendEmailReq{
 		To:      emails,
 		Subject: subject,
-		Body:    body,
+		Body:    out.String(),
 	}
 	if req.Async {
 		err = service.KafkaTopicEmailSend(s.kafkaProducer, emailPayload)
@@ -119,10 +164,9 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 	messagePayload := &message.SendMessageReq{
 		UserId: maps.Keys(resp.UserNotificationMethods),
 		Payload: &message.MessagePayload{
-			Timestamp:   req.Timestamp,
 			MessageType: message.MessageType_TYPE_DEVICE_ONLINE,
 			Title:       subject,
-			Content:     body,
+			Content:     out.String(),
 		},
 	}
 	if req.Async {
@@ -149,7 +193,14 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 		return nil, nil
 	}
 	subject := fmt.Sprintf("device %d %s", req.DeviceId, "offline")
-	body := formatDeviceOfflineBody(req.DeviceId, req.Timestamp)
+	out := &bytes.Buffer{}
+	err = deviceOfflineTemplate.Execute(
+		out,
+		req,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
 	methods := maps.Values(resp.UserNotificationMethods)
 	emails := make([]string, len(methods))
 	for i, m := range methods {
@@ -158,7 +209,7 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 	emailPayload := &email.SendEmailReq{
 		To:      emails,
 		Subject: subject,
-		Body:    body,
+		Body:    out.String(),
 	}
 	if req.Async {
 		err = service.KafkaTopicEmailSend(s.kafkaProducer, emailPayload)
@@ -171,10 +222,9 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 	messagePayload := &message.SendMessageReq{
 		UserId: maps.Keys(resp.UserNotificationMethods),
 		Payload: &message.MessagePayload{
-			Timestamp:   req.Timestamp,
 			MessageType: message.MessageType_TYPE_DEVICE_OFFLINE,
 			Title:       subject,
-			Content:     body,
+			Content:     out.String(),
 		},
 	}
 	if req.Async {

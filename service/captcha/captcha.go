@@ -1,21 +1,28 @@
 package captcha
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"html/template"
 	"strings"
+	"time"
 
+	"github.com/Boostport/mjml-go"
 	captchaApi "github.com/I-m-Surrounded-by-IoT/backend/api/captcha"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
+	captcha_template "github.com/I-m-Surrounded-by-IoT/backend/service/captcha/template"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"github.com/IBM/sarama"
 	"github.com/go-kratos/kratos/v2/registry"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
+	"github.com/zijiren233/stream"
 )
 
 type CaptchaService struct {
@@ -78,6 +85,22 @@ func NewCaptchaService(c *conf.CaptchaConfig, k *conf.KafkaConfig, reg registry.
 	return s
 }
 
+var (
+	captchaTemplate *template.Template
+)
+
+func init() {
+	body, err := mjml.ToHTML(
+		context.Background(),
+		stream.BytesToString(captcha_template.Captcha),
+		mjml.WithMinify(true),
+	)
+	if err != nil {
+		log.Fatalf("failed to parse mjml: %v", err)
+	}
+	captchaTemplate = template.Must(template.New("").Parse(body))
+}
+
 func (cs *CaptchaService) SendEmailCaptcha(ctx context.Context, req *captchaApi.SendEmailCaptchaReq) (*captchaApi.Empty, error) {
 	if req.UserId == "" {
 		return nil, errors.New("user id is required")
@@ -89,10 +112,21 @@ func (cs *CaptchaService) SendEmailCaptcha(ctx context.Context, req *captchaApi.
 	if err != nil {
 		return nil, err
 	}
+	out := &bytes.Buffer{}
+	err = captchaTemplate.Execute(out, struct {
+		Captcha string
+		Year    int
+	}{
+		Captcha: captcha,
+		Year:    time.Now().Year(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
 	emailReq := &email.SendEmailReq{
 		To:      []string{req.Email},
 		Subject: "验证码",
-		Body:    captcha,
+		Body:    out.String(),
 	}
 	if req.Async {
 		err = service.KafkaTopicEmailSend(

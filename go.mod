@@ -3,6 +3,7 @@ module github.com/I-m-Surrounded-by-IoT/backend
 go 1.21
 
 require (
+	github.com/Boostport/mjml-go v0.14.6
 	github.com/IBM/sarama v1.43.1
 	github.com/caarlos0/env/v9 v9.0.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -42,6 +43,7 @@ require (
 )
 
 require (
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.3 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
@@ -94,6 +96,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/tetratelabs/wazero v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.12 // indirect

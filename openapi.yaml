@@ -1512,8 +1512,10 @@ components:
                     type: boolean
                 deviceId:
                     type: string
-                timestamp:
-                    type: string
+                lastSeen:
+                    $ref: '#/components/schemas/api.device.DeviceLastSeen'
+                lastReport:
+                    $ref: '#/components/schemas/api.collection.DeviceLastReport'
         api.notify.NotifyDeviceOnlineReq:
             type: object
             properties:
@@ -1521,10 +1523,10 @@ components:
                     type: boolean
                 deviceId:
                     type: string
-                timestamp:
-                    type: string
-                ip:
-                    type: string
+                seen:
+                    $ref: '#/components/schemas/api.device.DeviceLastSeen'
+                report:
+                    $ref: '#/components/schemas/api.collection.DeviceLastReport'
         api.user.BindEmailReq:
             type: object
             properties:

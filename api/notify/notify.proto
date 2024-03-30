@@ -5,6 +5,8 @@ package api.notify;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/notify;notify";
 
 import "google/api/annotations.proto";
+import "collection/collection.proto";
+import "device/device.proto";
 
 service Notify {
   rpc NotifyDeviceOnline(NotifyDeviceOnlineReq) returns (Empty) {
@@ -26,12 +28,13 @@ message Empty {}
 message NotifyDeviceOnlineReq {
   bool async = 1;
   uint64 device_id = 2;
-  int64 timestamp = 3;
-  string ip = 4;
+  device.DeviceLastSeen seen = 3;
+  collection.DeviceLastReport report = 4;
 }
 
 message NotifyDeviceOfflineReq {
   bool async = 1;
   uint64 device_id = 2;
-  int64 timestamp = 3;
+  device.DeviceLastSeen last_seen = 3;
+  collection.DeviceLastReport last_report = 4;
 }

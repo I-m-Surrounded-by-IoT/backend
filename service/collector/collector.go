@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	collection "github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	collectorApi "github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
@@ -29,13 +29,14 @@ import (
 )
 
 type CollectorService struct {
-	deviceClient  device.DeviceClient
-	kafkaClient   sarama.Client
-	kafkaProducer sarama.AsyncProducer
-	mqttClient    mqtt.Client
-	userClient    user.UserClient
-	notifyClient  notify.NotifyClient
-	timewheel     *timewheel.TimeWheel
+	deviceClient     device.DeviceClient
+	kafkaClient      sarama.Client
+	kafkaProducer    sarama.AsyncProducer
+	mqttClient       mqtt.Client
+	userClient       user.UserClient
+	collectionClient collection.CollectionClient
+	notifyClient     notify.NotifyClient
+	timewheel        *timewheel.TimeWheel
 	collectorApi.UnimplementedCollectorServer
 }
 
@@ -57,6 +58,14 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
 
+	discoveryCollectorConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///collector",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     rc.Addr,
 		Username: rc.Username,
@@ -65,9 +74,10 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	})
 
 	s := &CollectorService{
-		userClient:   user.NewUserClient(discoveryUserConn),
-		notifyClient: notify.NewNotifyClient(discoveryNotifyConn),
-		timewheel:    timewheel.NewTimeWheel(rdb, "collector-timewheel"),
+		userClient:       user.NewUserClient(discoveryUserConn),
+		notifyClient:     notify.NewNotifyClient(discoveryNotifyConn),
+		collectionClient: collection.NewCollectionClient(discoveryCollectorConn),
+		timewheel:        timewheel.NewTimeWheel(rdb, "collector-timewheel"),
 	}
 
 	go s.timewheel.Run()
@@ -100,7 +110,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 				log.Errorf("failed to parse device id: %v", err)
 				continue
 			}
-			resp, err := s.deviceClient.GetDeviceLastSeen(
+			lastSeenresp, err := s.deviceClient.GetDeviceLastSeen(
 				context.Background(),
 				&device.GetDeviceLastSeenReq{
 					Id: id,
@@ -110,13 +120,23 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 				log.Errorf("failed to get device last seen: %v", err)
 				continue
 			}
-			if time.Since(time.UnixMilli(resp.LastSeenAt)).Minutes() > 3 {
-				_, err := s.notifyClient.NotifyDeviceOffline(
+			if time.Since(time.UnixMilli(lastSeenresp.LastSeenAt)).Minutes() > 3 {
+				lastReportResp, err := s.collectionClient.GetDeviceLastReport(
+					context.Background(),
+					&collection.GetDeviceLastReportReq{
+						Id: id,
+					},
+				)
+				if err != nil {
+					log.Error("failed to get device last report: %w", err)
+				}
+				_, err = s.notifyClient.NotifyDeviceOffline(
 					context.Background(),
 					&notify.NotifyDeviceOfflineReq{
-						DeviceId:  id,
-						Timestamp: resp.LastSeenAt,
-						Async:     true,
+						DeviceId:   id,
+						Async:      true,
+						LastSeen:   lastSeenresp,
+						LastReport: lastReportResp,
 					},
 				)
 				if err != nil {
@@ -184,9 +204,9 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to subscribe topic: %v", tk.Error())
 	}
 
-	if tk := s.mqttClient.Subscribe("$share/collector-device-conn/event/device/conn", 2, s.handlerDeviceConn); !tk.WaitTimeout(5 * time.Second) {
-		log.Fatalf("failed to subscribe topic: %v", tk.Error())
-	}
+	// if tk := s.mqttClient.Subscribe("$share/collector-device-conn/event/device/conn", 2, s.handlerDeviceConn); !tk.WaitTimeout(5 * time.Second) {
+	// 	log.Fatalf("failed to subscribe topic: %v", tk.Error())
+	// }
 
 	log.Info("collector service started")
 
@@ -210,18 +230,14 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", id)
 
-	_ = ants.Submit(func() {
-		if err := s.UpdateDeviceLastSeen(
-			context.Background(),
-			id,
-			time.Now(),
-			"",
-		); err != nil {
-			log.Errorf("failed to update device last seen: %v", err)
-		}
-	})
-
 	log.Debugf("receive report message: %v", m.Payload())
+
+	ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
+		Id: id,
+	})
+	if err != nil {
+		log.Errorf("failed to get device last seen: %v", err)
+	}
 
 	data := &collection.CollectionData{}
 	if err := json.Unmarshal(m.Payload(), data); err != nil {
@@ -244,89 +260,130 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		log.Errorf("failed to send report message to kafka: %v", err)
 		return
 	}
-}
 
-type connMessage struct {
-	Timestamp int64  `json:"timestamp"`
-	Event     string `json:"event"`
-	ClientID  string `json:"clientid"`
-	Peername  string `json:"peername"`
-}
-
-func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
-	log := log.WithField("topic", m.Topic())
-
-	msg := connMessage{}
-
-	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
-		log.Errorf("failed to unmarshal message: %s, err: %v", m.Payload(), err)
-		return
-	}
-
-	log.Infof("receive device conn message: %+v", msg)
-
-	before, fater, found := strings.Cut(msg.ClientID, "-")
-	if !found {
-		log.Errorf("invalid client id: %v", msg.ClientID)
-		return
-	}
-	if before != "device" {
-		log.Errorf("invalid client id: %v", msg.ClientID)
-		return
-	}
-	deviceID, err := strconv.ParseUint(fater, 10, 64)
-	if err != nil {
-		log.Errorf("failed to parse device id: %v", err)
-		return
-	}
-
-	log = log.WithField("device_id", deviceID)
-
-	defer func() {
-		if err := s.UpdateDeviceLastSeen(
-			context.Background(),
-			deviceID,
-			time.UnixMilli(msg.Timestamp),
-			msg.Peername,
-		); err != nil {
-			log.Errorf("failed to update device last seen: %v", err)
-		}
-	}()
-
-	switch msg.Event {
-	case "client.connected":
-		ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
-			Id: deviceID,
-		})
-		if err != nil {
-			log.Errorf("failed to get device last seen: %v", err)
-			return
-		}
+	if ls != nil {
 		if time.Since(time.UnixMilli(ls.LastSeenAt)).Minutes() > 3 {
 			_, err := s.notifyClient.NotifyDeviceOnline(
 				context.Background(),
 				&notify.NotifyDeviceOnlineReq{
-					DeviceId:  deviceID,
-					Timestamp: msg.Timestamp,
-					Async:     true,
-					Ip:        msg.Peername,
+					DeviceId: id,
+					Async:    true,
+					Seen:     ls,
+					Report: &collection.DeviceLastReport{
+						ReceivedAt: time.Now().UnixMilli(),
+						Data:       data,
+						Level:      -1,
+					},
 				},
 			)
 			if err != nil {
 				log.Errorf("failed to notify device online: %v", err)
 			}
 		}
-	case "client.disconnected":
-		err = s.timewheel.AddTimer(
-			strconv.FormatUint(deviceID, 10),
-			time.Minute*3,
-			timewheel.WithForce(),
-		)
-		if err != nil {
-			log.Errorf("failed to add timer: %v", err)
+	}
+
+	_ = ants.Submit(func() {
+		if err := s.UpdateDeviceLastSeen(
+			context.Background(),
+			id,
+			time.Now(),
+			"",
+		); err != nil {
+			log.Errorf("failed to update device last seen: %v", err)
 		}
+	})
+
+	err = s.timewheel.AddTimer(
+		strconv.FormatUint(id, 10),
+		time.Minute*3,
+		timewheel.WithForce(),
+	)
+	if err != nil {
+		log.Errorf("failed to add timer: %v", err)
 	}
 }
+
+// type connMessage struct {
+// 	Timestamp int64  `json:"timestamp"`
+// 	Event     string `json:"event"`
+// 	ClientID  string `json:"clientid"`
+// 	Peername  string `json:"peername"`
+// }
+
+// func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
+// 	log := log.WithField("topic", m.Topic())
+
+// 	msg := connMessage{}
+
+// 	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
+// 		log.Errorf("failed to unmarshal message: %s, err: %v", m.Payload(), err)
+// 		return
+// 	}
+
+// 	log.Infof("receive device conn message: %+v", msg)
+
+// 	before, fater, found := strings.Cut(msg.ClientID, "-")
+// 	if !found {
+// 		log.Errorf("invalid client id: %v", msg.ClientID)
+// 		return
+// 	}
+// 	if before != "device" {
+// 		log.Errorf("invalid client id: %v", msg.ClientID)
+// 		return
+// 	}
+// 	deviceID, err := strconv.ParseUint(fater, 10, 64)
+// 	if err != nil {
+// 		log.Errorf("failed to parse device id: %v", err)
+// 		return
+// 	}
+
+// 	log = log.WithField("device_id", deviceID)
+
+// 	defer func() {
+// 		if err := s.UpdateDeviceLastSeen(
+// 			context.Background(),
+// 			deviceID,
+// 			time.UnixMilli(msg.Timestamp),
+// 			msg.Peername,
+// 		); err != nil {
+// 			log.Errorf("failed to update device last seen: %v", err)
+// 		}
+// 	}()
+
+// 	switch msg.Event {
+// 	case "client.connected":
+// 		ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
+// 			Id: deviceID,
+// 		})
+// 		if err != nil {
+// 			log.Errorf("failed to get device last seen: %v", err)
+// 			return
+// 		}
+// 		if time.Since(time.UnixMilli(ls.LastSeenAt)).Seconds() > 1 {
+// 			_, err := s.notifyClient.NotifyDeviceOnline(
+// 				context.Background(),
+// 				&notify.NotifyDeviceOnlineReq{
+// 					DeviceId:  deviceID,
+// 					Timestamp: msg.Timestamp,
+// 					Async:     true,
+// 					Ip:        msg.Peername,
+// 				},
+// 			)
+// 			if err != nil {
+// 				log.Errorf("failed to notify device online: %v", err)
+// 			}
+// 		}
+// 	case "client.disconnected":
+// 		err = s.timewheel.AddTimer(
+// 			strconv.FormatUint(deviceID, 10),
+// 			time.Minute*3,
+// 			timewheel.WithForce(),
+// 		)
+// 		if err != nil {
+// 			log.Errorf("failed to add timer: %v", err)
+// 		}
+// 	}
+// }
 
 func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, t time.Time, ip string) error {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{
