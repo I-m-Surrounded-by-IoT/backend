@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	json "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
@@ -54,14 +54,17 @@ func ClientRun(cmd *cobra.Command, args []string) {
 	timer := time.NewTicker(time.Second * 5)
 	defer timer.Stop()
 	for range timer.C {
-		data := &collection.CollectionData{
+		data := &waterquality.Quality{
 			Timestamp: time.Now().UnixMilli(),
-			GeoPoint: &collection.GeoPoint{
+			GeoPoint: &waterquality.GeoPoint{
 				Lat: rand.Float64() * 100,
 				Lon: rand.Float64() * 100,
 			},
 			Temperature: rand.Float32() * 40,
 			Ph:          rand.Float32() * 14,
+			Tsw:         rand.Float32()*45 + 5,
+			Tds:         rand.Float32()*900 + 100,
+			Oxygen:      rand.Float32()*5 + 5,
 		}
 		log.Infof("publish data: %+v", data)
 

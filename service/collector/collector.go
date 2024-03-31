@@ -12,6 +12,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
@@ -239,7 +240,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 		log.Errorf("failed to get device last seen: %v", err)
 	}
 
-	data := &collection.CollectionData{}
+	data := &waterquality.Quality{}
 	if err := json.Unmarshal(m.Payload(), data); err != nil {
 		log.Errorf("failed to unmarshal report message: %v", err)
 		return

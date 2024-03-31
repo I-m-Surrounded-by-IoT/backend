@@ -45,8 +45,7 @@
                         <td>{{ .IP }}</td>
                     </tr>
                 </mj-table>
-                <mj-button background-color="#85b6c9" color="#ffffff"
-                    href="https://map.baidu.com/?latlng={{ .Lat }},{{ .Lon }}&title=设备ID:{{ .DeviceId }}上线&content=坐标:{{ .Lat }},{{ .Lon }}&autoOpen=true&l">点击前往地图查看</mj-button>
+                <mj-button background-color="#85b6c9" color="#ffffff" href="{{ .MapUrl }}">点击前往地图查看</mj-button>
             </mj-column>
         </mj-section>
         <mj-section padding-top="0">
@@ -62,8 +61,20 @@
                         <td>{{ .Temperature }}°</td>
                     </tr>
                     <tr style="text-align:center;background-color: #e5f1f5;">
-                        <td>ph</td>
-                        <td>{{ .Ph }}</td>
+                        <td>pH</td>
+                        <td>{{ .PH }} mol/L</td>
+                    </tr>
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>浊度TSW</td>
+                        <td>{{ .TSW }} NTU</td>
+                    </tr>
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>溶解性总固体TDS</td>
+                        <td>{{ .TDS }} ppm | mg/L</td>
+                    </tr>
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>含氧量Oxygen</td>
+                        <td>{{ .Oxygen }} mg/L</td>
                     </tr>
                 </mj-table>
             </mj-column>

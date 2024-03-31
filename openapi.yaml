@@ -1225,19 +1225,6 @@ components:
                     type: string
                 captcha:
                     type: string
-        api.collection.CollectionData:
-            type: object
-            properties:
-                timestamp:
-                    type: string
-                geoPoint:
-                    $ref: '#/components/schemas/api.collection.GeoPoint'
-                temperature:
-                    type: number
-                    format: float
-                ph:
-                    type: number
-                    format: float
         api.collection.CollectionRecord:
             type: object
             properties:
@@ -1250,7 +1237,7 @@ components:
                 receivedAt:
                     type: string
                 data:
-                    $ref: '#/components/schemas/api.collection.CollectionData'
+                    $ref: '#/components/schemas/api.waterquality.Quality'
                 level:
                     type: string
         api.collection.CreateCollectionRecordReq:
@@ -1259,7 +1246,7 @@ components:
                 deviceId:
                     type: string
                 data:
-                    $ref: '#/components/schemas/api.collection.CollectionData'
+                    $ref: '#/components/schemas/api.waterquality.Quality'
                 receivedAt:
                     type: string
         api.collection.DeviceLastReport:
@@ -1268,21 +1255,12 @@ components:
                 receivedAt:
                     type: string
                 data:
-                    $ref: '#/components/schemas/api.collection.CollectionData'
+                    $ref: '#/components/schemas/api.waterquality.Quality'
                 level:
                     type: string
         api.collection.Empty:
             type: object
             properties: {}
-        api.collection.GeoPoint:
-            type: object
-            properties:
-                lat:
-                    type: number
-                    format: double
-                lon:
-                    type: number
-                    format: double
         api.collection.GetDeviceStreamEventReq:
             type: object
             properties:
@@ -1711,6 +1689,15 @@ components:
             properties:
                 valid:
                     type: boolean
+        api.waterquality.GeoPoint:
+            type: object
+            properties:
+                lat:
+                    type: number
+                    format: double
+                lon:
+                    type: number
+                    format: double
         api.waterquality.PredictAndGuessResp:
             type: object
             properties:
@@ -1727,10 +1714,21 @@ components:
             properties:
                 timestamp:
                     type: string
+                geoPoint:
+                    $ref: '#/components/schemas/api.waterquality.GeoPoint'
                 temperature:
                     type: number
                     format: float
                 ph:
+                    type: number
+                    format: float
+                tsw:
+                    type: number
+                    format: float
+                tds:
+                    type: number
+                    format: float
+                oxygen:
                     type: number
                     format: float
 tags:

@@ -5,7 +5,6 @@ package api.collection;
 option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collection;collection";
 
 import "google/api/annotations.proto";
-import "collection/device_message.proto";
 import "waterquality/waterquality.proto";
 
 service Collection {
@@ -55,7 +54,7 @@ service Collection {
 
 message CreateCollectionRecordReq {
   uint64 device_id = 1; // @gotags: form:"deviceId" json:"deviceId"
-  CollectionData data = 2;
+  waterquality.Quality data = 2;
   int64 received_at = 3; // @gotags: form:"receivedAt" json:"receivedAt"
 }
 
@@ -64,7 +63,7 @@ message CollectionRecord {
   uint64 device_id = 2;  // @gotags: json:"deviceId"
   int64 created_at = 3;  // @gotags: json:"createdAt"
   int64 received_at = 4; // @gotags: json:"receivedAt"
-  CollectionData data = 5;
+  waterquality.Quality data = 5;
   int64 level = 6; // @gotags: json:"level"
 }
 
@@ -115,9 +114,9 @@ message GetDeviceStreamEventResp {
 }
 
 message DeviceLastReport {
-  int64 received_at = 1;   // @gotags: json:"receivedAt"
-  CollectionData data = 2; // @gotags: redis:"data" json:"data"
-  int64 level = 3;         // @gotags: json:"level"
+  int64 received_at = 1;         // @gotags: json:"receivedAt"
+  waterquality.Quality data = 2; // @gotags: redis:"data" json:"data"
+  int64 level = 3;               // @gotags: json:"level"
 }
 
 message GetDeviceLastReportReq { uint64 id = 1; }

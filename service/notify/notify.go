@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/url"
 	"text/template"
 	"time"
 
 	"github.com/Boostport/mjml-go"
-	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/message"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
 	"github.com/I-m-Surrounded-by-IoT/backend/service"
@@ -96,15 +97,39 @@ var (
 	deviceOfflineTemplate *template.Template
 )
 
+func newMapUrl(deviceID uint64, geo *waterquality.GeoPoint, t time.Time) (string, error) {
+	u, err := url.Parse("https://map.baidu.com/")
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	q.Set("title", fmt.Sprintf("设备ID:%d上线", deviceID))
+	q.Set("content", fmt.Sprintf("坐标:%f,%f\n时间:%s", geo.Lat, geo.Lon, t.Format("2006-01-02 15:04:05")))
+	q.Set("autoOpen", "true")
+	u.RawQuery = q.Encode()
+
+	return fmt.Sprintf(
+		"%s&latlng=%f,%f&l",
+		u.String(),
+		geo.Lat,
+		geo.Lon,
+	), nil
+}
+
 type device_online_payload struct {
 	DeviceId uint64
 	Time     string
-	*collection.GeoPoint
+	*waterquality.GeoPoint
 	IP string
+
+	MapUrl string
 
 	QualityTime string
 	Temperature float32
-	Ph          float32
+	PH          float32
+	TSW         float32
+	TDS         float32
+	Oxygen      float32
 
 	Year int
 }
@@ -150,6 +175,11 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 		return nil, nil
 	}
 	subject := fmt.Sprintf("设备 %d 上线", req.DeviceId)
+	mapUrl, err := newMapUrl(req.DeviceId, req.Report.Data.GeoPoint, time.UnixMilli(req.Seen.LastSeenAt))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create map url: %w", err)
+
+	}
 	out := &bytes.Buffer{}
 	err = deviceOnlineTemplate.Execute(
 		out,
@@ -158,10 +188,14 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 			Time:     time.UnixMilli(req.Seen.LastSeenAt).Format("2006-01-02 15:04:05"),
 			GeoPoint: req.Report.Data.GeoPoint,
 			IP:       req.Seen.LastSeenIp,
+			MapUrl:   mapUrl,
 
 			QualityTime: time.UnixMilli(req.Report.Data.Timestamp).Format("2006-01-02 15:04:05"),
 			Temperature: req.Report.Data.Temperature,
-			Ph:          req.Report.Data.Ph,
+			PH:          req.Report.Data.Ph,
+			TSW:         req.Report.Data.Tsw,
+			TDS:         req.Report.Data.Tds,
+			Oxygen:      req.Report.Data.Oxygen,
 
 			Year: time.Now().Year(),
 		},

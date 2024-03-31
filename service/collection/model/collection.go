@@ -24,6 +24,9 @@ type CollectionData struct {
 	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326);index:,type:gist"`
 	Temperature float32
 	Ph          float32
+	Tsw         float32
+	Tds         float32
+	Oxygen      float32
 }
 
 type GeoPoint struct {

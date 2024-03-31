@@ -81,26 +81,10 @@ func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectionCon
 	return db
 }
 
-func collectionData2Quality(data *collectionApi.CollectionData) *waterquality.Quality {
-	return &waterquality.Quality{
-		Timestamp:   data.Timestamp,
-		Temperature: data.Temperature,
-		Ph:          data.Ph,
-	}
-}
-
-func collectionDatas2Qualities(datas []*collectionApi.CollectionData) []*waterquality.Quality {
-	qualities := make([]*waterquality.Quality, len(datas))
-	for i, d := range datas {
-		qualities[i] = collectionData2Quality(d)
-	}
-	return qualities
-}
-
 func collectionRecords2Qualities(records []*collectionApi.CollectionRecord) []*waterquality.Quality {
 	qualities := make([]*waterquality.Quality, len(records))
 	for i, r := range records {
-		qualities[i] = collectionData2Quality(r.Data)
+		qualities[i] = r.Data
 	}
 	return qualities
 }
@@ -108,7 +92,7 @@ func collectionRecords2Qualities(records []*collectionApi.CollectionRecord) []*w
 func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *collectionApi.CreateCollectionRecordReq) (*collectionApi.Empty, error) {
 	guess, err := s.waterQualityClient.GuessLevel(
 		ctx,
-		collectionData2Quality(req.Data),
+		req.Data,
 	)
 	var level int64
 	if err != nil {
@@ -170,12 +154,15 @@ func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *col
 	return &collectionApi.Empty{}, nil
 }
 
-func proto2Data(data *collectionApi.CollectionData) *model.CollectionData {
+func proto2Data(data *waterquality.Quality) *model.CollectionData {
 	return &model.CollectionData{
 		Timestamp:   time.UnixMilli(data.Timestamp),
 		GeoPoint:    model.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon},
 		Temperature: data.Temperature,
 		Ph:          data.Ph,
+		Tsw:         data.Tsw,
+		Tds:         data.Tds,
+		Oxygen:      data.Oxygen,
 	}
 }
 
@@ -189,10 +176,10 @@ func proto2Record(record *collectionApi.CollectionRecord) *model.CollectionRecor
 	}
 }
 
-func data2Proto(data *model.CollectionData) *collectionApi.CollectionData {
-	return &collectionApi.CollectionData{
+func data2Proto(data *model.CollectionData) *waterquality.Quality {
+	return &waterquality.Quality{
 		Timestamp:   data.Timestamp.UnixMilli(),
-		GeoPoint:    &collectionApi.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon},
+		GeoPoint:    &waterquality.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon},
 		Temperature: data.Temperature,
 		Ph:          data.Ph,
 	}

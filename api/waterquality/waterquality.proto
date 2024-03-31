@@ -10,10 +10,19 @@ service WaterQualityService {
   rpc PredictAndGuess(PredictAndGuessReq) returns (PredictAndGuessResp) {}
 }
 
+message GeoPoint {
+  double lat = 1; // @gotags: json:"lat"
+  double lon = 2; // @gotags: json:"lon"
+}
+
 message Quality {
-  int64 timestamp = 1;
-  float temperature = 2;
-  float ph = 3;
+  int64 timestamp = 1;    // @gotags: json:"timestamp"
+  GeoPoint geo_point = 2; // @gotags: json:"geoPoint"
+  float temperature = 3;  // @gotags: json:"temperature"
+  float ph = 4;           // @gotags: json:"ph"
+  float tsw = 5;          // @gotags: json:"tsw"
+  float tds = 6;          // @gotags: json:"tds"
+  float oxygen = 7;       // @gotags: json:"oxygen"
 }
 
 message PredictReq {

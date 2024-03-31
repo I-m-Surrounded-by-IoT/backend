@@ -87,16 +87,6 @@ func KafkaTopicEmailSend(kc sarama.AsyncProducer, data *email.SendEmailReq) erro
 	return nil
 }
 
-func UnmarshalCollectionData(data []byte) (*collection.CollectionData, error) {
-	v := &collection.CollectionData{}
-	err := proto.Unmarshal(data, v)
-	return v, err
-}
-
-func UnmarshalCollectionDataTo(data []byte, v *collection.CollectionData) error {
-	return proto.Unmarshal(data, v)
-}
-
 const (
 	KafkaTopicMessage = "message"
 )
