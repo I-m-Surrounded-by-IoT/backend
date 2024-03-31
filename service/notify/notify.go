@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"text/template"
+	"time"
 
 	"github.com/Boostport/mjml-go"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/email"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/message"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
@@ -94,6 +96,19 @@ var (
 	deviceOfflineTemplate *template.Template
 )
 
+type device_online_payload struct {
+	DeviceId uint64
+	Time     string
+	*collection.GeoPoint
+	IP string
+
+	QualityTime string
+	Temperature float32
+	Ph          float32
+
+	Year int
+}
+
 func init() {
 	body, err := mjml.ToHTML(
 		context.Background(),
@@ -134,11 +149,22 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
-	subject := fmt.Sprintf("device %d %s", req.DeviceId, "online")
+	subject := fmt.Sprintf("设备 %d 上线", req.DeviceId)
 	out := &bytes.Buffer{}
 	err = deviceOnlineTemplate.Execute(
 		out,
-		req,
+		&device_online_payload{
+			DeviceId: req.DeviceId,
+			Time:     time.UnixMilli(req.Seen.LastSeenAt).Format("2006-01-02 15:04:05"),
+			GeoPoint: req.Report.Data.GeoPoint,
+			IP:       req.Seen.LastSeenIp,
+
+			QualityTime: time.UnixMilli(req.Report.Data.Timestamp).Format("2006-01-02 15:04:05"),
+			Temperature: req.Report.Data.Temperature,
+			Ph:          req.Report.Data.Ph,
+
+			Year: time.Now().Year(),
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute template: %w", err)
@@ -192,7 +218,7 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 		log.Debugf("no followed user for device %d", req.DeviceId)
 		return nil, nil
 	}
-	subject := fmt.Sprintf("device %d %s", req.DeviceId, "offline")
+	subject := fmt.Sprintf("设备 %d 离线", req.DeviceId)
 	out := &bytes.Buffer{}
 	err = deviceOfflineTemplate.Execute(
 		out,

@@ -1,50 +1,77 @@
 <mjml>
     <mj-head>
-        <mj-font name="MiSans"
-            href="https://font.sec.miui.com/font/css?family=MiSans:400,500,600,700:Chinese_Simplify,Latin,Chinese_Traditional&display=swap" />
-        <mj-style>
-            .indent div {
+        <mj-style>.indent div {
             text-indent: 2em;
             }
-
             .code div {
             text-shadow: 0 0 11px #abd0e4;
             }
-
             .footer div {
             text-shadow: 0 0 5px #fef0df;
             }
-        </mj-style>
+            iframe {
+            border:none
+            }</mj-style>
     </mj-head>
     <mj-body>
-        <mj-section>
+        <mj-section padding-bottom="0px">
             <mj-column>
-                <!-- <mj-image width="100px" src=""></mj-image> -->
-                <mj-text align="center" font-size="30px" color="#85b6c9" font-family="MiSans">
-                    水届守护者
-                </mj-text>
-
+                <mj-text align="center" font-size="30px" color="#85b6c9">水届守护者</mj-text>
                 <mj-divider border-color="#85b6c9"></mj-divider>
-
-                <mj-text font-size="20px" color="#85b6c9" font-family="MiSans">
-                    验证码通知：
-                </mj-text>
-                <mj-text css-class="indent" font-family="MiSans">
-                    你本次操作的邮箱验证码为：
-                </mj-text>
-                <mj-text css-class="code" color="#3d5e78" align="center" font-size="50px" font-family="MiSans">
-                    {{ .Captcha }}
-                </mj-text>
-
-                <mj-text css-class="indent" font-family="MiSans">
-                    该验证码有效期为5分钟，如果您并没有访问过我们的网站，或没有进行上述操作，请忽略这封邮件。
-                </mj-text>
-
+            </mj-column>
+        </mj-section>
+        <mj-section padding-top="0" padding-bottom="0px">
+            <mj-column>
+                <mj-text font-size="20px" color="#85b6c9">设备上线通知：</mj-text>
+                <mj-table align="center" width="90%" line-height="2.2">
+                    <tr style="text-align:center;background-color:#f9f9f9">
+                        <td>设备id</td>
+                        <td>{{ .DeviceId }}</td>
+                    </tr>
+                    <tr style="text-align:center;background-color:#f9f9f9">
+                        <td>时间</td>
+                        <td>{{ .Time }}</td>
+                    </tr>
+                    <tr style="text-align:center;background-color:#f9f9f9">
+                        <td>经度</td>
+                        <td>{{ .Lat }}</td>
+                    </tr>
+                    <tr style="text-align:center;background-color:#f9f9f9">
+                        <td>维度</td>
+                        <td>{{ .Lon }}</td>
+                    </tr>
+                    <tr style="text-align:center;background-color:#f9f9f9">
+                        <td>IP</td>
+                        <td>{{ .IP }}</td>
+                    </tr>
+                </mj-table>
+                <mj-button background-color="#85b6c9" color="#ffffff"
+                    href="https://map.baidu.com/?latlng={{ .Lat }},{{ .Lon }}&title=设备ID:{{ .DeviceId }}上线&content=坐标:{{ .Lat }},{{ .Lon }}&autoOpen=true&l">点击前往地图查看</mj-button>
+            </mj-column>
+        </mj-section>
+        <mj-section padding-top="0">
+            <mj-column>
+                <mj-text font-size="18px" color="#85b6c9">水质信息：</mj-text>
+                <mj-table align="center" width="90%" line-height="2.2" color="#1f7997">
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>时间</td>
+                        <td>{{ .QualityTime }}</td>
+                    </tr>
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>温度</td>
+                        <td>{{ .Temperature }}°</td>
+                    </tr>
+                    <tr style="text-align:center;background-color: #e5f1f5;">
+                        <td>ph</td>
+                        <td>{{ .Ph }}</td>
+                    </tr>
+                </mj-table>
+            </mj-column>
+        </mj-section>
+        <mj-section padding-top="0">
+            <mj-column>
                 <mj-divider border-color="#85b6c9"></mj-divider>
-
-                <mj-text css-class="footer" align="center" font-family="MiSans">
-                    Copyright © {{ .Year }} 水届守护者 All Rights Reserved.
-                </mj-text>
+                <mj-text css-class="footer" align="center">Copyright {{ .Year }} 水届守护者 All Rights Reserved.</mj-text>
             </mj-column>
         </mj-section>
     </mj-body>

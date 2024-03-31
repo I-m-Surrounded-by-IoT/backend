@@ -61,6 +61,7 @@ func ClientRun(cmd *cobra.Command, args []string) {
 				Lon: rand.Float64() * 100,
 			},
 			Temperature: rand.Float32() * 40,
+			Ph:          rand.Float32() * 14,
 		}
 		log.Infof("publish data: %+v", data)
 

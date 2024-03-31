@@ -204,9 +204,9 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to subscribe topic: %v", tk.Error())
 	}
 
-	// if tk := s.mqttClient.Subscribe("$share/collector-device-conn/event/device/conn", 2, s.handlerDeviceConn); !tk.WaitTimeout(5 * time.Second) {
-	// 	log.Fatalf("failed to subscribe topic: %v", tk.Error())
-	// }
+	if tk := s.mqttClient.Subscribe("$share/collector-device-conn/event/device/conn", 2, s.handlerDeviceConn); !tk.WaitTimeout(5 * time.Second) {
+		log.Fatalf("failed to subscribe topic: %v", tk.Error())
+	}
 
 	log.Info("collector service started")
 
@@ -262,7 +262,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 	}
 
 	if ls != nil {
-		if time.Since(time.UnixMilli(ls.LastSeenAt)).Minutes() > 3 {
+		if time.Since(time.UnixMilli(ls.LastSeenAt)).Seconds() > 3 {
 			_, err := s.notifyClient.NotifyDeviceOnline(
 				context.Background(),
 				&notify.NotifyDeviceOnlineReq{
@@ -303,87 +303,87 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 	}
 }
 
-// type connMessage struct {
-// 	Timestamp int64  `json:"timestamp"`
-// 	Event     string `json:"event"`
-// 	ClientID  string `json:"clientid"`
-// 	Peername  string `json:"peername"`
-// }
+type connMessage struct {
+	Timestamp int64  `json:"timestamp"`
+	Event     string `json:"event"`
+	ClientID  string `json:"clientid"`
+	Peername  string `json:"peername"`
+}
 
-// func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
-// 	log := log.WithField("topic", m.Topic())
+func (s *CollectorService) handlerDeviceConn(c mqtt.Client, m mqtt.Message) {
+	log := log.WithField("topic", m.Topic())
 
-// 	msg := connMessage{}
+	msg := connMessage{}
 
-// 	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
-// 		log.Errorf("failed to unmarshal message: %s, err: %v", m.Payload(), err)
-// 		return
-// 	}
+	if err := json.Unmarshal(m.Payload(), &msg); err != nil {
+		log.Errorf("failed to unmarshal message: %s, err: %v", m.Payload(), err)
+		return
+	}
 
-// 	log.Infof("receive device conn message: %+v", msg)
+	log.Infof("receive device conn message: %+v", msg)
 
-// 	before, fater, found := strings.Cut(msg.ClientID, "-")
-// 	if !found {
-// 		log.Errorf("invalid client id: %v", msg.ClientID)
-// 		return
-// 	}
-// 	if before != "device" {
-// 		log.Errorf("invalid client id: %v", msg.ClientID)
-// 		return
-// 	}
-// 	deviceID, err := strconv.ParseUint(fater, 10, 64)
-// 	if err != nil {
-// 		log.Errorf("failed to parse device id: %v", err)
-// 		return
-// 	}
+	before, fater, found := strings.Cut(msg.ClientID, "-")
+	if !found {
+		log.Errorf("invalid client id: %v", msg.ClientID)
+		return
+	}
+	if before != "device" {
+		log.Errorf("invalid client id: %v", msg.ClientID)
+		return
+	}
+	deviceID, err := strconv.ParseUint(fater, 10, 64)
+	if err != nil {
+		log.Errorf("failed to parse device id: %v", err)
+		return
+	}
 
-// 	log = log.WithField("device_id", deviceID)
+	log = log.WithField("device_id", deviceID)
 
-// 	defer func() {
-// 		if err := s.UpdateDeviceLastSeen(
-// 			context.Background(),
-// 			deviceID,
-// 			time.UnixMilli(msg.Timestamp),
-// 			msg.Peername,
-// 		); err != nil {
-// 			log.Errorf("failed to update device last seen: %v", err)
-// 		}
-// 	}()
+	defer func() {
+		if err := s.UpdateDeviceLastSeen(
+			context.Background(),
+			deviceID,
+			time.UnixMilli(msg.Timestamp),
+			msg.Peername,
+		); err != nil {
+			log.Errorf("failed to update device last seen: %v", err)
+		}
+	}()
 
-// 	switch msg.Event {
-// 	case "client.connected":
-// 		ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
-// 			Id: deviceID,
-// 		})
-// 		if err != nil {
-// 			log.Errorf("failed to get device last seen: %v", err)
-// 			return
-// 		}
-// 		if time.Since(time.UnixMilli(ls.LastSeenAt)).Seconds() > 1 {
-// 			_, err := s.notifyClient.NotifyDeviceOnline(
-// 				context.Background(),
-// 				&notify.NotifyDeviceOnlineReq{
-// 					DeviceId:  deviceID,
-// 					Timestamp: msg.Timestamp,
-// 					Async:     true,
-// 					Ip:        msg.Peername,
-// 				},
-// 			)
-// 			if err != nil {
-// 				log.Errorf("failed to notify device online: %v", err)
-// 			}
-// 		}
-// 	case "client.disconnected":
-// 		err = s.timewheel.AddTimer(
-// 			strconv.FormatUint(deviceID, 10),
-// 			time.Minute*3,
-// 			timewheel.WithForce(),
-// 		)
-// 		if err != nil {
-// 			log.Errorf("failed to add timer: %v", err)
-// 		}
-// 	}
-// }
+	// switch msg.Event {
+	// case "client.connected":
+	// 	ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
+	// 		Id: deviceID,
+	// 	})
+	// 	if err != nil {
+	// 		log.Errorf("failed to get device last seen: %v", err)
+	// 		return
+	// 	}
+	// 	if time.Since(time.UnixMilli(ls.LastSeenAt)).Seconds() > 1 {
+	// 		_, err := s.notifyClient.NotifyDeviceOnline(
+	// 			context.Background(),
+	// 			&notify.NotifyDeviceOnlineReq{
+	// 				DeviceId:  deviceID,
+	// 				Timestamp: msg.Timestamp,
+	// 				Async:     true,
+	// 				Ip:        msg.Peername,
+	// 			},
+	// 		)
+	// 		if err != nil {
+	// 			log.Errorf("failed to notify device online: %v", err)
+	// 		}
+	// 	}
+	// case "client.disconnected":
+	// 	err = s.timewheel.AddTimer(
+	// 		strconv.FormatUint(deviceID, 10),
+	// 		time.Minute*3,
+	// 		timewheel.WithForce(),
+	// 	)
+	// 	if err != nil {
+	// 		log.Errorf("failed to add timer: %v", err)
+	// 	}
+	// }
+}
 
 func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, t time.Time, ip string) error {
 	_, err := c.deviceClient.UpdateDeviceLastSeen(ctx, &device.UpdateDeviceLastSeenReq{

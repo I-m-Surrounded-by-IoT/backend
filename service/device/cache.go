@@ -235,7 +235,27 @@ end
 return 0
 `)
 
+var updateDeviceLastReportWithoutIpScript = redis.NewScript(`
+local key = KEYS[1]
+local at = ARGV[1]
+
+local last = redis.call('HGET', key, 'at')
+if last == false or last < at then
+	redis.call('HSET', key, 'at', at)
+end
+return 0
+`)
+
 func (dc *DeviceRcache) UpdateDeviceLastSeen(ctx context.Context, id uint64, lastSeen *device.DeviceLastSeen) error {
+	if lastSeen.LastSeenIp == "" {
+		return updateDeviceLastReportWithoutIpScript.Run(
+			ctx,
+			dc.rcache,
+			[]string{fmt.Sprintf("device:last:seen:%d", id)},
+			lastSeen.LastSeenAt,
+		).Err()
+	}
+
 	return updateDeviceLastReportScript.Run(
 		ctx,
 		dc.rcache,
