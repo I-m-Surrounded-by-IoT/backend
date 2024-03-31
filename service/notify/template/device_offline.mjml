@@ -76,6 +76,10 @@
                         <td>含氧量Oxygen</td>
                         <td>{{ .Oxygen }} mg/L</td>
                     </tr>
+                    <tr style="text-align:center;background-color: #ffe9dd;">
+                        <td>污染等级</td>
+                        <td>{{ .Level }} mg/L</td>
+                    </tr>
                 </mj-table>
             </mj-column>
         </mj-section>
