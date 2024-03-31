@@ -244,6 +244,8 @@ github.com/zijiren233/stream v0.5.2 h1:K8xPvXtETH7qo9P99xdvi7q0MXALfxb1XBtzpz/Zn
 github.com/zijiren233/stream v0.5.2/go.mod h1:iIrOm3qgIepQFmptD/HDY+YzamSSzQOtPjpVcK7FCOw=
 github.com/zijiren233/timewheel-redis v0.1.1 h1:iSmzYhY9Vp16QVBEYYavY2M2joRAq7cqdfdxVbWJM+s=
 github.com/zijiren233/timewheel-redis v0.1.1/go.mod h1:9WixnIDS7ZRZHMvcwm2ZB0FuO8TaADvoVMgk6+Lh1cI=
+github.com/zijiren233/timewheel-redis v0.1.2 h1:39/CxX3oLEMg7P1ElAQAslCg+sEkTE2kKwe495IAXFM=
+github.com/zijiren233/timewheel-redis v0.1.2/go.mod h1:9WixnIDS7ZRZHMvcwm2ZB0FuO8TaADvoVMgk6+Lh1cI=
 go.etcd.io/etcd/api/v3 v3.5.12 h1:W4sw5ZoU2Juc9gBWuLk5U6fHfNVyY1WC5g9uiXZio/c=
 go.etcd.io/etcd/api/v3 v3.5.12/go.mod h1:Ot+o0SWSyT6uHhA56al1oCED0JImsRiU9Dc26+C2a+4=
 go.etcd.io/etcd/client/pkg/v3 v3.5.12 h1:EYDL6pWwyOsylrQyLp2w+HkQ46ATiOvoEdMarindU2A=

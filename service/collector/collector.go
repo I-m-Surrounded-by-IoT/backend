@@ -29,6 +29,10 @@ import (
 	"github.com/zijiren233/timewheel-redis"
 )
 
+const (
+	device_offline_max_duration = time.Minute * 5
+)
+
 type CollectorService struct {
 	deviceClient     device.DeviceClient
 	kafkaClient      sarama.Client
@@ -59,8 +63,8 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		log.Fatalf("failed to create grpc conn: %v", err)
 	}
 
-	discoveryCollectorConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
-		Endpoint: "discovery:///collector",
+	discoveryCollectionConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///collection",
 		TimeOut:  "10s",
 	}, etcd)
 	if err != nil {
@@ -77,7 +81,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	s := &CollectorService{
 		userClient:       user.NewUserClient(discoveryUserConn),
 		notifyClient:     notify.NewNotifyClient(discoveryNotifyConn),
-		collectionClient: collection.NewCollectionClient(discoveryCollectorConn),
+		collectionClient: collection.NewCollectionClient(discoveryCollectionConn),
 		timewheel:        timewheel.NewTimeWheel(rdb, "collector-timewheel"),
 	}
 
@@ -121,7 +125,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 				log.Errorf("failed to get device last seen: %v", err)
 				continue
 			}
-			if time.Since(time.UnixMilli(lastSeenresp.LastSeenAt)).Minutes() > 3 {
+			if time.UnixMilli(lastSeenresp.LastSeenAt).Add(device_offline_max_duration).Before(time.Now()) {
 				lastReportResp, err := s.collectionClient.GetDeviceLastReport(
 					context.Background(),
 					&collection.GetDeviceLastReportReq{
@@ -130,7 +134,9 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 				)
 				if err != nil {
 					log.Error("failed to get device last report: %w", err)
+					continue
 				}
+				log.Debugf("device %d last report: %+v", id, lastReportResp)
 				_, err = s.notifyClient.NotifyDeviceOffline(
 					context.Background(),
 					&notify.NotifyDeviceOfflineReq{
@@ -263,7 +269,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 	}
 
 	if ls != nil {
-		if time.Since(time.UnixMilli(ls.LastSeenAt)).Seconds() > 3 {
+		if time.UnixMilli(ls.LastSeenAt).Add(device_offline_max_duration).Before(time.Now()) {
 			_, err := s.notifyClient.NotifyDeviceOnline(
 				context.Background(),
 				&notify.NotifyDeviceOnlineReq{
@@ -296,7 +302,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	err = s.timewheel.AddTimer(
 		strconv.FormatUint(id, 10),
-		time.Minute*3,
+		device_offline_max_duration,
 		timewheel.WithForce(),
 	)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/rcache"
 	"github.com/redis/go-redis/v9"
+	"github.com/zijiren233/stream"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -59,7 +60,7 @@ local at = ARGV[1]
 local data = ARGV[2]
 local last = redis.call('HGET', key, 'at')
 if last == false or last < at then
-	redis.call('HMSET', key, 'at', at, 'data', data)
+	redis.call('HMSET', key, 'at', at, 'data', data, 'level', level)
 end
 return 0
 `)
@@ -92,13 +93,13 @@ func (rc *CollectionRcache) GetDeviceLastReport(ctx context.Context, id uint64) 
 		return nil, redis.Nil
 	}
 	lastlocal := &collection.DeviceLastReport{}
-	lastlocal.ReceivedAt, err = strconv.ParseInt(resp[0].(string), 10, 64)
-	if err != nil {
-		return nil, err
+	data, ok := resp[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert resp proto data to string")
 	}
-	err = proto.Unmarshal([]byte(resp[1].(string)), lastlocal.Data)
+	err = proto.Unmarshal(stream.StringToBytes(data), lastlocal)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal data: %w", err)
 	}
 	return lastlocal, nil
 }

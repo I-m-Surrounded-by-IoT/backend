@@ -116,7 +116,7 @@ func newMapUrl(deviceID uint64, geo *waterquality.GeoPoint, t time.Time) (string
 	), nil
 }
 
-type device_online_payload struct {
+type device_online_offline_payload struct {
 	DeviceId uint64
 	Time     string
 	*waterquality.GeoPoint
@@ -183,7 +183,7 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 	out := &bytes.Buffer{}
 	err = deviceOnlineTemplate.Execute(
 		out,
-		&device_online_payload{
+		&device_online_offline_payload{
 			DeviceId: req.DeviceId,
 			Time:     time.UnixMilli(req.Seen.LastSeenAt).Format("2006-01-02 15:04:05"),
 			GeoPoint: req.Report.Data.GeoPoint,
@@ -253,10 +253,29 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 		return nil, nil
 	}
 	subject := fmt.Sprintf("设备 %d 离线", req.DeviceId)
+	mapUrl, err := newMapUrl(req.DeviceId, req.LastReport.Data.GeoPoint, time.UnixMilli(req.LastSeen.LastSeenAt))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create map url: %w", err)
+	}
 	out := &bytes.Buffer{}
 	err = deviceOfflineTemplate.Execute(
 		out,
-		req,
+		&device_online_offline_payload{
+			DeviceId: req.DeviceId,
+			Time:     time.UnixMilli(req.LastSeen.LastSeenAt).Format("2006-01-02 15:04:05"),
+			GeoPoint: req.LastReport.Data.GeoPoint,
+			IP:       req.LastSeen.LastSeenIp,
+			MapUrl:   mapUrl,
+
+			QualityTime: time.UnixMilli(req.LastReport.Data.Timestamp).Format("2006-01-02 15:04:05"),
+			Temperature: req.LastReport.Data.Temperature,
+			PH:          req.LastReport.Data.Ph,
+			TSW:         req.LastReport.Data.Tsw,
+			TDS:         req.LastReport.Data.Tds,
+			Oxygen:      req.LastReport.Data.Oxygen,
+
+			Year: time.Now().Year(),
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute template: %w", err)
