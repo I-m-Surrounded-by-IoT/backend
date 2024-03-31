@@ -37,7 +37,7 @@
                         <td>{{ .Lat }}</td>
                     </tr>
                     <tr style="text-align:center;background-color:#f9f9f9">
-                        <td>维度</td>
+                        <td>纬度</td>
                         <td>{{ .Lon }}</td>
                     </tr>
                     <tr style="text-align:center;background-color:#f9f9f9">
