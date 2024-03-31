@@ -699,6 +699,60 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.message.Empty'
+    /notify/device/offline:
+        post:
+            tags:
+                - Notify
+            operationId: Notify_NotifyDeviceOffline
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.notify.NotifyDeviceOfflineReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.notify.Empty'
+    /notify/device/online:
+        post:
+            tags:
+                - Notify
+            operationId: Notify_NotifyDeviceOnline
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.notify.NotifyDeviceOnlineReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.notify.Empty'
+    /notify/test/email:
+        post:
+            tags:
+                - Notify
+            operationId: Notify_NotifyTestEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.notify.NotifyTestEmailReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.notify.Empty'
     /user:
         get:
             tags:
@@ -1166,42 +1220,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.user.UserInfo'
-    /v1/notify/device/offline:
-        post:
-            tags:
-                - Notify
-            operationId: Notify_NotifyDeviceOffline
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.notify.NotifyDeviceOfflineReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.notify.Empty'
-    /v1/notify/device/online:
-        post:
-            tags:
-                - Notify
-            operationId: Notify_NotifyDeviceOnline
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.notify.NotifyDeviceOnlineReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.notify.Empty'
 components:
     schemas:
         api.captcha.Empty:
@@ -1505,6 +1523,11 @@ components:
                     $ref: '#/components/schemas/api.device.DeviceLastSeen'
                 report:
                     $ref: '#/components/schemas/api.collection.DeviceLastReport'
+        api.notify.NotifyTestEmailReq:
+            type: object
+            properties:
+                userId:
+                    type: string
         api.user.BindEmailReq:
             type: object
             properties:
@@ -1670,6 +1693,10 @@ components:
                 status:
                     type: integer
                     format: enum
+                email:
+                    type: string
+                phone:
+                    type: string
         api.user.UserLastSeen:
             type: object
             properties:

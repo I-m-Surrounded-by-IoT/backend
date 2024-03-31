@@ -201,6 +201,8 @@ message UserInfo {
   string username = 4;  // @gotags: redis:"username"
   Role role = 5;        // @gotags: redis:"role,omitempty" json:"role"
   Status status = 6;    // @gotags: redis:"status,omitempty" json:"status"
+  string email = 7;     // @gotags: redis:"email,omitempty" json:"email"
+  string phone = 8;     // @gotags: redis:"phone,omitempty" json:"phone"
 }
 
 message GetUserIdReq { string username = 1; }

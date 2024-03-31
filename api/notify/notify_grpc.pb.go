@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	Notify_NotifyTestEmail_FullMethodName     = "/api.notify.Notify/NotifyTestEmail"
 	Notify_NotifyDeviceOnline_FullMethodName  = "/api.notify.Notify/NotifyDeviceOnline"
 	Notify_NotifyDeviceOffline_FullMethodName = "/api.notify.Notify/NotifyDeviceOffline"
 )
@@ -27,6 +28,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NotifyClient interface {
+	NotifyTestEmail(ctx context.Context, in *NotifyTestEmailReq, opts ...grpc.CallOption) (*Empty, error)
 	NotifyDeviceOnline(ctx context.Context, in *NotifyDeviceOnlineReq, opts ...grpc.CallOption) (*Empty, error)
 	NotifyDeviceOffline(ctx context.Context, in *NotifyDeviceOfflineReq, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -37,6 +39,15 @@ type notifyClient struct {
 
 func NewNotifyClient(cc grpc.ClientConnInterface) NotifyClient {
 	return &notifyClient{cc}
+}
+
+func (c *notifyClient) NotifyTestEmail(ctx context.Context, in *NotifyTestEmailReq, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Notify_NotifyTestEmail_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *notifyClient) NotifyDeviceOnline(ctx context.Context, in *NotifyDeviceOnlineReq, opts ...grpc.CallOption) (*Empty, error) {
@@ -61,6 +72,7 @@ func (c *notifyClient) NotifyDeviceOffline(ctx context.Context, in *NotifyDevice
 // All implementations must embed UnimplementedNotifyServer
 // for forward compatibility
 type NotifyServer interface {
+	NotifyTestEmail(context.Context, *NotifyTestEmailReq) (*Empty, error)
 	NotifyDeviceOnline(context.Context, *NotifyDeviceOnlineReq) (*Empty, error)
 	NotifyDeviceOffline(context.Context, *NotifyDeviceOfflineReq) (*Empty, error)
 	mustEmbedUnimplementedNotifyServer()
@@ -70,6 +82,9 @@ type NotifyServer interface {
 type UnimplementedNotifyServer struct {
 }
 
+func (UnimplementedNotifyServer) NotifyTestEmail(context.Context, *NotifyTestEmailReq) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotifyTestEmail not implemented")
+}
 func (UnimplementedNotifyServer) NotifyDeviceOnline(context.Context, *NotifyDeviceOnlineReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NotifyDeviceOnline not implemented")
 }
@@ -87,6 +102,24 @@ type UnsafeNotifyServer interface {
 
 func RegisterNotifyServer(s grpc.ServiceRegistrar, srv NotifyServer) {
 	s.RegisterService(&Notify_ServiceDesc, srv)
+}
+
+func _Notify_NotifyTestEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotifyTestEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotifyServer).NotifyTestEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Notify_NotifyTestEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotifyServer).NotifyTestEmail(ctx, req.(*NotifyTestEmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Notify_NotifyDeviceOnline_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -132,6 +165,10 @@ var Notify_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "api.notify.Notify",
 	HandlerType: (*NotifyServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "NotifyTestEmail",
+			Handler:    _Notify_NotifyTestEmail_Handler,
+		},
 		{
 			MethodName: "NotifyDeviceOnline",
 			Handler:    _Notify_NotifyDeviceOnline_Handler,

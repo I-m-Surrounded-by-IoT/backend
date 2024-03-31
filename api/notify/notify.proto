@@ -9,21 +9,29 @@ import "collection/collection.proto";
 import "device/device.proto";
 
 service Notify {
+  rpc NotifyTestEmail(NotifyTestEmailReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/notify/test/email"
+      body : "*"
+    };
+  }
   rpc NotifyDeviceOnline(NotifyDeviceOnlineReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/v1/notify/device/online"
+      post : "/notify/device/online"
       body : "*"
     };
   }
   rpc NotifyDeviceOffline(NotifyDeviceOfflineReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/v1/notify/device/offline"
+      post : "/notify/device/offline"
       body : "*"
     };
   }
 }
 
 message Empty {}
+
+message NotifyTestEmailReq { string user_id = 1; }
 
 message NotifyDeviceOnlineReq {
   bool async = 1;

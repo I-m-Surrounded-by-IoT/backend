@@ -9,6 +9,7 @@ import (
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	logApi "github.com/I-m-Surrounded-by-IoT/backend/api/log"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/conf"
 	registryClient "github.com/I-m-Surrounded-by-IoT/backend/internal/registry"
@@ -36,6 +37,7 @@ type WebService struct {
 	collectionClient collection.CollectionClient
 	collectorClient  collector.CollectorClient
 	captchaClient    captcha.CaptchaClient
+	notifyClient     notify.NotifyClient
 }
 
 func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfig) *WebService {
@@ -94,6 +96,15 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 	}
 	captchaClient := captcha.NewCaptchaClient(discoveryCaptchaConn)
 
+	discoveryNotifyConn, err := utils.NewDiscoveryGrpcConn(context.Background(), &utils.Backend{
+		Endpoint: "discovery:///notify",
+		TimeOut:  "10s",
+	}, etcd)
+	if err != nil {
+		log.Fatalf("failed to create grpc conn: %v", err)
+	}
+	notifyClient := notify.NewNotifyClient(discoveryNotifyConn)
+
 	jwtExpire, err := time.ParseDuration(c.Jwt.Expire)
 	if err != nil {
 		log.Fatalf("failed to parse jwt expire: %v", err)
@@ -119,6 +130,7 @@ func NewWebServer(c *conf.WebConfig, reg registry.Registrar, rc *conf.RedisConfi
 		collectionClient: collectionClient,
 		collectorClient:  collectorClient,
 		captchaClient:    captchaClient,
+		notifyClient:     notifyClient,
 	}
 }
 

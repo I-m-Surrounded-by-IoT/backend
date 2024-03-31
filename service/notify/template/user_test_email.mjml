@@ -1,0 +1,38 @@
+<mjml>
+    <mj-head>
+        <mj-style>.indent div {
+            text-indent: 2em;
+            }
+            .code div {
+            text-shadow: 0 0 11px #abd0e4;
+            }
+            .footer div {
+            text-shadow: 0 0 5px #fef0df;
+            }
+            iframe {
+            border:none
+            }</mj-style>
+    </mj-head>
+    <mj-body>
+        <mj-section padding-bottom="0px">
+            <mj-column>
+                <mj-text align="center" font-size="30px" color="#85b6c9">水届守护者</mj-text>
+                <mj-divider border-color="#85b6c9"></mj-divider>
+            </mj-column>
+        </mj-section>
+        <mj-section padding-top="0" padding-bottom="0px">
+            <mj-column>
+                <mj-text font-size="20px" color="#85b6c9">测试通知：</mj-text>
+                <mj-text css-class="indent">Dear {{ .Username }}</mj-text>
+                <mj-text css-class="indent">这是一封测试邮件。</mj-text>
+                <!-- <mj-button background-color="#85b6c9" color="#ffffff" href="https://www.baidu.com">点击前往用户中心</mj-button> -->
+            </mj-column>
+        </mj-section>
+        <mj-section padding-top="0">
+            <mj-column>
+                <mj-divider border-color="#85b6c9"></mj-divider>
+                <mj-text css-class="footer" align="center">Copyright {{ .Year }} 水届守护者 All Rights Reserved.</mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>

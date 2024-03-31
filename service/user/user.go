@@ -60,6 +60,8 @@ func user2Proto(u *model.User) *user.UserInfo {
 		Username:  u.Username,
 		Role:      u.Role,
 		Status:    u.Status,
+		Email:     u.Email,
+		Phone:     u.Phone,
 	}
 }
 

@@ -93,6 +93,71 @@ func NewNotifyService(dc *conf.NotifyConfig, k *conf.KafkaConfig, reg registry.R
 }
 
 var (
+	userTestEmailTemplate *template.Template
+)
+
+type user_test_email_payload struct {
+	Username string
+	Year     int
+}
+
+func init() {
+	body, err := mjml.ToHTML(
+		context.Background(),
+		stream.BytesToString(notify_template.UserTestEmail),
+		mjml.WithMinify(true),
+	)
+	if err != nil {
+		log.Fatalf("failed to parse user test template: %v", err)
+	}
+	userTestEmailTemplate, err = template.New("").Parse(body)
+	if err != nil {
+		log.Fatalf("failed to parse user test template: %v", err)
+	}
+}
+
+func (ns *NotifyService) NotifyTestEmail(ctx context.Context, req *notify.NotifyTestEmailReq) (*notify.Empty, error) {
+	uif, err := ns.userClient.GetUserInfo(
+		ctx,
+		&user.GetUserInfoReq{
+			Id: req.UserId,
+			Fields: []string{
+				"id",
+				"username",
+				"email",
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user info: %w", err)
+	}
+	if uif.Email == "" {
+		return nil, fmt.Errorf("user id: %s, name: %s has no email", uif.Id, uif.Username)
+	}
+	out := &bytes.Buffer{}
+	err = userTestEmailTemplate.Execute(
+		out,
+		&user_test_email_payload{
+			Username: uif.Username,
+			Year:     time.Now().Year(),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
+	emailPayload := &email.SendEmailReq{
+		To:      []string{uif.Email},
+		Subject: "测试邮件",
+		Body:    out.String(),
+	}
+	_, err = ns.emailClient.SendEmail(ctx, emailPayload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send mail: %w", err)
+	}
+	return &notify.Empty{}, nil
+}
+
+var (
 	deviceOnlineTemplate  *template.Template
 	deviceOfflineTemplate *template.Template
 )

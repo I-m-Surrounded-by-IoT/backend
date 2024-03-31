@@ -59,6 +59,8 @@ func (ws *WebService) registerUser(api, needAuthUserApi *gin.RouterGroup) {
 
 	needAuthUserApi.POST("/email/unbind", ws.UnbindEmail)
 
+	needAuthUserApi.POST("/email/test", ws.SendTestEmail)
+
 	needAuthUserApi.POST("/follow/device", ws.FollowDevice)
 
 	needAuthUserApi.POST("/follow/device/all", ws.FollowAllDevice)

@@ -8,3 +8,8 @@ var (
 	//go:embed device_offline.mjml
 	DeviceOffline []byte
 )
+
+var (
+	//go:embed user_test_email.mjml
+	UserTestEmail []byte
+)

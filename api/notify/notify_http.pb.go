@@ -21,16 +21,41 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationNotifyNotifyDeviceOffline = "/api.notify.Notify/NotifyDeviceOffline"
 const OperationNotifyNotifyDeviceOnline = "/api.notify.Notify/NotifyDeviceOnline"
+const OperationNotifyNotifyTestEmail = "/api.notify.Notify/NotifyTestEmail"
 
 type NotifyHTTPServer interface {
 	NotifyDeviceOffline(context.Context, *NotifyDeviceOfflineReq) (*Empty, error)
 	NotifyDeviceOnline(context.Context, *NotifyDeviceOnlineReq) (*Empty, error)
+	NotifyTestEmail(context.Context, *NotifyTestEmailReq) (*Empty, error)
 }
 
 func RegisterNotifyHTTPServer(s *http.Server, srv NotifyHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/notify/device/online", _Notify_NotifyDeviceOnline0_HTTP_Handler(srv))
-	r.POST("/v1/notify/device/offline", _Notify_NotifyDeviceOffline0_HTTP_Handler(srv))
+	r.POST("/notify/test/email", _Notify_NotifyTestEmail0_HTTP_Handler(srv))
+	r.POST("/notify/device/online", _Notify_NotifyDeviceOnline0_HTTP_Handler(srv))
+	r.POST("/notify/device/offline", _Notify_NotifyDeviceOffline0_HTTP_Handler(srv))
+}
+
+func _Notify_NotifyTestEmail0_HTTP_Handler(srv NotifyHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in NotifyTestEmailReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationNotifyNotifyTestEmail)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.NotifyTestEmail(ctx, req.(*NotifyTestEmailReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Empty)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _Notify_NotifyDeviceOnline0_HTTP_Handler(srv NotifyHTTPServer) func(ctx http.Context) error {
@@ -80,6 +105,7 @@ func _Notify_NotifyDeviceOffline0_HTTP_Handler(srv NotifyHTTPServer) func(ctx ht
 type NotifyHTTPClient interface {
 	NotifyDeviceOffline(ctx context.Context, req *NotifyDeviceOfflineReq, opts ...http.CallOption) (rsp *Empty, err error)
 	NotifyDeviceOnline(ctx context.Context, req *NotifyDeviceOnlineReq, opts ...http.CallOption) (rsp *Empty, err error)
+	NotifyTestEmail(ctx context.Context, req *NotifyTestEmailReq, opts ...http.CallOption) (rsp *Empty, err error)
 }
 
 type NotifyHTTPClientImpl struct {
@@ -92,7 +118,7 @@ func NewNotifyHTTPClient(client *http.Client) NotifyHTTPClient {
 
 func (c *NotifyHTTPClientImpl) NotifyDeviceOffline(ctx context.Context, in *NotifyDeviceOfflineReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/notify/device/offline"
+	pattern := "/notify/device/offline"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationNotifyNotifyDeviceOffline))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -105,9 +131,22 @@ func (c *NotifyHTTPClientImpl) NotifyDeviceOffline(ctx context.Context, in *Noti
 
 func (c *NotifyHTTPClientImpl) NotifyDeviceOnline(ctx context.Context, in *NotifyDeviceOnlineReq, opts ...http.CallOption) (*Empty, error) {
 	var out Empty
-	pattern := "/v1/notify/device/online"
+	pattern := "/notify/device/online"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationNotifyNotifyDeviceOnline))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *NotifyHTTPClientImpl) NotifyTestEmail(ctx context.Context, in *NotifyTestEmailReq, opts ...http.CallOption) (*Empty, error) {
+	var out Empty
+	pattern := "/notify/test/email"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationNotifyNotifyTestEmail))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

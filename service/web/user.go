@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/captcha"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/notify"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/user"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
 	"github.com/gin-gonic/gin"
@@ -314,6 +315,25 @@ func (ws *WebService) UnfollowAllDevice(ctx *gin.Context) {
 	})
 	if err != nil {
 		log.Errorf("unfollow all device error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
+
+func (ws *WebService) SendTestEmail(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+	userinfo := ctx.MustGet("user").(*user.UserInfo)
+
+	_, err := ws.notifyClient.NotifyTestEmail(
+		ctx,
+		&notify.NotifyTestEmailReq{
+			UserId: userinfo.Id,
+		},
+	)
+	if err != nil {
+		log.Errorf("send test email error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
 		return
 	}
