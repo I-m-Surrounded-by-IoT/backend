@@ -62,12 +62,15 @@ func newSmtpClient(c *conf.SmtpConfig) (*smtp.Client, error) {
 }
 
 type SmtpPool struct {
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	clients []*smtp.Client
 	c       *conf.SmtpConfig
 	max     int
 	active  int
+	closed  bool
 }
+
+var ErrSmtpPoolClosed = fmt.Errorf("smtp pool closed")
 
 func NewSmtpPool(c *conf.SmtpConfig, max int) (*SmtpPool, error) {
 	err := validateSmtpConfig(c)
@@ -83,15 +86,20 @@ func NewSmtpPool(c *conf.SmtpConfig, max int) (*SmtpPool, error) {
 
 func (p *SmtpPool) Get() (*smtp.Client, error) {
 	p.mu.Lock()
+	if p.closed {
+		p.mu.Unlock()
+		return nil, ErrSmtpPoolClosed
+	}
 
 	if len(p.clients) > 0 {
 		cli := p.clients[len(p.clients)-1]
 		p.clients = p.clients[:len(p.clients)-1]
+		p.mu.Unlock()
 		if cli.Noop() != nil {
-			p.mu.Unlock()
 			cli.Close()
 			return p.Get()
 		}
+		p.mu.Lock()
 		p.active++
 		p.mu.Unlock()
 		return cli, nil
@@ -115,18 +123,56 @@ func (p *SmtpPool) Get() (*smtp.Client, error) {
 }
 
 func (p *SmtpPool) Put(cli *smtp.Client) {
+	if cli == nil {
+		return
+	}
+
+	noopErr := cli.Noop()
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	p.active--
 
-	if cli == nil {
-		return
-	}
-	if cli.Noop() != nil {
+	if p.closed || noopErr != nil {
 		cli.Close()
 		return
 	}
 
 	p.clients = append(p.clients, cli)
+}
+
+func (p *SmtpPool) Close() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.closed = true
+
+	for _, cli := range p.clients {
+		cli.Close()
+	}
+	p.clients = nil
+}
+
+func (p *SmtpPool) SendEmail(to []string, subject, body string) error {
+	cli, err := p.Get()
+	if err != nil {
+		return err
+	}
+	defer p.Put(cli)
+	return SendEmail(cli, p.getFrom(), to, subject, body)
+}
+
+func (p *SmtpPool) getFrom() string {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.c.From
+}
+
+func (p *SmtpPool) SetFrom(from string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.c.From = from
 }

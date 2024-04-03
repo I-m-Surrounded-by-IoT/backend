@@ -35,15 +35,8 @@ func NewEmailService(c *conf.EmailConfig) *EmailService {
 }
 
 func (ms *EmailService) SendEmail(ctx context.Context, req *emailApi.SendEmailReq) (*emailApi.Empty, error) {
-	cli, err := ms.smtpPool.Get()
-	if err != nil {
-		return nil, err
-	}
-	defer ms.smtpPool.Put(cli)
 	return &emailApi.Empty{},
-		SendMail(
-			cli,
-			ms.smtpConfig.From,
+		ms.smtpPool.SendEmail(
 			req.To,
 			req.Subject,
 			req.Body,
