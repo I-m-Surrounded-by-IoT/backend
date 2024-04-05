@@ -88,7 +88,7 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		rdb,
 		"collector-timewheel",
 		s.twCallback,
-		timewheel.WithRetrySleep(time.Second*5),
+		timewheel.WithRetrySleep(time.Second*30),
 	)
 
 	go s.timewheel.Run()
