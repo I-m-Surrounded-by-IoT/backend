@@ -84,14 +84,14 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		collectionClient: collection.NewCollectionClient(discoveryCollectionConn),
 	}
 
-	go s.timewheel.Run()
-
 	s.timewheel = timewheel.NewTimeWheel(
 		rdb,
 		"collector-timewheel",
 		s.twCallback,
 		timewheel.WithRetrySleep(time.Second*5),
 	)
+
+	go s.timewheel.Run()
 
 	opt := mqtt.NewClientOptions().
 		AddBroker(c.Mqtt.Addr).

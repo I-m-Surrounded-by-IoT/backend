@@ -28,7 +28,7 @@ require (
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
 	github.com/zijiren233/logrus-kafka-hook v0.1.3
 	github.com/zijiren233/stream v0.5.2
-	github.com/zijiren233/timewheel-redis v0.3.3
+	github.com/zijiren233/timewheel-redis v0.3.4
 	go.etcd.io/etcd/client/v3 v3.5.13
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.21.0
