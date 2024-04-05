@@ -28,7 +28,7 @@ require (
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
 	github.com/zijiren233/logrus-kafka-hook v0.1.3
 	github.com/zijiren233/stream v0.5.2
-	github.com/zijiren233/timewheel-redis v0.2.0
+	github.com/zijiren233/timewheel-redis v0.3.3
 	go.etcd.io/etcd/client/v3 v3.5.13
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.21.0
@@ -45,7 +45,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.3 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect

@@ -82,10 +82,16 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		userClient:       user.NewUserClient(discoveryUserConn),
 		notifyClient:     notify.NewNotifyClient(discoveryNotifyConn),
 		collectionClient: collection.NewCollectionClient(discoveryCollectionConn),
-		timewheel:        timewheel.NewTimeWheel(rdb, "collector-timewheel"),
 	}
 
 	go s.timewheel.Run()
+
+	s.timewheel = timewheel.NewTimeWheel(
+		rdb,
+		"collector-timewheel",
+		s.twCallback,
+		timewheel.WithRetrySleep(time.Second*5),
+	)
 
 	opt := mqtt.NewClientOptions().
 		AddBroker(c.Mqtt.Addr).
@@ -107,51 +113,6 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 		logrus.Fatalf("failed to create grpc conn: %v", err)
 	}
 	s.deviceClient = device.NewDeviceClient(cc)
-
-	go func() {
-		for timer := range s.timewheel.DoneChan() {
-			id, err := strconv.ParseUint(timer.Id, 10, 64)
-			if err != nil {
-				log.Errorf("failed to parse device id: %v", err)
-				continue
-			}
-			lastSeenresp, err := s.deviceClient.GetDeviceLastSeen(
-				context.Background(),
-				&device.GetDeviceLastSeenReq{
-					Id: id,
-				},
-			)
-			if err != nil {
-				log.Errorf("failed to get device last seen: %v", err)
-				continue
-			}
-			if time.UnixMilli(lastSeenresp.LastSeenAt).Add(device_offline_max_duration).Before(time.Now()) {
-				lastReportResp, err := s.collectionClient.GetDeviceLastReport(
-					context.Background(),
-					&collection.GetDeviceLastReportReq{
-						Id: id,
-					},
-				)
-				if err != nil {
-					log.Error("failed to get device last report: %w", err)
-					continue
-				}
-				log.Debugf("device %d last report: %+v", id, lastReportResp)
-				_, err = s.notifyClient.NotifyDeviceOffline(
-					context.Background(),
-					&notify.NotifyDeviceOfflineReq{
-						DeviceId:   id,
-						Async:      true,
-						LastSeen:   lastSeenresp,
-						LastReport: lastReportResp,
-					},
-				)
-				if err != nil {
-					log.Errorf("failed to notify device offline: %v", err)
-				}
-			}
-		}
-	}()
 
 	if k == nil || k.Brokers == "" {
 		log.Fatal("kafka config is empty")
@@ -218,6 +179,50 @@ func NewCollectorService(c *conf.CollectorConfig, k *conf.KafkaConfig, reg regis
 	log.Info("collector service started")
 
 	return s
+}
+
+func (s *CollectorService) twCallback(timer *timewheel.Timer) bool {
+	id, err := strconv.ParseUint(timer.Id, 10, 64)
+	if err != nil {
+		log.Errorf("failed to parse device id: %v", err)
+		return false
+	}
+	lastSeenresp, err := s.deviceClient.GetDeviceLastSeen(
+		context.Background(),
+		&device.GetDeviceLastSeenReq{
+			Id: id,
+		},
+	)
+	if err != nil {
+		log.Errorf("failed to get device last seen: %v", err)
+		return false
+	}
+	if time.UnixMilli(lastSeenresp.LastSeenAt).Add(device_offline_max_duration).Before(time.Now()) {
+		lastReportResp, err := s.collectionClient.GetDeviceLastReport(
+			context.Background(),
+			&collection.GetDeviceLastReportReq{
+				Id: id,
+			},
+		)
+		if err != nil {
+			log.Error("failed to get device last report: %w", err)
+			return false
+		}
+		log.Debugf("device %d last report: %+v", id, lastReportResp)
+		_, err = s.notifyClient.NotifyDeviceOffline(
+			context.Background(),
+			&notify.NotifyDeviceOfflineReq{
+				DeviceId:   id,
+				Async:      true,
+				LastSeen:   lastSeenresp,
+				LastReport: lastReportResp,
+			},
+		)
+		if err != nil {
+			log.Errorf("failed to notify device offline: %v", err)
+		}
+	}
+	return true
 }
 
 func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
