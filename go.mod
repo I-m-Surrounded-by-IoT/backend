@@ -1,6 +1,7 @@
 module github.com/I-m-Surrounded-by-IoT/backend
 
 go 1.21
+toolchain go1.22.2
 
 require (
 	github.com/Boostport/mjml-go v0.14.6
@@ -14,7 +15,7 @@ require (
 	github.com/go-kratos/aegis v0.2.0
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240401040316-f715eb0bd808
 	github.com/go-kratos/kratos/v2 v2.7.3
-	github.com/go-redsync/redsync/v4 v4.12.1
+	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
