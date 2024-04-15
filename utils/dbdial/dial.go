@@ -34,8 +34,8 @@ func Dial(ctx context.Context, dbConf DatabaseConfig) (*gorm.DB, error) {
 		TranslateError:                           true,
 		Logger:                                   newDBLogger(),
 		PrepareStmt:                              true,
-		DisableForeignKeyConstraintWhenMigrating: true,
-		IgnoreRelationshipsWhenMigrating:         true,
+		DisableForeignKeyConstraintWhenMigrating: false,
+		IgnoreRelationshipsWhenMigrating:         false,
 	})
 	d, err := gorm.Open(dialector, opts...)
 	if err != nil {
