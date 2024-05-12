@@ -1,4 +1,4 @@
-From alpine:latest as builder
+FROM golang:alpine as builder
 
 ARG VERSION=dev
 
@@ -6,11 +6,11 @@ WORKDIR /backend
 
 COPY ./ ./
 
-RUN apk add --no-cache bash curl gcc git go musl-dev 
+RUN apk add --no-cache bash curl gcc git musl-dev 
 
 RUN bash script/build.sh -v ${VERSION}
 
-From alpine:latest
+FROM alpine:latest
 
 ENV PUID=0 PGID=0 UMASK=022
 
