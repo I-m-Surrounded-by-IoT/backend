@@ -1,7 +1,7 @@
-version: '3.3'
+version: "3.3"
 services:
   etcd:
-    image: docker.io/bitnami/etcd:3.5
+    image: bitnami/etcd:latest
     container_name: backend-etcd
     restart: unless-stopped
     ports:
@@ -27,7 +27,7 @@ services:
       --requirepass "" --maxclients 10000 --appendonly yes --appendfsync everysec --maxmemory 512mb --loglevel warning --databases 1 --save "" --stop-writes-on-bgsave-error yes --rdbcompression yes --rdbchecksum yes --dbfilename dump.rdb
 
   kafka-0:
-    image: docker.io/bitnami/kafka:3.6
+    image: bitnami/kafka:3.6
     container_name: backend-kafka-0
     restart: unless-stopped
     ports:
@@ -52,7 +52,7 @@ services:
     volumes:
       - kafka_0_data:/bitnami/kafka
   kafka-1:
-    image: docker.io/bitnami/kafka:3.6
+    image: bitnami/kafka:3.6
     container_name: backend-kafka-1
     restart: unless-stopped
     ports:
@@ -77,7 +77,7 @@ services:
     volumes:
       - kafka_1_data:/bitnami/kafka
   kafka-2:
-    image: docker.io/bitnami/kafka:3.6
+    image: bitnami/kafka:3.6
     container_name: backend-kafka-2
     restart: unless-stopped
     ports:
@@ -103,12 +103,12 @@ services:
       - kafka_2_data:/bitnami/kafka
 
   emqx1:
-    image: emqx:5.5.0
+    image: emqx:latest
     container_name: emqx1
     environment:
-    - "EMQX_NODE_NAME=emqx@node1.emqx.io"
-    - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
-    - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
+      - "EMQX_NODE_NAME=emqx@node1.emqx.io"
+      - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+      - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
     healthcheck:
       test: ["CMD", "/opt/emqx/bin/emqx ctl", "status"]
       interval: 5s
@@ -117,23 +117,23 @@ services:
     networks:
       emqx-bridge:
         aliases:
-        - node1.emqx.io
+          - node1.emqx.io
     ports:
       - 1883:1883
       - 8083:8083
       - 8084:8084
       - 8883:8883
-      - 18083:18083 
+      - 18083:18083
     # volumes:
     #   - $PWD/emqx1_data:/opt/emqx/data
 
   emqx2:
-    image: emqx:5.5.0
+    image: emqx:latest
     container_name: emqx2
     environment:
-    - "EMQX_NODE_NAME=emqx@node2.emqx.io"
-    - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
-    - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
+      - "EMQX_NODE_NAME=emqx@node2.emqx.io"
+      - "EMQX_CLUSTER__DISCOVERY_STRATEGY=static"
+      - "EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.io,emqx@node2.emqx.io]"
     healthcheck:
       test: ["CMD", "/opt/emqx/bin/emqx ctl", "status"]
       interval: 5s
@@ -142,9 +142,94 @@ services:
     networks:
       emqx-bridge:
         aliases:
-        - node2.emqx.io
+          - node2.emqx.io
     # volumes:
     #   - $PWD/emqx2_data:/opt/emqx/data
+
+  postgres-log:
+    image: postgres:alpine
+    container_name: postgres-log
+    restart: unless-stopped
+    ports:
+      - "5000:5432"
+    volumes:
+      - ./db/log:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: log
+      POSTGRES_DB: postgres
+      TZ: ${TZ-Asia/Shanghai}
+    logging:
+      options:
+        max-size: "3m"
+
+  postgres-device:
+    image: postgres:alpine
+    container_name: postgres-device
+    restart: unless-stopped
+    ports:
+      - "5001:5432"
+    volumes:
+      - ./db/device:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: device
+      POSTGRES_DB: postgres
+      TZ: ${TZ-Asia/Shanghai}
+    logging:
+      options:
+        max-size: "3m"
+
+  postgres-collection:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: postgres-collection
+    restart: unless-stopped
+    ports:
+      - "5002:5432"
+    volumes:
+      - ./db/collection:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: collection
+      POSTGRES_DB: postgres
+      TZ: ${TZ-Asia/Shanghai}
+    logging:
+      options:
+        max-size: "3m"
+
+  postgres-user:
+    image: postgres:alpine
+    container_name: postgres-user
+    restart: unless-stopped
+    ports:
+      - "5003:5432"
+    volumes:
+      - ./db/user:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: postgres
+      TZ: ${TZ-Asia/Shanghai}
+    logging:
+      options:
+        max-size: "3m"
+
+  postgres-message:
+    image: postgres:alpine
+    container_name: postgres-message
+    restart: unless-stopped
+    ports:
+      - "5004:5432"
+    volumes:
+      - ./db/message:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: message
+      POSTGRES_DB: postgres
+      TZ: ${TZ-Asia/Shanghai}
+    logging:
+      options:
+        max-size: "3m"
 
 volumes:
   redis_data:
