@@ -99,6 +99,11 @@ func Server(cmd *cobra.Command, args []string) {
 
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
+	err := utils.InitTracer(uc.Server.TracingEndpoint, "web")
+	if err != nil {
+		logrus.Fatalf("failed to init tracer: %v", err)
+	}
+
 	app, cleanup, err := wireApp(uc.Server, uc.Registry, uc.Config, uc.Redis, logger)
 	if err != nil {
 		logrus.Fatalf("failed to new app: %v", err)

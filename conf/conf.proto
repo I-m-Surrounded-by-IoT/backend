@@ -24,6 +24,7 @@ message WebServerConfig {
   string addr = 1; // @gotags: env:"WEB_ADDR"
   TLS tls = 2;
   string custom_endpoint = 3; // @gotags: env:"WEB_CUSTOM_ENDPOINT"
+  string tracing_endpoint = 4; // @gotags: env:"TRACING_ENDPOINT"
 }
 
 message GrpcServerConfig {
@@ -37,6 +38,7 @@ message GrpcServerConfig {
   string custom_endpoint = 3;           // @gotags: env:"GRPC_CUSTOM_ENDPOINT"
   google.protobuf.Duration timeout = 4; // @gotags: env:"GRPC_SERVER_TIMEOUT"
   string jwt_secret = 5;                // @gotags: env:"GRPC_SERVER_JWT_SECRET"
+  string tracing_endpoint = 6; // @gotags: env:"TRACING_ENDPOINT"
 }
 
 message TcpServer {
@@ -49,6 +51,7 @@ message TcpServer {
   TLS tls = 2;
   string custom_endpoint = 3;           // @gotags: env:"TCP_CUSTOM_ENDPOINT"
   google.protobuf.Duration timeout = 4; // @gotags: env:"TCP_SERVER_TIMEOUT"
+  string tracing_endpoint = 5; // @gotags: env:"TRACING_ENDPOINT"
 }
 
 message KafkaConfig {

@@ -29,6 +29,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	kcircuitbreaker "github.com/go-kratos/kratos/v2/middleware/circuitbreaker"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
 	ggrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	ghttp "github.com/go-kratos/kratos/v2/transport/http"
@@ -38,6 +39,11 @@ import (
 	logkafka "github.com/zijiren233/logrus-kafka-hook"
 	"github.com/zijiren233/stream"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
@@ -167,17 +173,21 @@ func (s *GrpcGatewayServer) Endpoints() ([]*url.URL, error) {
 }
 
 func NewGrpcGatewayServer(config *conf.GrpcServerConfig) *GrpcGatewayServer {
-	middlewares := []middleware.Middleware{recovery.Recovery()}
+	l, err := net.Listen("tcp", config.Addr)
+	if err != nil {
+		logrus.Fatalf("failed to listen tcp: %v", err)
+	}
+
+	middlewares := []middleware.Middleware{
+		recovery.Recovery(),
+		tracing.Server(),
+	}
+
 	if config.JwtSecret != "" {
 		jwtSecret := []byte(config.JwtSecret)
 		middlewares = append(middlewares, jwt.Server(func(token *jwtv5.Token) (interface{}, error) {
 			return jwtSecret, nil
 		}, jwt.WithSigningMethod(jwtv5.SigningMethodHS256)))
-	}
-
-	l, err := net.Listen("tcp", config.Addr)
-	if err != nil {
-		logrus.Fatalf("failed to listen tcp: %v", err)
 	}
 
 	var hopts = []ghttp.ServerOption{
@@ -343,12 +353,15 @@ func NewDiscoveryGrpcConn(ctx context.Context, conf *Backend, d registry.Discove
 	if conf.Endpoint == "" {
 		return nil, errors.New("new grpc client failed, endpoint is empty")
 	}
-	middlewares := []middleware.Middleware{kcircuitbreaker.Client(kcircuitbreaker.WithCircuitBreaker(func() circuitbreaker.CircuitBreaker {
-		return sre.NewBreaker(
-			sre.WithRequest(25),
-			sre.WithWindow(time.Second*15),
-		)
-	}))}
+	middlewares := []middleware.Middleware{
+		kcircuitbreaker.Client(kcircuitbreaker.WithCircuitBreaker(func() circuitbreaker.CircuitBreaker {
+			return sre.NewBreaker(
+				sre.WithRequest(25),
+				sre.WithWindow(time.Second*15),
+			)
+		})),
+		tracing.Client(),
+	}
 
 	if conf.JwtSecret != "" {
 		key := []byte(conf.JwtSecret)
@@ -409,12 +422,15 @@ func NewSignalGrpcConn(ctx context.Context, conf *Backend) (*grpc.ClientConn, er
 	if conf.Endpoint == "" {
 		return nil, errors.New("new grpc client failed, endpoint is empty")
 	}
-	middlewares := []middleware.Middleware{kcircuitbreaker.Client(kcircuitbreaker.WithCircuitBreaker(func() circuitbreaker.CircuitBreaker {
-		return sre.NewBreaker(
-			sre.WithRequest(25),
-			sre.WithWindow(time.Second*15),
-		)
-	}))}
+	middlewares := []middleware.Middleware{
+		kcircuitbreaker.Client(kcircuitbreaker.WithCircuitBreaker(func() circuitbreaker.CircuitBreaker {
+			return sre.NewBreaker(
+				sre.WithRequest(25),
+				sre.WithWindow(time.Second*15),
+			)
+		})),
+		tracing.Client(),
+	}
 
 	if conf.JwtSecret != "" {
 		key := []byte(conf.JwtSecret)
@@ -574,4 +590,21 @@ func DailKafka(k *conf.KafkaConfig, kafkaOpts ...logkafka.KafkaOptionFunc) (sara
 		return nil, err
 	}
 	return client, nil
+}
+
+func InitTracer(endpoint string, serverName string) error {
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(endpoint)))
+	if err != nil {
+		return err
+	}
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(1.0))),
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(serverName),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+	return nil
 }

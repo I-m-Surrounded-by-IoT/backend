@@ -8,14 +8,16 @@ import (
 
 func DefaultGrpcServer() *GrpcServerConfig {
 	return &GrpcServerConfig{
-		Addr:    ":9000",
-		Timeout: durationpb.New(time.Second * 15),
+		Addr:            ":9000",
+		Timeout:         durationpb.New(time.Second * 15),
+		TracingEndpoint: "",
 	}
 }
 
 func DefaultWebServer() *WebServerConfig {
 	return &WebServerConfig{
-		Addr: ":8080",
+		Addr:            ":8080",
+		TracingEndpoint: "",
 	}
 }
 

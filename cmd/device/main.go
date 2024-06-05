@@ -91,6 +91,11 @@ func Server(cmd *cobra.Command, args []string) {
 
 	id = fmt.Sprintf("%s-%s", id, bc.Server.Addr)
 
+	err := utils.InitTracer(bc.Server.TracingEndpoint, "device")
+	if err != nil {
+		logrus.Fatalf("failed to init tracer: %v", err)
+	}
+
 	logger := utils.TransLogrus(logrus.StandardLogger())
 
 	app, cleanup, err := wireApp(bc.Server, bc.Registry, bc.Database, bc.Config, bc.Redis, logger)
