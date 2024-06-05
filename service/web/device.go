@@ -94,7 +94,11 @@ func (ws *WebService) GetDeviceStreamReport(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
-	c, err := ws.collectionClient.GetDeviceStreamReport(ctx, &req)
+
+	newCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	c, err := ws.collectionClient.GetDeviceStreamReport(newCtx, &req)
 	if err != nil {
 		log.Errorf("get device stream log error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))

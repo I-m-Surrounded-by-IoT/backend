@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
@@ -302,7 +303,11 @@ func (ws *WebService) GetDeviceStreamEvent(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
 		return
 	}
-	c, err := ws.collectionClient.GetDeviceStreamEvent(ctx, &req)
+
+	newCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	c, err := ws.collectionClient.GetDeviceStreamEvent(newCtx, &req)
 	if err != nil {
 		log.Errorf("get device stream log error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))

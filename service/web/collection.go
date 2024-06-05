@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
@@ -41,7 +42,10 @@ func (ws *WebService) GetStreamLatestRecordsWithinRange(ctx *gin.Context) {
 		return
 	}
 
-	stream, err := ws.collectionClient.GetStreamLatestRecordsWithinRange(ctx, &req)
+	newCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	stream, err := ws.collectionClient.GetStreamLatestRecordsWithinRange(newCtx, &req)
 	if err != nil {
 		log.Errorf("get stream latest records within range error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
