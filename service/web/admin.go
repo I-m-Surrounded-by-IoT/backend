@@ -311,20 +311,24 @@ func (ws *WebService) GetDeviceStreamEvent(ctx *gin.Context) {
 	defer func() { _ = c.CloseSend() }()
 	for {
 		select {
-		case <-ctx.Request.Context().Done():
-			return
 		case <-c.Context().Done():
-			ctx.SSEvent("close", nil)
+			ctx.SSEvent("stop", "finish")
 			return
 		default:
 			resp, err := c.Recv()
 			if err != nil {
 				log.Errorf("get device stream event error: %v", err)
-				ctx.SSEvent("error", err)
+				ctx.SSEvent("stop", err)
 				return
 			}
 			log.Infof("get device stream event: %+v", resp)
-			ctx.SSEvent("event", resp)
+			ctx.SSEvent("message", resp)
+			if err := ctx.Errors.Last(); err != nil {
+				log.Errorf("get device stream event error: %v", err)
+				ctx.SSEvent("stop", err)
+				return
+			}
+			ctx.Writer.Flush()
 		}
 	}
 }

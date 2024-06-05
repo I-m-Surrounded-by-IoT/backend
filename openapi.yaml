@@ -78,6 +78,78 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.collection.CreateCollectionRecordReq'
+    /collection/get_latest_id_within_range:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetLatestIdWithinRange
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetLatestWithinRangeReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.GetLatestIdWithinRangeResp'
+    /collection/get_latest_within_range:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetLatestRecordsWithinRange
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetLatestWithinRangeReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.GetLatestRecordsWithinRangeResp'
+    /collection/get_stream_latest_id_within_range:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetStreamLatestIdWithinRange
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetStreamLatestWithinRangeReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.GetStreamLatestIdWithinRangeResp'
+    /collection/get_stream_latest_records_within_range:
+        post:
+            tags:
+                - Collection
+            operationId: Collection_GetStreamLatestRecordsWithinRange
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collection.GetStreamLatestWithinRangeReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collection.GetStreamLatestRecordsWithinRangeResp'
     /collection/predict_quality:
         get:
             tags:
@@ -1300,6 +1372,71 @@ components:
             properties:
                 id:
                     type: string
+        api.collection.GetLatestIdWithinRangeResp:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+        api.collection.GetLatestRecordsWithinRangeResp:
+            type: object
+            properties:
+                records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+        api.collection.GetLatestWithinRangeReq:
+            type: object
+            properties:
+                centerLat:
+                    type: number
+                    format: double
+                centerLng:
+                    type: number
+                    format: double
+                radiusMeters:
+                    type: number
+                    format: double
+        api.collection.GetStreamLatestIdWithinRangeResp:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+                type:
+                    type: integer
+                    format: enum
+        api.collection.GetStreamLatestRecordsWithinRangeResp:
+            type: object
+            properties:
+                records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+                ids:
+                    type: array
+                    items:
+                        type: string
+                type:
+                    type: integer
+                    format: enum
+        api.collection.GetStreamLatestWithinRangeReq:
+            type: object
+            properties:
+                centerLat:
+                    type: number
+                    format: double
+                centerLng:
+                    type: number
+                    format: double
+                radiusMeters:
+                    type: number
+                    format: double
+                interval:
+                    type: integer
+                    format: uint32
         api.collection.ListCollectionRecordResp:
             type: object
             properties:

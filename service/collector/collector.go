@@ -242,7 +242,7 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 
 	log = log.WithField("device_id", id)
 
-	log.Debugf("receive report message: %v", m.Payload())
+	log.Debugf("receive report message: %s", m.Payload())
 
 	ls, err := s.deviceClient.GetDeviceLastSeen(context.Background(), &device.GetDeviceLastSeenReq{
 		Id: id,

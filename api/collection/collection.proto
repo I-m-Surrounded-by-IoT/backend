@@ -50,6 +50,38 @@ service Collection {
       get : "/device/{id}/last_report"
     };
   }
+
+  rpc GetLatestRecordsWithinRange(GetLatestWithinRangeReq)
+      returns (GetLatestRecordsWithinRangeResp) {
+    option (google.api.http) = {
+      post : "/collection/get_latest_within_range"
+      body : "*"
+    };
+  }
+
+  rpc GetLatestIdWithinRange(GetLatestWithinRangeReq)
+      returns (GetLatestIdWithinRangeResp) {
+    option (google.api.http) = {
+      post : "/collection/get_latest_id_within_range"
+      body : "*"
+    };
+  }
+
+  rpc GetStreamLatestRecordsWithinRange(GetStreamLatestWithinRangeReq)
+      returns (stream GetStreamLatestRecordsWithinRangeResp) {
+    option (google.api.http) = {
+      post : "/collection/get_stream_latest_records_within_range"
+      body : "*"
+    };
+  }
+
+  rpc GetStreamLatestIdWithinRange(GetStreamLatestWithinRangeReq)
+      returns (stream GetStreamLatestIdWithinRangeResp) {
+    option (google.api.http) = {
+      post : "/collection/get_stream_latest_id_within_range"
+      body : "*"
+    };
+  }
 }
 
 message CreateCollectionRecordReq {
@@ -120,3 +152,38 @@ message DeviceLastReport {
 }
 
 message GetDeviceLastReportReq { uint64 id = 1; }
+
+message GetLatestWithinRangeReq {
+  double center_lat = 1; // @gotags: form:"centerLat" json:"centerLat"
+  double center_lng = 2; // @gotags: form:"centerLng" json:"centerLng"
+  double radiusMeters = 3; // @gotags: form:"radiusMeters" json:"radiusMeters"
+}
+
+message GetLatestRecordsWithinRangeResp {
+  repeated CollectionRecord records = 1;
+}
+
+message GetLatestIdWithinRangeResp { repeated uint64 ids = 1; }
+
+message GetStreamLatestWithinRangeReq {
+  double center_lat = 1; // @gotags: form:"centerLat" json:"centerLat"
+  double center_lng = 2; // @gotags: form:"centerLng" json:"centerLng"
+  double radiusMeters = 3; // @gotags: form:"radiusMeters" json:"radiusMeters"
+  uint32 interval = 4; // @gotags: form:"interval" json:"interval"
+}
+
+enum GetStreamLatestWithinRangeRespType {
+  ADD = 0;
+  REMOVE = 1;
+}
+
+message GetStreamLatestRecordsWithinRangeResp {
+  repeated CollectionRecord records = 1;
+  repeated uint64 ids = 2;
+  GetStreamLatestWithinRangeRespType type = 3;
+}
+
+message GetStreamLatestIdWithinRangeResp {
+  repeated uint64 ids = 1;
+  GetStreamLatestWithinRangeRespType type = 2;
+}

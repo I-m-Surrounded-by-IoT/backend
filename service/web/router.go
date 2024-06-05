@@ -115,7 +115,9 @@ func (ws *WebService) registerLog(logApi *gin.RouterGroup) {
 }
 
 func (ws *WebService) registerCollection(collectionApi *gin.RouterGroup) {
-	collectionApi.GET("/list", ws.ListCollectionRecord)
+	collectionApi.GET("/records/device", ws.ListCollectionRecord)
 
-	collectionApi.GET("/list/stream", ws.GetDeviceStreamReport)
+	collectionApi.GET("/records/device/stream", ws.GetDeviceStreamReport)
+
+	collectionApi.GET("/records/range/stream", ws.GetStreamLatestRecordsWithinRange)
 }

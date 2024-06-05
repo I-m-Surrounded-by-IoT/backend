@@ -20,6 +20,7 @@ import (
 	goredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
+	"github.com/zijiren233/gencontainer/set"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
@@ -383,4 +384,151 @@ func (s *CollectionService) GetDeviceStreamEvent(req *collectionApi.GetDeviceStr
 
 func (s *CollectionService) GetDeviceLastReport(ctx context.Context, req *collectionApi.GetDeviceLastReportReq) (*collectionApi.DeviceLastReport, error) {
 	return s.ccache.GetDeviceLastReport(ctx, req.Id)
+}
+
+func (s *CollectionService) GetLatestIdWithinRange(ctx context.Context, req *collectionApi.GetLatestWithinRangeReq) (*collectionApi.GetLatestIdWithinRangeResp, error) {
+	ids, err := s.db.GetDeviceIDsWithinRange(req.CenterLat, req.CenterLng, req.RadiusMeters, time.Now(), time.Time{})
+	if err != nil {
+		return nil, err
+	}
+	return &collectionApi.GetLatestIdWithinRangeResp{
+		Ids: ids,
+	}, nil
+}
+
+func (s *CollectionService) GetLatestRecordsWithinRange(ctx context.Context, req *collectionApi.GetLatestWithinRangeReq) (*collectionApi.GetLatestRecordsWithinRangeResp, error) {
+	records, err := s.db.GetLatestRecordsWithinRange(req.CenterLat, req.CenterLng, req.RadiusMeters, time.Now(), time.Time{})
+	if err != nil {
+		return nil, err
+	}
+	return &collectionApi.GetLatestRecordsWithinRangeResp{
+		Records: records2Proto(records),
+	}, nil
+}
+
+func (s *CollectionService) GetStreamLatestIdWithinRange(req *collectionApi.GetStreamLatestWithinRangeReq, resp collectionApi.Collection_GetStreamLatestIdWithinRangeServer) error {
+	if req.Interval == 0 {
+		req.Interval = 3
+	}
+	after := time.Time{}
+	ticker := time.NewTicker(time.Second * time.Duration(req.Interval))
+	defer ticker.Stop()
+	currentIds := set.New[uint64]()
+	for {
+		select {
+		case <-resp.Context().Done():
+			return nil
+		case <-ticker.C:
+			before := time.Now()
+			ids, err := s.db.GetDeviceIDsWithinRange(req.CenterLat, req.CenterLng, req.RadiusMeters, before, after)
+			if err != nil {
+				log.Errorf("get ids within range error: %v", err)
+				return err
+			}
+			if after.IsZero() {
+				currentIds.Push(ids...)
+				err = resp.Send(&collectionApi.GetStreamLatestIdWithinRangeResp{
+					Ids:  ids,
+					Type: collectionApi.GetStreamLatestWithinRangeRespType_ADD,
+				})
+				if err != nil {
+					log.Errorf("send add ids error: %v", err)
+					return err
+				}
+			} else {
+				idset := set.New[uint64]()
+				idset.Push(ids...)
+				newIds := idset.Difference(currentIds).Slice()
+				nids, err := s.db.GetIDsNotWithinRange(currentIds.Difference(idset).Slice(), req.CenterLat, req.CenterLng, req.RadiusMeters, after)
+				if err != nil {
+					log.Errorf("get ids not within range error: %v", err)
+					return err
+				}
+				if len(nids) != 0 {
+					for _, id := range nids {
+						currentIds.Remove(id)
+					}
+					err = resp.Send(&collectionApi.GetStreamLatestIdWithinRangeResp{
+						Ids:  nids,
+						Type: collectionApi.GetStreamLatestWithinRangeRespType_REMOVE,
+					})
+					if err != nil {
+						log.Errorf("send remove ids error: %v", err)
+						return err
+					}
+				}
+				if len(newIds) != 0 {
+					currentIds.Push(newIds...)
+					err = resp.Send(&collectionApi.GetStreamLatestIdWithinRangeResp{
+						Ids:  newIds,
+						Type: collectionApi.GetStreamLatestWithinRangeRespType_ADD,
+					})
+					if err != nil {
+						log.Errorf("send add ids error: %v", err)
+						return err
+					}
+				}
+			}
+			after = before
+		}
+	}
+}
+
+func (s *CollectionService) GetStreamLatestRecordsWithinRange(req *collectionApi.GetStreamLatestWithinRangeReq, resp collectionApi.Collection_GetStreamLatestRecordsWithinRangeServer) error {
+	if req.Interval == 0 {
+		req.Interval = 3
+	}
+	after := time.Time{}
+	ticker := time.NewTicker(time.Second * time.Duration(req.Interval))
+	defer ticker.Stop()
+	currentIds := set.New[uint64]()
+	for {
+		select {
+		case <-resp.Context().Done():
+			return nil
+		case <-ticker.C:
+			before := time.Now()
+			records, err := s.db.GetLatestRecordsWithinRange(req.CenterLat, req.CenterLng, req.RadiusMeters, before, after)
+			if err != nil {
+				log.Errorf("get latest records within range error: %v", err)
+				return err
+			}
+			idset := set.New[uint64]()
+			if len(records) != 0 {
+				for _, r := range records {
+					currentIds.Push(r.DeviceID)
+					idset.Push(r.DeviceID)
+				}
+				err = resp.Send(&collectionApi.GetStreamLatestRecordsWithinRangeResp{
+					Records: records2Proto(records),
+					Type:    collectionApi.GetStreamLatestWithinRangeRespType_ADD,
+				})
+				if err != nil {
+					log.Errorf("send add records error: %v", err)
+					return err
+				}
+			}
+			if !after.IsZero() {
+				nids, err := s.db.GetIDsNotWithinRange(currentIds.Difference(idset).Slice(), req.CenterLat, req.CenterLng, req.RadiusMeters, after)
+				if err != nil {
+					log.Errorf("get ids not within range error: %v", err)
+					return err
+				}
+				if len(nids) != 0 {
+					for _, id := range nids {
+						currentIds.Remove(id)
+					}
+					err = resp.Send(&collectionApi.GetStreamLatestRecordsWithinRangeResp{
+						Ids:  nids,
+						Type: collectionApi.GetStreamLatestWithinRangeRespType_REMOVE,
+					})
+					if err != nil {
+						log.Errorf("send remove ids error: %v", err)
+						return err
+					}
+				}
+			}
+			after = before
+		}
+	}
 }

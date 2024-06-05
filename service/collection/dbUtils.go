@@ -1,6 +1,8 @@
 package collection
 
 import (
+	"time"
+
 	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils"
 	"gorm.io/gorm"
@@ -42,4 +44,43 @@ func (u *dbUtils) CreateCollectionRecord(collection *model.CollectionRecord) err
 
 func (u *dbUtils) UpdateCollectionRecordLevel(deviceID uint64, level int64) error {
 	return u.db.Model(&model.CollectionRecord{}).Where("device_id = ?", deviceID).Update("level", level).Error
+}
+
+func (u *dbUtils) GetDeviceIDsWithinRange(centerLat, centerLon, radiusMeters float64, before, after time.Time) ([]uint64, error) {
+	var deviceIDs []uint64
+	err := u.db.Table("collection_records").
+		Select("DISTINCT ON (device_id) device_id").
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND created_at < ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before).
+		Where("ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
+		Scan(&deviceIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	return deviceIDs, nil
+}
+
+func (u *dbUtils) GetLatestRecordsWithinRange(centerLat, centerLon, radiusMeters float64, before, after time.Time) ([]*model.CollectionRecord, error) {
+	var records []*model.CollectionRecord
+	err := u.db.Table("collection_records").
+		Select("collection_records.*").
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND created_at < ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before).
+		Where("ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
+		Scan(&records).Error
+	if err != nil {
+		return nil, err
+	}
+	return records, err
+}
+
+func (u *dbUtils) GetIDsNotWithinRange(ids []uint64, centerLat, centerLon, radiusMeters float64, after time.Time) ([]uint64, error) {
+	var result []uint64
+	err := u.db.Table("collection_records").
+		Select("collection_records.device_id").
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND device_id IN ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, ids).
+		Where("NOT ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
+		Scan(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return result, err
 }
