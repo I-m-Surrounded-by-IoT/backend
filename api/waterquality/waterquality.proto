@@ -43,5 +43,5 @@ message PredictAndGuessReq {
 
 message PredictAndGuessResp {
   repeated Quality qualities = 1;
-  repeated int64 level = 2;
+  repeated int64 levels = 2;
 }

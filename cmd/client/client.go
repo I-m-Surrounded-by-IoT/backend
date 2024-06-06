@@ -17,6 +17,7 @@ var (
 	addr     string
 	clientid string
 	password string
+	interval int
 )
 
 var ClientCmd = &cobra.Command{
@@ -51,9 +52,7 @@ func ClientRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("failed to connect mqtt server: %v", token.Error())
 	}
 	log.Info("connected to mqtt server")
-	timer := time.NewTicker(time.Second * 5)
-	defer timer.Stop()
-	for range timer.C {
+	for {
 		data := &waterquality.Quality{
 			Timestamp: time.Now().UnixMilli(),
 			GeoPoint: &waterquality.GeoPoint{
@@ -82,6 +81,8 @@ func ClientRun(cmd *cobra.Command, args []string) {
 		if token := cli.Publish(fmt.Sprintf("device/%s/report", deviceID), 2, false, bytes); !token.WaitTimeout(time.Second * 5) {
 			log.Errorf("failed to publish data: %v", token.Error())
 		}
+
+		time.Sleep(time.Second * time.Duration(interval))
 	}
 }
 
@@ -89,4 +90,5 @@ func init() {
 	ClientCmd.PersistentFlags().StringVarP(&addr, "addr", "a", "", "mqtt address")
 	ClientCmd.PersistentFlags().StringVarP(&clientid, "clientid", "c", "", "mqtt client id")
 	ClientCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "mqtt password")
+	ClientCmd.PersistentFlags().IntVarP(&interval, "interval", "i", 60, "interval to publish data")
 }

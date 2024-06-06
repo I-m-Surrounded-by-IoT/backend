@@ -1858,7 +1858,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.waterquality.Quality'
-                level:
+                levels:
                     type: array
                     items:
                         type: string

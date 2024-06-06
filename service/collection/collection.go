@@ -170,7 +170,7 @@ func pbPredictAndGuess2Model(id uint, deviceID uint64, pbdata *waterquality.Pred
 	return &model.PredictAndGuess{
 		CollectionRecordID: id,
 		DeviceID:           deviceID,
-		Levles:             pbdata.Level,
+		Levles:             pbdata.Levels,
 		Predicts:           proto2Datas(pbdata.Qualities),
 	}
 }
@@ -184,15 +184,18 @@ func proto2Datas(data []*waterquality.Quality) []*model.CollectionData {
 }
 
 func proto2Data(data *waterquality.Quality) *model.CollectionData {
-	return &model.CollectionData{
+	c := &model.CollectionData{
 		Timestamp:   time.UnixMilli(data.Timestamp),
-		GeoPoint:    model.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon},
 		Temperature: data.Temperature,
 		Ph:          data.Ph,
 		Tsw:         data.Tsw,
 		Tds:         data.Tds,
 		Oxygen:      data.Oxygen,
 	}
+	if data.GeoPoint != nil {
+		c.GeoPoint = model.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon}
+	}
+	return c
 }
 
 func proto2Record(record *collectionApi.CollectionRecord) *model.CollectionRecord {
@@ -280,7 +283,7 @@ func (s *CollectionService) GetPredictQuality(ctx context.Context, req *collecti
 		return nil, err
 	}
 	return &waterquality.PredictAndGuessResp{
-		Level:     predic.Levles,
+		Levels:    predic.Levles,
 		Qualities: data2Proros(predic.Predicts),
 	}, nil
 }
