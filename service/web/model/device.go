@@ -12,7 +12,7 @@ type GetDeviceDetailReq struct {
 type GetDeviceDetailResp struct {
 	*device.DeviceInfo
 	*device.DeviceLastSeen
-	*collection.DeviceLastReport
+	*collection.CollectionRecord
 }
 
 type DeviceIDReq struct {

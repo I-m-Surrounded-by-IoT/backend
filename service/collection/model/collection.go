@@ -12,15 +12,17 @@ import (
 )
 
 type CollectionRecord struct {
-	DeviceID        uint64    `gorm:"primarykey"`
+	ID              uint      `gorm:"primarykey"`
+	DeviceID        uint64    `gorm:"uniqueIndex:collection_record_device_id_timestamp"`
 	CreatedAt       time.Time `gorm:"autoCreateTime"`
+	UpdatedAt       time.Time `gorm:"autoUpdateTime"`
 	ReceivedAt      time.Time
 	*CollectionData `gorm:"embedded"`
-	Level           int64 `gorm:"default:-1"`
+	PredictAndGuess *PredictAndGuess `gorm:"foreignKey:CollectionRecordID;references:ID"`
 }
 
 type CollectionData struct {
-	Timestamp   time.Time `gorm:"primarykey" redis:"timestamp"`
+	Timestamp   time.Time `gorm:"uniqueIndex:collection_record_device_id_timestamp" redis:"timestamp"`
 	GeoPoint    GeoPoint  `gorm:"not null;type:geography(POINT, 4326);index:,type:gist"`
 	Temperature float32
 	Ph          float32

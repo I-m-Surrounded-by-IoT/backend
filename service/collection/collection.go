@@ -52,6 +52,7 @@ func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectionCon
 		log.Infof("auto migrate database...")
 		err = d.AutoMigrate(
 			new(model.CollectionRecord),
+			new(model.PredictAndGuess),
 		)
 		if err != nil {
 			log.Fatalf("failed to migrate database: %v", err)
@@ -91,47 +92,37 @@ func collectionRecords2Qualities(records []*collectionApi.CollectionRecord) []*w
 }
 
 func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *collectionApi.CreateCollectionRecordReq) (*collectionApi.Empty, error) {
-	guess, err := s.waterQualityClient.GuessLevel(
-		ctx,
-		req.Data,
-	)
-	var level int64
-	if err != nil {
-		log.Errorf("failed to guess level: %v", err)
-		level = -1
-	} else {
-		level = guess.Level
-	}
-	err = s.db.CreateCollectionRecord(&model.CollectionRecord{
+	record := model.CollectionRecord{
 		DeviceID:       req.DeviceId,
 		ReceivedAt:     time.UnixMilli(req.ReceivedAt),
 		CollectionData: proto2Data(req.Data),
-		Level:          level,
-	})
+	}
+	err := s.db.CreateCollectionRecord(&record)
 	if err != nil {
 		return nil, err
 	}
-	err = s.ccache.UpdateDeviceLastReport(context.Background(), req.DeviceId, &collectionApi.DeviceLastReport{
-		ReceivedAt: req.ReceivedAt,
-		Data:       req.Data,
-		Level:      level,
-	})
-	if err != nil {
-		log.Errorf("failed to update device last report: %v", err)
-	}
-	resp, err := s.ListCollectionRecord(
-		ctx,
-		&collectionApi.ListCollectionRecordReq{
-			DeviceId: req.DeviceId,
-			Page:     1,
-			Size:     24,
-			Order:    collectionApi.CollectionRecordOrder_TIMESTAMP,
-			Sort:     collectionApi.Sort_DESC,
-		},
-	)
-	if err != nil {
-		log.Errorf("failed to list collection record: %v", err)
-	} else {
+	go func() {
+		err = s.ccache.UpdateDeviceLastReport(context.Background(), req.DeviceId, &record)
+		if err != nil {
+			log.Errorf("failed to update device last report: %v", err)
+		}
+	}()
+	go func() {
+		resp, err := s.ListCollectionRecord(
+			ctx,
+			&collectionApi.ListCollectionRecordReq{
+				DeviceId: req.DeviceId,
+				Page:     1,
+				Size:     24,
+				Order:    collectionApi.CollectionRecordOrder_TIMESTAMP,
+				Sort:     collectionApi.Sort_DESC,
+				Before:   record.CreatedAt.UnixMilli(),
+			},
+		)
+		if err != nil {
+			log.Errorf("failed to list collection record: %v", err)
+			return
+		}
 		pg, err := s.waterQualityClient.PredictAndGuess(
 			ctx,
 			&waterquality.PredictAndGuessReq{
@@ -142,17 +133,54 @@ func (s *CollectionService) CreateCollectionRecord(ctx context.Context, req *col
 		)
 		if err != nil {
 			log.Errorf("failed to predict and guess: %v", err)
+			return
 		}
-		err = s.ccache.UpdatePredictQuality(
+		model := pbPredictAndGuess2Model(record.ID, record.DeviceID, pg)
+		guess, err := s.waterQualityClient.GuessLevel(
 			ctx,
-			req.DeviceId,
-			pg,
+			req.Data,
 		)
 		if err != nil {
-			log.Errorf("failed to update predict quality: %v", err)
+			log.Errorf("failed to guess level: %v", err)
+			model.Level = -1
+		} else {
+			model.Level = guess.Level
 		}
-	}
+		go func() {
+			err = s.ccache.UpdateLastPredictQuality(
+				ctx,
+				req.DeviceId,
+				model,
+			)
+			if err != nil {
+				log.Errorf("failed to update predict quality: %v", err)
+			}
+		}()
+		err = s.db.CreateOrUpdatePredictAndGuess(
+			model,
+		)
+		if err != nil {
+			log.Errorf("failed to create or update predict and guess: %v", err)
+		}
+	}()
 	return &collectionApi.Empty{}, nil
+}
+
+func pbPredictAndGuess2Model(id uint, deviceID uint64, pbdata *waterquality.PredictAndGuessResp) *model.PredictAndGuess {
+	return &model.PredictAndGuess{
+		CollectionRecordID: id,
+		DeviceID:           deviceID,
+		Levles:             pbdata.Level,
+		Predicts:           proto2Datas(pbdata.Qualities),
+	}
+}
+
+func proto2Datas(data []*waterquality.Quality) []*model.CollectionData {
+	resp := make([]*model.CollectionData, len(data))
+	for i, d := range data {
+		resp[i] = proto2Data(d)
+	}
+	return resp
 }
 
 func proto2Data(data *waterquality.Quality) *model.CollectionData {
@@ -173,7 +201,6 @@ func proto2Record(record *collectionApi.CollectionRecord) *model.CollectionRecor
 		CreatedAt:      time.UnixMilli(record.CreatedAt),
 		ReceivedAt:     time.UnixMilli(record.ReceivedAt),
 		CollectionData: proto2Data(record.Data),
-		Level:          record.Level,
 	}
 }
 
@@ -186,12 +213,19 @@ func data2Proto(data *model.CollectionData) *waterquality.Quality {
 	}
 }
 
+func data2Proros(data []*model.CollectionData) []*waterquality.Quality {
+	resp := make([]*waterquality.Quality, len(data))
+	for i, d := range data {
+		resp[i] = data2Proto(d)
+	}
+	return resp
+}
+
 func record2Proto(record *model.CollectionRecord) *collectionApi.CollectionRecord {
 	return &collectionApi.CollectionRecord{
 		DeviceId:  record.DeviceID,
 		CreatedAt: record.CreatedAt.UnixMilli(),
 		Data:      data2Proto(record.CollectionData),
-		Level:     record.Level,
 	}
 }
 
@@ -241,7 +275,14 @@ func (s *CollectionService) ListCollectionRecord(ctx context.Context, req *colle
 }
 
 func (s *CollectionService) GetPredictQuality(ctx context.Context, req *collectionApi.GetPredictQualityReq) (*waterquality.PredictAndGuessResp, error) {
-	return s.ccache.GetPredictQuality(ctx, req.DeviceId)
+	predic, err := s.ccache.GetLastPredictQuality(ctx, req.DeviceId)
+	if err != nil {
+		return nil, err
+	}
+	return &waterquality.PredictAndGuessResp{
+		Level:     predic.Levles,
+		Qualities: data2Proros(predic.Predicts),
+	}, nil
 }
 
 func (s *CollectionService) GetDeviceStreamReport(req *collectionApi.GetDeviceStreamReportReq, resp collectionApi.Collection_GetDeviceStreamReportServer) error {
@@ -382,8 +423,12 @@ func (s *CollectionService) GetDeviceStreamEvent(req *collectionApi.GetDeviceStr
 	return nil
 }
 
-func (s *CollectionService) GetDeviceLastReport(ctx context.Context, req *collectionApi.GetDeviceLastReportReq) (*collectionApi.DeviceLastReport, error) {
-	return s.ccache.GetDeviceLastReport(ctx, req.Id)
+func (s *CollectionService) GetDeviceLastReport(ctx context.Context, req *collectionApi.GetDeviceLastReportReq) (*collectionApi.CollectionRecord, error) {
+	record, err := s.ccache.GetDeviceLastReport(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return record2Proto(record), nil
 }
 
 func (s *CollectionService) GetLatestIdWithinRange(ctx context.Context, req *collectionApi.GetLatestWithinRangeReq) (*collectionApi.GetLatestIdWithinRangeResp, error) {

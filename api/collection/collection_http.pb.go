@@ -29,7 +29,7 @@ const OperationCollectionListCollectionRecord = "/api.collection.Collection/List
 
 type CollectionHTTPServer interface {
 	CreateCollectionRecord(context.Context, *CreateCollectionRecordReq) (*Empty, error)
-	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
+	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*CollectionRecord, error)
 	GetLatestIdWithinRange(context.Context, *GetLatestWithinRangeReq) (*GetLatestIdWithinRangeResp, error)
 	GetLatestRecordsWithinRange(context.Context, *GetLatestWithinRangeReq) (*GetLatestRecordsWithinRangeResp, error)
 	GetPredictQuality(context.Context, *GetPredictQualityReq) (*waterquality.PredictAndGuessResp, error)
@@ -123,7 +123,7 @@ func _Collection_GetDeviceLastReport0_HTTP_Handler(srv CollectionHTTPServer) fun
 		if err != nil {
 			return err
 		}
-		reply := out.(*DeviceLastReport)
+		reply := out.(*CollectionRecord)
 		return ctx.Result(200, reply)
 	}
 }
@@ -174,7 +174,7 @@ func _Collection_GetLatestIdWithinRange0_HTTP_Handler(srv CollectionHTTPServer) 
 
 type CollectionHTTPClient interface {
 	CreateCollectionRecord(ctx context.Context, req *CreateCollectionRecordReq, opts ...http.CallOption) (rsp *Empty, err error)
-	GetDeviceLastReport(ctx context.Context, req *GetDeviceLastReportReq, opts ...http.CallOption) (rsp *DeviceLastReport, err error)
+	GetDeviceLastReport(ctx context.Context, req *GetDeviceLastReportReq, opts ...http.CallOption) (rsp *CollectionRecord, err error)
 	GetLatestIdWithinRange(ctx context.Context, req *GetLatestWithinRangeReq, opts ...http.CallOption) (rsp *GetLatestIdWithinRangeResp, err error)
 	GetLatestRecordsWithinRange(ctx context.Context, req *GetLatestWithinRangeReq, opts ...http.CallOption) (rsp *GetLatestRecordsWithinRangeResp, err error)
 	GetPredictQuality(ctx context.Context, req *GetPredictQualityReq, opts ...http.CallOption) (rsp *waterquality.PredictAndGuessResp, err error)
@@ -202,8 +202,8 @@ func (c *CollectionHTTPClientImpl) CreateCollectionRecord(ctx context.Context, i
 	return &out, err
 }
 
-func (c *CollectionHTTPClientImpl) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...http.CallOption) (*DeviceLastReport, error) {
-	var out DeviceLastReport
+func (c *CollectionHTTPClientImpl) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...http.CallOption) (*CollectionRecord, error) {
+	var out CollectionRecord
 	pattern := "/device/{id}/last_report"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationCollectionGetDeviceLastReport))

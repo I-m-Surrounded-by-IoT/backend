@@ -481,7 +481,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/api.collection.DeviceLastReport'
+                                $ref: '#/components/schemas/api.collection.CollectionRecord'
     /device/{id}/last_seen:
         get:
             tags:
@@ -1328,8 +1328,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/api.waterquality.Quality'
-                level:
-                    type: string
         api.collection.CreateCollectionRecordReq:
             type: object
             properties:
@@ -1338,15 +1336,6 @@ components:
                 data:
                     $ref: '#/components/schemas/api.waterquality.Quality'
                 receivedAt:
-                    type: string
-        api.collection.DeviceLastReport:
-            type: object
-            properties:
-                receivedAt:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/api.waterquality.Quality'
-                level:
                     type: string
         api.collection.Empty:
             type: object
@@ -1648,7 +1637,7 @@ components:
                 lastSeen:
                     $ref: '#/components/schemas/api.device.DeviceLastSeen'
                 lastReport:
-                    $ref: '#/components/schemas/api.collection.DeviceLastReport'
+                    $ref: '#/components/schemas/api.collection.CollectionRecord'
         api.notify.NotifyDeviceOnlineReq:
             type: object
             properties:
@@ -1659,7 +1648,7 @@ components:
                 seen:
                     $ref: '#/components/schemas/api.device.DeviceLastSeen'
                 report:
-                    $ref: '#/components/schemas/api.collection.DeviceLastReport'
+                    $ref: '#/components/schemas/api.collection.CollectionRecord'
         api.notify.NotifyTestEmailReq:
             type: object
             properties:

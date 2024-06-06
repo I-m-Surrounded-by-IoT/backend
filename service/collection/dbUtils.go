@@ -50,7 +50,7 @@ func (u *dbUtils) GetDeviceIDsWithinRange(centerLat, centerLon, radiusMeters flo
 	var deviceIDs []uint64
 	err := u.db.Table("collection_records").
 		Select("DISTINCT ON (device_id) device_id").
-		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND created_at < ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before).
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE (created_at > ? AND created_at < ?) OR (updated_at > ? AND updated_at < ?) GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before, after, before).
 		Where("ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
 		Scan(&deviceIDs).Error
 	if err != nil {
@@ -63,8 +63,9 @@ func (u *dbUtils) GetLatestRecordsWithinRange(centerLat, centerLon, radiusMeters
 	var records []*model.CollectionRecord
 	err := u.db.Table("collection_records").
 		Select("collection_records.*").
-		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND created_at < ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before).
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE (created_at > ? AND created_at < ?) OR (updated_at > ? AND updated_at < ?) GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before, after, before).
 		Where("ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
+		Preload("PredictAndGuess").
 		Scan(&records).Error
 	if err != nil {
 		return nil, err
@@ -76,11 +77,47 @@ func (u *dbUtils) GetIDsNotWithinRange(ids []uint64, centerLat, centerLon, radiu
 	var result []uint64
 	err := u.db.Table("collection_records").
 		Select("collection_records.device_id").
-		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE created_at > ? AND device_id IN ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, ids).
+		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE (created_at > ? OR updated_at > ?) AND device_id IN ? GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, after, ids).
 		Where("NOT ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
 		Scan(&result).Error
 	if err != nil {
 		return nil, err
 	}
 	return result, err
+}
+
+func (u *dbUtils) CreateOrUpdatePredictAndGuess(predictAndGuess *model.PredictAndGuess) error {
+	return u.db.Save(predictAndGuess).Error
+}
+
+func (u *dbUtils) GetPredictAndGuess(recordID uint64) (*model.PredictAndGuess, error) {
+	var predictAndGuess model.PredictAndGuess
+	err := u.db.Where("collection_record_id = ?", recordID).First(&predictAndGuess).Error
+	if err != nil {
+		return nil, err
+	}
+	return &predictAndGuess, nil
+}
+
+func (u *dbUtils) GetDeviceLastPredictAndGuess(deviceID uint64) (*model.PredictAndGuess, error) {
+	var predictAndGuess model.PredictAndGuess
+	err := u.db.Where("device_id = ?", deviceID).Order("created_at DESC").First(&predictAndGuess).Error
+	if err != nil {
+		return nil, err
+	}
+	return &predictAndGuess, nil
+}
+
+func (u *dbUtils) GetDeviceLastReport(deviceID uint64) (*model.CollectionRecord, error) {
+	var record model.CollectionRecord
+	err := u.db.
+		Where("device_id = ?", deviceID).
+		Order("timestamp DESC").
+		Preload("PredictAndGuess").
+		First(&record).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return &record, nil
 }

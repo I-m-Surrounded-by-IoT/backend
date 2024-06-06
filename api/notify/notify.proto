@@ -37,12 +37,12 @@ message NotifyDeviceOnlineReq {
   bool async = 1;
   uint64 device_id = 2;
   device.DeviceLastSeen seen = 3;
-  collection.DeviceLastReport report = 4;
+  collection.CollectionRecord report = 4;
 }
 
 message NotifyDeviceOfflineReq {
   bool async = 1;
   uint64 device_id = 2;
   device.DeviceLastSeen last_seen = 3;
-  collection.DeviceLastReport last_report = 4;
+  collection.CollectionRecord last_report = 4;
 }

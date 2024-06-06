@@ -41,7 +41,7 @@ type CollectionClient interface {
 	GetPredictQuality(ctx context.Context, in *GetPredictQualityReq, opts ...grpc.CallOption) (*waterquality.PredictAndGuessResp, error)
 	GetDeviceStreamReport(ctx context.Context, in *GetDeviceStreamReportReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamReportClient, error)
 	GetDeviceStreamEvent(ctx context.Context, in *GetDeviceStreamEventReq, opts ...grpc.CallOption) (Collection_GetDeviceStreamEventClient, error)
-	GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error)
+	GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*CollectionRecord, error)
 	GetLatestRecordsWithinRange(ctx context.Context, in *GetLatestWithinRangeReq, opts ...grpc.CallOption) (*GetLatestRecordsWithinRangeResp, error)
 	GetLatestIdWithinRange(ctx context.Context, in *GetLatestWithinRangeReq, opts ...grpc.CallOption) (*GetLatestIdWithinRangeResp, error)
 	GetStreamLatestRecordsWithinRange(ctx context.Context, in *GetStreamLatestWithinRangeReq, opts ...grpc.CallOption) (Collection_GetStreamLatestRecordsWithinRangeClient, error)
@@ -152,9 +152,9 @@ func (x *collectionGetDeviceStreamEventClient) Recv() (*GetDeviceStreamEventResp
 	return m, nil
 }
 
-func (c *collectionClient) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*DeviceLastReport, error) {
+func (c *collectionClient) GetDeviceLastReport(ctx context.Context, in *GetDeviceLastReportReq, opts ...grpc.CallOption) (*CollectionRecord, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeviceLastReport)
+	out := new(CollectionRecord)
 	err := c.cc.Invoke(ctx, Collection_GetDeviceLastReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ type CollectionServer interface {
 	GetPredictQuality(context.Context, *GetPredictQualityReq) (*waterquality.PredictAndGuessResp, error)
 	GetDeviceStreamReport(*GetDeviceStreamReportReq, Collection_GetDeviceStreamReportServer) error
 	GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error
-	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error)
+	GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*CollectionRecord, error)
 	GetLatestRecordsWithinRange(context.Context, *GetLatestWithinRangeReq) (*GetLatestRecordsWithinRangeResp, error)
 	GetLatestIdWithinRange(context.Context, *GetLatestWithinRangeReq) (*GetLatestIdWithinRangeResp, error)
 	GetStreamLatestRecordsWithinRange(*GetStreamLatestWithinRangeReq, Collection_GetStreamLatestRecordsWithinRangeServer) error
@@ -284,7 +284,7 @@ func (UnimplementedCollectionServer) GetDeviceStreamReport(*GetDeviceStreamRepor
 func (UnimplementedCollectionServer) GetDeviceStreamEvent(*GetDeviceStreamEventReq, Collection_GetDeviceStreamEventServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetDeviceStreamEvent not implemented")
 }
-func (UnimplementedCollectionServer) GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*DeviceLastReport, error) {
+func (UnimplementedCollectionServer) GetDeviceLastReport(context.Context, *GetDeviceLastReportReq) (*CollectionRecord, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDeviceLastReport not implemented")
 }
 func (UnimplementedCollectionServer) GetLatestRecordsWithinRange(context.Context, *GetLatestWithinRangeReq) (*GetLatestRecordsWithinRangeResp, error) {

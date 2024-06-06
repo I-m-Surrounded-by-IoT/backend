@@ -195,7 +195,6 @@ type device_online_offline_payload struct {
 	TSW         float32
 	TDS         float32
 	Oxygen      float32
-	Level       int64
 
 	Year int
 }
@@ -262,7 +261,6 @@ func (s *NotifyService) NotifyDeviceOnline(ctx context.Context, req *notify.Noti
 			TSW:         req.Report.Data.Tsw,
 			TDS:         req.Report.Data.Tds,
 			Oxygen:      req.Report.Data.Oxygen,
-			Level:       req.Report.Level,
 
 			Year: time.Now().Year(),
 		},
@@ -340,7 +338,6 @@ func (s *NotifyService) NotifyDeviceOffline(ctx context.Context, req *notify.Not
 			TSW:         req.LastReport.Data.Tsw,
 			TDS:         req.LastReport.Data.Tds,
 			Oxygen:      req.LastReport.Data.Oxygen,
-			Level:       req.LastReport.Level,
 
 			Year: time.Now().Year(),
 		},

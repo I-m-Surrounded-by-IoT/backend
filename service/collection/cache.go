@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
-	"github.com/I-m-Surrounded-by-IoT/backend/api/waterquality"
+	"github.com/I-m-Surrounded-by-IoT/backend/service/collection/model"
 	"github.com/I-m-Surrounded-by-IoT/backend/utils/rcache"
+	json "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
+	log "github.com/sirupsen/logrus"
 	"github.com/zijiren233/stream"
-	"google.golang.org/protobuf/proto"
 )
 
 type CollectionRcache struct {
@@ -25,8 +25,8 @@ func NewCollectionRcache(rcache *rcache.Rcache, client *dbUtils) *CollectionRcac
 	}
 }
 
-func (rc *CollectionRcache) UpdatePredictQuality(ctx context.Context, deviceID uint64, data *waterquality.PredictAndGuessResp) error {
-	b, err := proto.Marshal(data)
+func (rc *CollectionRcache) UpdateLastPredictQuality(ctx context.Context, deviceID uint64, data *model.PredictAndGuess) error {
+	b, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (rc *CollectionRcache) UpdatePredictQuality(ctx context.Context, deviceID u
 	).Err()
 }
 
-func (rc *CollectionRcache) GetPredictQuality(ctx context.Context, deviceID uint64) (*waterquality.PredictAndGuessResp, error) {
+func (rc *CollectionRcache) GetLastPredictQualityFromCache(ctx context.Context, deviceID uint64) (*model.PredictAndGuess, error) {
 	b, err := rc.rcache.Get(
 		ctx,
 		fmt.Sprintf("predict:quality:%d", deviceID),
@@ -46,8 +46,48 @@ func (rc *CollectionRcache) GetPredictQuality(ctx context.Context, deviceID uint
 	if err != nil {
 		return nil, err
 	}
-	data := &waterquality.PredictAndGuessResp{}
-	err = proto.Unmarshal(b, data)
+	data := &model.PredictAndGuess{}
+	err = json.Unmarshal(b, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (rc *CollectionRcache) GetLastPredictQuality(ctx context.Context, deviceID uint64) (*model.PredictAndGuess, error) {
+	resp, err := rc.GetLastPredictQualityFromCache(ctx, deviceID)
+	if err == nil {
+		return resp, nil
+	}
+	if err != redis.Nil {
+		log.Errorf("failed to get predict quality from cache: %v", err)
+	}
+
+	lock := rc.rcache.NewMutex(fmt.Sprintf("mutex:predict:quality:%d", deviceID))
+	err = lock.LockContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to lock mutex: %w", err)
+	}
+	defer func() {
+		_, err := lock.UnlockContext(ctx)
+		if err != nil {
+			log.Errorf("failed to unlock mutex: %v", err)
+		}
+	}()
+
+	resp, err = rc.GetLastPredictQualityFromCache(ctx, deviceID)
+	if err == nil {
+		return resp, nil
+	}
+	if err != redis.Nil {
+		log.Errorf("failed to get predict quality from cache: %v", err)
+	}
+
+	data, err := rc.db.GetDeviceLastPredictAndGuess(deviceID)
+	if err != nil {
+		return nil, err
+	}
+	err = rc.UpdateLastPredictQuality(ctx, deviceID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +100,13 @@ local at = ARGV[1]
 local data = ARGV[2]
 local last = redis.call('HGET', key, 'at')
 if last == false or last < at then
-	redis.call('HMSET', key, 'at', at, 'data', data, 'level', level)
+	redis.call('HMSET', key, 'at', at, 'data', data)
 end
 return 0
 `)
 
-func (rc *CollectionRcache) UpdateDeviceLastReport(ctx context.Context, id uint64, lastlocal *collection.DeviceLastReport) error {
-	b, err := proto.Marshal(lastlocal)
+func (rc *CollectionRcache) UpdateDeviceLastReport(ctx context.Context, id uint64, lastlocal *model.CollectionRecord) error {
+	b, err := json.Marshal(lastlocal.CollectionData)
 	if err != nil {
 		return err
 	}
@@ -74,32 +114,75 @@ func (rc *CollectionRcache) UpdateDeviceLastReport(ctx context.Context, id uint6
 		ctx,
 		rc.rcache,
 		[]string{fmt.Sprintf("device:last:report:%d", id)},
-		strconv.FormatInt(lastlocal.ReceivedAt, 10),
+		strconv.FormatInt(lastlocal.ReceivedAt.UnixMilli(), 10),
 		b,
 	).Err()
 }
 
-func (rc *CollectionRcache) GetDeviceLastReport(ctx context.Context, id uint64) (*collection.DeviceLastReport, error) {
+func (rc *CollectionRcache) GetDeviceLastReportFromCache(ctx context.Context, id uint64) (*model.CollectionRecord, error) {
 	resp, err := rc.rcache.HMGet(
 		ctx,
 		fmt.Sprintf("device:last:report:%d", id),
 		"at",
 		"data",
 	).Result()
+	if err == nil {
+		if len(resp) != 2 {
+			return nil, redis.Nil
+		}
+		lastlocal := &model.CollectionData{}
+		data, ok := resp[1].(string)
+		if !ok {
+			return nil, fmt.Errorf("failed to convert resp proto data to string")
+		}
+		err = json.Unmarshal(stream.StringToBytes(data), lastlocal)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal device last report: %w", err)
+		}
+		return &model.CollectionRecord{
+			DeviceID:       id,
+			CollectionData: lastlocal,
+		}, nil
+	}
+	return nil, err
+}
+
+func (rc *CollectionRcache) GetDeviceLastReport(ctx context.Context, id uint64) (*model.CollectionRecord, error) {
+	resp, err := rc.GetDeviceLastReportFromCache(ctx, id)
+	if err == nil {
+		return resp, nil
+	}
+	if err != redis.Nil {
+		log.Errorf("failed to get device last report from cache: %v", err)
+	}
+
+	lock := rc.rcache.NewMutex(fmt.Sprintf("mutex:device:last:report:%d", id))
+	err = lock.LockContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to lock mutex: %w", err)
 	}
-	if len(resp) != 2 {
-		return nil, redis.Nil
+	defer func() {
+		_, err := lock.UnlockContext(ctx)
+		if err != nil {
+			log.Errorf("failed to unlock mutex: %v", err)
+		}
+	}()
+	resp, err = rc.GetDeviceLastReportFromCache(ctx, id)
+	if err == nil {
+		return resp, nil
 	}
-	lastlocal := &collection.DeviceLastReport{}
-	data, ok := resp[1].(string)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert resp proto data to string")
+	if err != redis.Nil {
+		log.Errorf("failed to get device last report from cache: %v", err)
 	}
-	err = proto.Unmarshal(stream.StringToBytes(data), lastlocal)
+
+	resp, err = rc.db.GetDeviceLastReport(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data: %w", err)
+		return nil, fmt.Errorf("failed to get device last report from db: %w", err)
 	}
-	return lastlocal, nil
+
+	err = rc.UpdateDeviceLastReport(ctx, id, resp)
+	if err != nil {
+		log.Errorf("failed to update device last report to cache: %v", err)
+	}
+	return resp, nil
 }

@@ -45,7 +45,7 @@ service Collection {
     };
   }
 
-  rpc GetDeviceLastReport(GetDeviceLastReportReq) returns (DeviceLastReport) {
+  rpc GetDeviceLastReport(GetDeviceLastReportReq) returns (CollectionRecord) {
     option (google.api.http) = {
       get : "/device/{id}/last_report"
     };
@@ -96,7 +96,6 @@ message CollectionRecord {
   int64 created_at = 3;  // @gotags: json:"createdAt"
   int64 received_at = 4; // @gotags: json:"receivedAt"
   waterquality.Quality data = 5;
-  int64 level = 6; // @gotags: json:"level"
 }
 
 message Empty {}
@@ -143,12 +142,6 @@ message GetDeviceStreamEventResp {
   string topic = 1;    // @gotags: json:"topic"
   string message = 2;  // @gotags: json:"message"
   int64 timestamp = 3; // @gotags: json:"timestamp"
-}
-
-message DeviceLastReport {
-  int64 received_at = 1;         // @gotags: json:"receivedAt"
-  waterquality.Quality data = 2; // @gotags: redis:"data" json:"data"
-  int64 level = 3;               // @gotags: json:"level"
 }
 
 message GetDeviceLastReportReq { uint64 id = 1; }

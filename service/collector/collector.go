@@ -281,10 +281,10 @@ func (s *CollectorService) handlerDeviceReport(c mqtt.Client, m mqtt.Message) {
 					DeviceId: id,
 					Async:    true,
 					Seen:     ls,
-					Report: &collection.DeviceLastReport{
+					Report: &collection.CollectionRecord{
+						DeviceId:   id,
 						ReceivedAt: time.Now().UnixMilli(),
 						Data:       data,
-						Level:      -1,
 					},
 				},
 			)
