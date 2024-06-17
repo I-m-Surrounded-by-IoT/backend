@@ -25,7 +25,7 @@ require (
 	github.com/panjf2000/ants/v2 v2.9.1
 	github.com/redis/go-redis/v9 v9.5.2
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/ulule/limiter/v3 v3.11.2
 	github.com/zijiren233/gencontainer v0.0.0-20240507135401-7a9c8355bb2c
 	github.com/zijiren233/go-colorable v0.0.0-20230930131441-997304c961cb
