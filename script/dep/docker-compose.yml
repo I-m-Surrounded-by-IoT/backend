@@ -128,6 +128,9 @@ services:
       interval: 5s
       timeout: 25s
       retries: 5
+    volumes:
+      - ./emqx/data/1:/opt/emqx/data
+      - ./emqx/log/1:/opt/emqx/log
     networks:
       emqx-bridge:
         aliases:
@@ -138,9 +141,6 @@ services:
       - 8084:8084
       - 8883:8883
       - 18083:18083
-    # volumes:
-    #   - $PWD/emqx1_data:/opt/emqx/data
-
   emqx2:
     image: emqx:latest
     container_name: emqx2
@@ -153,12 +153,13 @@ services:
       interval: 5s
       timeout: 25s
       retries: 5
+    volumes:
+      - ./emqx/data/2:/opt/emqx/data
+      - ./emqx/log/2:/opt/emqx/log
     networks:
       emqx-bridge:
         aliases:
           - node2.emqx.io
-    # volumes:
-    #   - $PWD/emqx2_data:/opt/emqx/data
 
   postgres-log:
     image: postgres:alpine
