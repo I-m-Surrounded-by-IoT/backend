@@ -176,7 +176,7 @@ services:
     ports:
       - "5000:5432"
     volumes:
-      - ./db/log:/var/lib/postgresql
+      - ./db/log:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: log
@@ -193,7 +193,7 @@ services:
     ports:
       - "5001:5432"
     volumes:
-      - ./db/device:/var/lib/postgresql
+      - ./db/device:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: device
@@ -210,7 +210,7 @@ services:
     ports:
       - "5002:5432"
     volumes:
-      - ./db/collection:/var/lib/postgresql
+      - ./db/collection:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: collection
@@ -227,7 +227,7 @@ services:
     ports:
       - "5003:5432"
     volumes:
-      - ./db/user:/var/lib/postgresql
+      - ./db/user:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: user
@@ -244,7 +244,7 @@ services:
     ports:
       - "5004:5432"
     volumes:
-      - ./db/message:/var/lib/postgresql
+      - ./db/message:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: message
