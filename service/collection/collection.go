@@ -444,13 +444,30 @@ func (s *CollectionService) GetLatestIdWithinRange(ctx context.Context, req *col
 	}, nil
 }
 
+func records2ProtoAndGuess(records []*model.CollectionRecord) []*collectionApi.GetLatestRecordsAndGuess {
+	var result []*collectionApi.GetLatestRecordsAndGuess = make([]*collectionApi.GetLatestRecordsAndGuess, 0, len(records))
+	for _, record := range records {
+		data := &collectionApi.GetLatestRecordsAndGuess{
+			Record: record2Proto(record),
+		}
+		if record.PredictAndGuess != nil {
+			data.Guess = &waterquality.PredictAndGuessResp{
+				Qualities: data2Proros(record.PredictAndGuess.Predicts),
+				Levels:    record.PredictAndGuess.Levles,
+			}
+		}
+		result = append(result, data)
+	}
+	return result
+}
+
 func (s *CollectionService) GetLatestRecordsWithinRange(ctx context.Context, req *collectionApi.GetLatestWithinRangeReq) (*collectionApi.GetLatestRecordsWithinRangeResp, error) {
 	records, err := s.db.GetLatestRecordsWithinRange(req.CenterLat, req.CenterLng, req.RadiusMeters, time.Now(), time.Time{})
 	if err != nil {
 		return nil, err
 	}
 	return &collectionApi.GetLatestRecordsWithinRangeResp{
-		Records: records2Proto(records),
+		Records: records2ProtoAndGuess(records),
 	}, nil
 }
 
@@ -548,7 +565,7 @@ func (s *CollectionService) GetStreamLatestRecordsWithinRange(req *collectionApi
 					idset.Push(r.DeviceID)
 				}
 				err = resp.Send(&collectionApi.GetStreamLatestRecordsWithinRangeResp{
-					Records: records2Proto(records),
+					Records: records2ProtoAndGuess(records),
 					Type:    collectionApi.GetStreamLatestWithinRangeRespType_ADD,
 				})
 				if err != nil {

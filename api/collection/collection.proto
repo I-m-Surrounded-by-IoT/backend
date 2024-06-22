@@ -152,8 +152,13 @@ message GetLatestWithinRangeReq {
   double radiusMeters = 3; // @gotags: form:"radiusMeters" json:"radiusMeters"
 }
 
+message GetLatestRecordsAndGuess {
+  CollectionRecord record = 1;
+  waterquality.PredictAndGuessResp guess = 2;
+}
+
 message GetLatestRecordsWithinRangeResp {
-  repeated CollectionRecord records = 1;
+  repeated GetLatestRecordsAndGuess records = 1;
 }
 
 message GetLatestIdWithinRangeResp { repeated uint64 ids = 1; }
@@ -171,7 +176,7 @@ enum GetStreamLatestWithinRangeRespType {
 }
 
 message GetStreamLatestRecordsWithinRangeResp {
-  repeated CollectionRecord records = 1;
+  repeated GetLatestRecordsAndGuess records = 1;
   repeated uint64 ids = 2;
   GetStreamLatestWithinRangeRespType type = 3;
 }

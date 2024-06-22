@@ -1368,13 +1368,20 @@ components:
                     type: array
                     items:
                         type: string
+        api.collection.GetLatestRecordsAndGuess:
+            type: object
+            properties:
+                record:
+                    $ref: '#/components/schemas/api.collection.CollectionRecord'
+                guess:
+                    $ref: '#/components/schemas/api.waterquality.PredictAndGuessResp'
         api.collection.GetLatestRecordsWithinRangeResp:
             type: object
             properties:
                 records:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+                        $ref: '#/components/schemas/api.collection.GetLatestRecordsAndGuess'
         api.collection.GetLatestWithinRangeReq:
             type: object
             properties:
@@ -1403,7 +1410,7 @@ components:
                 records:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+                        $ref: '#/components/schemas/api.collection.GetLatestRecordsAndGuess'
                 ids:
                     type: array
                     items:
