@@ -11,6 +11,7 @@ type PredictAndGuess struct {
 	CollectionRecordID uint              `gorm:"uniqueIndex;not null"`
 	DeviceID           uint64            `gorm:"not null"`
 	CreatedAt          time.Time         `gorm:"autoCreateTime"`
+	UpdatedAt          time.Time         `gorm:"autoUpdateTime"`
 	Level              int64             `gorm:"default:-1"`
 	Predicts           []*CollectionData `gorm:"serializer:fastjson"`
 	Levles             []int64           `gorm:"serializer:fastjson"`
@@ -22,5 +23,5 @@ func (p *PredictAndGuess) AfterCreate(tx *gorm.DB) (err error) {
 }
 
 func (p *PredictAndGuess) AfterUpdate(tx *gorm.DB) (err error) {
-	return tx.Model(&CollectionRecord{}).Where("id = ?", p.CollectionRecordID).Update("updated_at", p.CreatedAt).Error
+	return tx.Model(&CollectionRecord{}).Where("id = ?", p.CollectionRecordID).Update("updated_at", p.UpdatedAt).Error
 }

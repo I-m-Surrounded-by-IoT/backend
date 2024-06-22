@@ -61,12 +61,11 @@ func (u *dbUtils) GetDeviceIDsWithinRange(centerLat, centerLon, radiusMeters flo
 
 func (u *dbUtils) GetLatestRecordsWithinRange(centerLat, centerLon, radiusMeters float64, before, after time.Time) ([]*model.CollectionRecord, error) {
 	var records []*model.CollectionRecord
-	err := u.db.Table("collection_records").
-		Select("collection_records.*").
+	err := u.db.
 		Joins("JOIN (SELECT device_id, MAX(timestamp) as latest_timestamp FROM collection_records WHERE (created_at > ? AND created_at < ?) OR (updated_at > ? AND updated_at < ?) GROUP BY device_id) latest ON collection_records.device_id = latest.device_id AND collection_records.timestamp = latest.latest_timestamp", after, before, after, before).
 		Where("ST_DWithin(geo_point, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, ?)", centerLon, centerLat, radiusMeters).
 		Preload("PredictAndGuess").
-		Scan(&records).Error
+		Find(&records).Error
 	if err != nil {
 		return nil, err
 	}
