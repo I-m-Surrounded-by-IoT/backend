@@ -120,4 +120,8 @@ func (ws *WebService) registerCollection(collectionApi *gin.RouterGroup) {
 	collectionApi.GET("/records/device/stream", ws.GetDeviceStreamReport)
 
 	collectionApi.GET("/records/range/stream", ws.GetStreamLatestRecordsWithinRange)
+
+	collectionApi.GET("/report_now", ws.ReportNow)
+
+	collectionApi.GET("/boat_control", ws.BoatControl)
 }

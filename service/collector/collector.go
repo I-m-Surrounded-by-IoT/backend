@@ -407,3 +407,35 @@ func (c *CollectorService) UpdateDeviceLastSeen(ctx context.Context, id uint64, 
 	})
 	return err
 }
+
+func (c *CollectorService) ReportNow(ctx context.Context, req *collectorApi.ReportNowReq) (*collectorApi.Empty, error) {
+	log := log.WithField("topic", fmt.Sprintf("device/%d/report_now", req.DeviceId))
+	log = log.WithField("device_id", req.DeviceId)
+	if token := c.mqttClient.Publish(fmt.Sprintf("device/%d/report_now", req.DeviceId), 2, false, "report_now"); !token.WaitTimeout(time.Second * 5) {
+		log.Errorf("failed to publish report now data: %v", token.Error())
+		return nil, fmt.Errorf("failed to publish report now data: %v", token.Error())
+	}
+	return &collectorApi.Empty{}, nil
+}
+
+func (c *CollectorService) BoatControl(ctx context.Context, req *collectorApi.BoatControlReq) (*collectorApi.Empty, error) {
+	log := log.WithField("topic", fmt.Sprintf("device/%d/boat_control", req.DeviceId))
+	log = log.WithField("device_id", req.DeviceId)
+	cmd := ""
+	switch req.Command {
+	case collectorApi.BoatControlCommand_FORWARD:
+		cmd = "forward"
+	case collectorApi.BoatControlCommand_LEFT:
+		cmd = "left"
+	case collectorApi.BoatControlCommand_RIGHT:
+		cmd = "right"
+	default:
+		log.Errorf("invalid command: %v", req.Command)
+		return nil, fmt.Errorf("invalid command: %v", req.Command)
+	}
+	if token := c.mqttClient.Publish(fmt.Sprintf("device/%d/boat_control", req.DeviceId), 2, false, cmd); !token.WaitTimeout(time.Second * 5) {
+		log.Errorf("failed to publish boat control command: %v", token.Error())
+		return nil, fmt.Errorf("failed to publish boat control command: %v", token.Error())
+	}
+	return &collectorApi.Empty{}, nil
+}

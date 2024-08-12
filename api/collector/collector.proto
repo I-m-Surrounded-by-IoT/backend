@@ -7,9 +7,9 @@ option go_package = "github.com/I-m-Surrounded-by-IoT/backend/api/collector;coll
 import "google/api/annotations.proto";
 
 service Collector {
-  rpc ReportImmediately(ReportImmediatelyReq) returns (Empty) {
+  rpc ReportNow(ReportNowReq) returns (Empty) {
     option (google.api.http) = {
-      post : "/collector/report_immediately"
+      post : "/collector/report_now"
       body : "*"
     };
   }
@@ -20,15 +20,38 @@ service Collector {
       body : "*"
     };
   }
+
+  rpc BoatControl(BoatControlReq) returns (Empty) {
+    option (google.api.http) = {
+      post : "/collector/boat_control"
+      body : "*"
+    };
+  }
 }
 
-message ReportImmediatelyReq { uint64 id = 1; }
+message ReportNowReq {
+  uint64 device_id =
+      1; // @gotags: form:"deviceId" json:"deviceId" binding:"required"
+}
 
 message Empty {}
 
 message SetReportIntervalReq {
-  uint64 id = 1;
+  uint64 device_id =
+      1; // @gotags: form:"deviceId" json:"deviceId" binding:"required"
   uint64 interval = 2;
 }
 
 message SetReportIntervalResp {}
+
+enum BoatControlCommand {
+  FORWARD = 0;
+  LEFT = 1;
+  RIGHT = 2;
+}
+
+message BoatControlReq {
+  uint64 device_id =
+      1; // @gotags: form:"deviceId" json:"deviceId" binding:"required"
+  BoatControlCommand command = 2;
+}

@@ -227,16 +227,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.collection.Empty'
-    /collector/report_immediately:
+    /collector/boat_control:
         post:
             tags:
                 - Collector
-            operationId: Collector_ReportImmediately
+            operationId: Collector_BoatControl
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/api.collector.ReportImmediatelyReq'
+                            $ref: '#/components/schemas/api.collector.BoatControlReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.collector.Empty'
+    /collector/report_now:
+        post:
+            tags:
+                - Collector
+            operationId: Collector_ReportNow
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.collector.ReportNowReq'
                 required: true
             responses:
                 "200":
@@ -1442,18 +1460,26 @@ components:
                         $ref: '#/components/schemas/api.collection.CollectionRecord'
                 total:
                     type: string
+        api.collector.BoatControlReq:
+            type: object
+            properties:
+                deviceId:
+                    type: string
+                command:
+                    type: integer
+                    format: enum
         api.collector.Empty:
             type: object
             properties: {}
-        api.collector.ReportImmediatelyReq:
+        api.collector.ReportNowReq:
             type: object
             properties:
-                id:
+                deviceId:
                     type: string
         api.collector.SetReportIntervalReq:
             type: object
             properties:
-                id:
+                deviceId:
                     type: string
                 interval:
                     type: string

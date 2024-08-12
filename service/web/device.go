@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/I-m-Surrounded-by-IoT/backend/api/collection"
+	"github.com/I-m-Surrounded-by-IoT/backend/api/collector"
 	"github.com/I-m-Surrounded-by-IoT/backend/api/device"
 	"github.com/I-m-Surrounded-by-IoT/backend/service/web/model"
 	"github.com/gin-gonic/gin"
@@ -126,4 +127,46 @@ func (ws *WebService) GetDeviceStreamReport(ctx *gin.Context) {
 			ctx.Writer.Flush()
 		}
 	}
+}
+
+func (ws *WebService) ReportNow(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
+	req := collector.ReportNowReq{}
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		log.Errorf("bind query error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	_, err = ws.collectorClient.ReportNow(ctx, &req)
+	if err != nil {
+		log.Errorf("report now error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, model.NewApiDataResp(nil))
+}
+
+func (ws *WebService) BoatControl(ctx *gin.Context) {
+	log := ctx.MustGet("log").(*log.Entry)
+
+	req := collector.BoatControlReq{}
+	err := ctx.ShouldBindQuery(&req)
+	if err != nil {
+		log.Errorf("bind query error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, model.NewApiErrorResp(err))
+		return
+	}
+
+	_, err = ws.collectorClient.BoatControl(ctx, &req)
+	if err != nil {
+		log.Errorf("boat control error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, model.NewApiErrorResp(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, model.NewApiDataResp(nil))
 }
