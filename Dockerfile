@@ -8,7 +8,7 @@ COPY ./ ./
 
 RUN apk add --no-cache bash curl gcc git musl-dev 
 
-RUN bash script/build.sh -v ${VERSION}
+RUN go build -o build/backend -ldflags "-s -w" -tags "jsoniter" -trimpath .
 
 FROM alpine:latest
 
@@ -21,9 +21,9 @@ COPY script/entrypoint.sh /entrypoint.sh
 RUN apk add --no-cache bash ca-certificates su-exec tzdata && \
     rm -rf /var/cache/apk/* && \
     chmod +x /entrypoint.sh && \
-    mkdir -p /backend
+    mkdir -p /app
 
-WORKDIR /backend
+WORKDIR /app
 
 EXPOSE 9000
 
