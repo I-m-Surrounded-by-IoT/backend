@@ -213,6 +213,9 @@ func data2Proto(data *model.CollectionData) *waterquality.Quality {
 		GeoPoint:    &waterquality.GeoPoint{Lat: data.GeoPoint.Lat, Lon: data.GeoPoint.Lon},
 		Temperature: data.Temperature,
 		Ph:          data.Ph,
+		Tsw:         data.Tds,
+		Tds:         data.Tds,
+		Oxygen:      data.Oxygen,
 	}
 }
 
