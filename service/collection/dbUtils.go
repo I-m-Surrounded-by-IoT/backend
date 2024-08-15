@@ -22,7 +22,7 @@ func (u *dbUtils) GetCollectionRecord(deviceID uint64, scopes ...func(*gorm.DB) 
 
 func (u *dbUtils) ListCollectionRecord(scopes ...func(*gorm.DB) *gorm.DB) ([]*model.CollectionRecord, error) {
 	var collections []*model.CollectionRecord
-	err := u.db.Scopes(scopes...).Find(&collections).Error
+	err := u.db.Scopes(scopes...).Preload("PredictAndGuess").Find(&collections).Error
 	if err != nil {
 		return nil, err
 	}

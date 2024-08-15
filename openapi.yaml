@@ -1393,6 +1393,8 @@ components:
                     $ref: '#/components/schemas/api.collection.CollectionRecord'
                 guess:
                     $ref: '#/components/schemas/api.waterquality.PredictAndGuessResp'
+                level:
+                    type: string
         api.collection.GetLatestRecordsWithinRangeResp:
             type: object
             properties:
@@ -1457,7 +1459,7 @@ components:
                 records:
                     type: array
                     items:
-                        $ref: '#/components/schemas/api.collection.CollectionRecord'
+                        $ref: '#/components/schemas/api.collection.GetLatestRecordsAndGuess'
                 total:
                     type: string
         api.collector.BoatControlReq:

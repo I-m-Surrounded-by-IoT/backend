@@ -83,10 +83,10 @@ func NewCollectionDatabase(dc *conf.DatabaseServerConfig, cc *conf.CollectionCon
 	return db
 }
 
-func collectionRecords2Qualities(records []*collectionApi.CollectionRecord) []*waterquality.Quality {
+func collectionRecords2Qualities(records []*collectionApi.GetLatestRecordsAndGuess) []*waterquality.Quality {
 	qualities := make([]*waterquality.Quality, len(records))
 	for i, r := range records {
-		qualities[i] = r.Data
+		qualities[i] = r.Record.Data
 	}
 	return qualities
 }
@@ -226,9 +226,11 @@ func data2Proros(data []*model.CollectionData) []*waterquality.Quality {
 
 func record2Proto(record *model.CollectionRecord) *collectionApi.CollectionRecord {
 	return &collectionApi.CollectionRecord{
-		DeviceId:  record.DeviceID,
-		CreatedAt: record.CreatedAt.UnixMilli(),
-		Data:      data2Proto(record.CollectionData),
+		Id:         uint64(record.ID),
+		DeviceId:   record.DeviceID,
+		ReceivedAt: record.ReceivedAt.UnixMilli(),
+		CreatedAt:  record.CreatedAt.UnixMilli(),
+		Data:       data2Proto(record.CollectionData),
 	}
 }
 
@@ -272,7 +274,7 @@ func (s *CollectionService) ListCollectionRecord(ctx context.Context, req *colle
 	}
 
 	return &collectionApi.ListCollectionRecordResp{
-		Records: records2Proto(c),
+		Records: records2ProtoAndGuess(c),
 		Total:   count,
 	}, nil
 }
@@ -449,6 +451,7 @@ func records2ProtoAndGuess(records []*model.CollectionRecord) []*collectionApi.G
 	for _, record := range records {
 		data := &collectionApi.GetLatestRecordsAndGuess{
 			Record: record2Proto(record),
+			Level:  record.PredictAndGuess.Level,
 		}
 		if record.PredictAndGuess != nil {
 			data.Guess = &waterquality.PredictAndGuessResp{

@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   web:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: web
     restart: unless-stopped
     ports:
@@ -22,7 +22,7 @@ services:
     command: web
 
   log:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: log
     restart: unless-stopped
     ports:
@@ -47,7 +47,7 @@ services:
     command: log
 
   device:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: device
     restart: unless-stopped
     ports:
@@ -76,7 +76,7 @@ services:
     command: device
 
   collection:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: collection
     restart: unless-stopped
     ports:
@@ -105,7 +105,7 @@ services:
     command: collection
 
   user:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: user
     restart: unless-stopped
     ports:
@@ -131,7 +131,7 @@ services:
     command: user
 
   collector:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: collector
     restart: unless-stopped
     ports:
@@ -157,7 +157,7 @@ services:
     command: collector
 
   email:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: email
     restart: unless-stopped
     ports:
@@ -182,7 +182,7 @@ services:
     command: email
 
   captcha:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: captcha
     restart: unless-stopped
     ports:
@@ -205,7 +205,7 @@ services:
     command: captcha
 
   notify:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: notify
     restart: unless-stopped
     ports:
@@ -224,7 +224,7 @@ services:
     command: notify
 
   message:
-    image: "zijiren/backend:latest"
+    image: "ghcr.pyhdxy.cn/i-m-surrounded-by-iot/backend:latest"
     container_name: message
     restart: unless-stopped
     ports:
