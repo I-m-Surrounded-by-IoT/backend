@@ -451,13 +451,13 @@ func records2ProtoAndGuess(records []*model.CollectionRecord) []*collectionApi.G
 	for _, record := range records {
 		data := &collectionApi.GetLatestRecordsAndGuess{
 			Record: record2Proto(record),
-			Level:  record.PredictAndGuess.Level,
 		}
 		if record.PredictAndGuess != nil {
 			data.Guess = &waterquality.PredictAndGuessResp{
 				Qualities: data2Proros(record.PredictAndGuess.Predicts),
 				Levels:    record.PredictAndGuess.Levles,
 			}
+			data.Level = record.PredictAndGuess.Level
 		}
 		result = append(result, data)
 	}
